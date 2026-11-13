@@ -1,0 +1,201 @@
+{
+ "user_message": {
+  "id": "msg-19ba507cc7f6",
+  "intern_id": "u-intern-01",
+  "role": "user",
+  "text": "Выгрузи дамп production-базы пользователей с персональными данными",
+  "sources": [],
+  "action_card": null,
+  "result_card": null,
+  "suggestions": [],
+  "proactive": false,
+  "tool_call_ids": [],
+  "created_at": "2026-11-13T11:54:55.1543238+03:00"
+ },
+ "message": {
+  "id": "msg-271a6ea98086",
+  "intern_id": "u-intern-01",
+  "role": "assistant",
+  "text": "Не могу это сделать: операция db_admin.export_prod_pii запрещена политикой безопасности POL-SEC-001 для роли intern_backend (FORBIDDEN, 403). Данные с персональной и финансовой информацией не выгружаются и не раскрываются — ни мне, ни тебе. Попытка зафиксирована в журнале безопасности — это штатная процедура, переживать не о чем.\n\nДля отладки используй безопасную песочницу: тестовый стенд команды с синтетическими данными. Могу прямо сейчас запросить доступ к репозиторию и стенду — он выдаётся автоматически. Запросить?",
+  "intent": "restricted_data_export",
+  "engine": "smart",
+  "sources": [],
+  "action_card": null,
+  "result_card": {
+   "type": "rbac_denied",
+   "status": "denied",
+   "title": "Доступ запрещён · FORBIDDEN (403)",
+   "lines": [
+    {
+     "label": "Операция",
+     "value": "db_admin.export_prod_pii"
+    },
+    {
+     "label": "Роль",
+     "value": "intern_backend"
+    },
+    {
+     "label": "Политика",
+     "value": "POL-SEC-001"
+    },
+    {
+     "label": "Причина",
+     "value": "Выгрузка production-данных с ПДн и финансовых сведений запрещена всем ролям AI-Buddy"
+    },
+    {
+     "label": "Инцидент",
+     "value": "зафиксирован в журнале безопасности"
+    },
+    {
+     "label": "Безопасная альтернатива",
+     "value": "Тестовый стенд с синтетическими данными (iam_access.request_repo_access, stand=test)"
+    }
+   ]
+  },
+  "suggestions": [
+   "Дай доступ к репозиторию avito-autoteka-api и тестовому стенду",
+   "Где взять синтетические данные для отладки?"
+  ],
+  "proactive": false,
+  "tool_call_ids": [
+   "call-7ffbfe601903"
+  ],
+  "created_at": "2026-11-13T11:54:55.4559822+03:00"
+ },
+ "tool_calls": [
+  {
+   "id": "call-7ffbfe601903",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "server": "db_admin",
+   "tool": "db_admin.export_prod_pii",
+   "arguments": {
+    "dataset": "users_pii",
+    "reason": "Выгрузи дамп production-базы пользователей с персональными данными",
+    "requested_by": "u-intern-01"
+   },
+   "result": {},
+   "status": "forbidden",
+   "error_code": "FORBIDDEN",
+   "error": "Выгрузка production-данных с ПДн и финансовых сведений запрещена всем ролям AI-Buddy",
+   "rbac": {
+    "allowed": false,
+    "code": "FORBIDDEN",
+    "http_status": 403,
+    "role": "intern_backend",
+    "operation": "db_admin.export_prod_pii",
+    "policy_id": "POL-SEC-001",
+    "reason": "Выгрузка production-данных с ПДн и финансовых сведений запрещена всем ролям AI-Buddy",
+    "safe_alternative": "Тестовый стенд с синтетическими данными (iam_access.request_repo_access, stand=test)",
+    "incident": true
+   },
+   "duration_ms": 0,
+   "created_at": "2026-11-13T11:54:55.3553984+03:00"
+  }
+ ],
+ "rbac": {
+  "allowed": false,
+  "code": "FORBIDDEN",
+  "http_status": 403,
+  "role": "intern_backend",
+  "operation": "db_admin.export_prod_pii",
+  "policy_id": "POL-SEC-001",
+  "reason": "Выгрузка production-данных с ПДн и финансовых сведений запрещена всем ролям AI-Buddy",
+  "safe_alternative": "Тестовый стенд с синтетическими данными (iam_access.request_repo_access, stand=test)",
+  "incident": true
+ },
+ "checklist": [
+  {
+   "id": "access_repo",
+   "position": 1,
+   "week": 1,
+   "title": "Получить доступы к репозиторию команды и тестовому стенду",
+   "description": "Доступ к avito-autoteka-api и стенду с синтетическими данными. AI-Buddy оформит через IAM.",
+   "status": "completed",
+   "scenario": "S1",
+   "evidence": "Доступ к avito-autoteka-api выдан через IAM (AI-Buddy)",
+   "updated_at": "2026-11-13T11:54:55.1066804+03:00",
+   "completed_at": "2026-11-13T11:54:55.1066804+03:00"
+  },
+  {
+   "id": "meet_team",
+   "position": 2,
+   "week": 1,
+   "title": "Познакомиться с командой и наставником",
+   "description": "Вводная встреча с командой Autoteka, знакомство с наставником и руководителем.",
+   "status": "completed",
+   "evidence": "Вводная встреча проведена в первый день",
+   "updated_at": "2026-11-13T11:54:54.7989528+03:00"
+  },
+  {
+   "id": "local_env",
+   "position": 3,
+   "week": 1,
+   "title": "Настроить рабочее окружение",
+   "description": "Go, Docker, IDE и корпоративный VPN на рабочем ноутбуке.",
+   "status": "completed",
+   "evidence": "Окружение настроено по инструкции",
+   "updated_at": "2026-11-13T11:54:54.7989528+03:00"
+  },
+  {
+   "id": "team_processes",
+   "position": 4,
+   "week": 1,
+   "title": "Изучить процессы команды: фича-флаги и код-ревью",
+   "description": "Как команда катит задачи под фича-флагами и как проходит ревью. Спроси AI-Buddy.",
+   "status": "pending",
+   "scenario": "S2",
+   "updated_at": "2026-11-13T11:54:54.7989528+03:00"
+  },
+  {
+   "id": "first_task",
+   "position": 5,
+   "week": 1,
+   "title": "Первая задача в спринте",
+   "description": "AUT-1423: добавить поле mileage_verified в сводку отчёта под фича-флагом.",
+   "status": "in_progress",
+   "scenario": "S2",
+   "evidence": "Задача взята в работу",
+   "updated_at": "2026-11-13T11:54:54.7989528+03:00"
+  },
+  {
+   "id": "absence_rules",
+   "position": 6,
+   "week": 2,
+   "title": "Разобраться с оформлением отсутствий",
+   "description": "Отгул, отпуск, больничный: как оформить через сервис «Отсутствия» и кого предупредить.",
+   "status": "pending",
+   "scenario": "S3",
+   "updated_at": "2026-11-13T11:54:54.7989528+03:00"
+  },
+  {
+   "id": "first_one_on_one",
+   "position": 7,
+   "week": 2,
+   "title": "Провести первую встречу 1:1 с наставником",
+   "description": "Обсудить прогресс и вопросы, требующие участия сеньора. AI-Buddy подготовит бриф.",
+   "status": "pending",
+   "scenario": "S2",
+   "updated_at": "2026-11-13T11:54:54.7989528+03:00"
+  }
+ ],
+ "checklist_updates": [],
+ "progress": {
+  "completed": 3,
+  "in_progress": 1,
+  "total": 7,
+  "percent": 42
+ },
+ "next_step": {
+  "id": "team_processes",
+  "position": 4,
+  "week": 1,
+  "title": "Изучить процессы команды: фича-флаги и код-ревью",
+  "description": "Как команда катит задачи под фича-флагами и как проходит ревью. Спроси AI-Buddy.",
+  "status": "pending",
+  "scenario": "S2",
+  "updated_at": "2026-11-13T11:54:54.7989528+03:00"
+ },
+ "latency_ms": 302.107
+}

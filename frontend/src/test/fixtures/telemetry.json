@@ -1,0 +1,1803 @@
+{
+ "events": [
+  {
+   "id": "evt-07650c0c1e60",
+   "intern_id": "u-intern-01",
+   "actor_id": "svc-ai-cron",
+   "actor_role": "system_cron",
+   "kind": "cron",
+   "name": "cron.run",
+   "severity": "info",
+   "payload": {
+    "brief_id": "brief-f68677356177",
+    "deduplicated": false,
+    "reason": "Задача AUT-1423 без коммитов 3 дн.: стажёру отправлено проактивное сообщение, наставнику — бриф к 1:1",
+    "requested_by": "u-intern-01",
+    "saving_key": "brief_prepared",
+    "triggered": true
+   },
+   "created_at": "2026-11-13T11:54:56.1621978+03:00"
+  },
+  {
+   "id": "evt-a63204e304f1",
+   "intern_id": "u-intern-01",
+   "actor_id": "svc-ai-cron",
+   "actor_role": "system_cron",
+   "kind": "clickstream",
+   "name": "checklist.updated",
+   "severity": "info",
+   "payload": {
+    "evidence": "Бриф к 1:1 отправлен наставнику",
+    "item": "first_one_on_one",
+    "status": "in_progress"
+   },
+   "created_at": "2026-11-13T11:54:56.1621978+03:00"
+  },
+  {
+   "id": "evt-9cee3cf94983",
+   "intern_id": "u-intern-01",
+   "actor_id": "svc-ai-cron",
+   "actor_role": "system_cron",
+   "kind": "mcp",
+   "name": "mcp.call",
+   "severity": "info",
+   "payload": {
+    "duration_ms": 0,
+    "error_code": "",
+    "server": "mentor",
+    "status": "success",
+    "tool": "mentor.send_1on1_brief",
+    "tool_call_id": "call-6b75974b915b"
+   },
+   "created_at": "2026-11-13T11:54:56.1616131+03:00"
+  },
+  {
+   "id": "evt-b125655207bc",
+   "intern_id": "u-intern-01",
+   "actor_id": "svc-ai-cron",
+   "actor_role": "system_cron",
+   "kind": "rbac",
+   "name": "rbac.decision",
+   "severity": "info",
+   "payload": {
+    "allowed": true,
+    "code": "ALLOWED",
+    "constraint": "",
+    "operation": "mentor.send_1on1_brief",
+    "policy_id": "POL-MNT-001",
+    "reason": "Бриф наставнику формирует ИИ-крон; стажёр отправить его не может",
+    "role": "system_cron",
+    "tool_call_id": "call-6b75974b915b"
+   },
+   "created_at": "2026-11-13T11:54:56.1616131+03:00"
+  },
+  {
+   "id": "evt-34016826a5a1",
+   "intern_id": "u-intern-01",
+   "actor_id": "svc-ai-cron",
+   "actor_role": "system_cron",
+   "kind": "mcp",
+   "name": "mcp.call",
+   "severity": "info",
+   "payload": {
+    "duration_ms": 0.12,
+    "error_code": "",
+    "server": "tracker",
+    "status": "success",
+    "tool": "tracker.get_task_activity",
+    "tool_call_id": "call-c958dca5aace"
+   },
+   "created_at": "2026-11-13T11:54:56.1616131+03:00"
+  },
+  {
+   "id": "evt-ece2db8e2229",
+   "intern_id": "u-intern-01",
+   "actor_id": "svc-ai-cron",
+   "actor_role": "system_cron",
+   "kind": "rbac",
+   "name": "rbac.decision",
+   "severity": "info",
+   "payload": {
+    "allowed": true,
+    "code": "ALLOWED",
+    "constraint": "",
+    "operation": "tracker.get_task_activity",
+    "policy_id": "POL-TRK-002",
+    "reason": "Разрешено политикой POL-TRK-002 для роли «ИИ-крон (сервисный аккаунт)»",
+    "role": "system_cron",
+    "tool_call_id": "call-c958dca5aace"
+   },
+   "created_at": "2026-11-13T11:54:56.1616131+03:00"
+  },
+  {
+   "id": "evt-70a45c76f276",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-mentor-01",
+   "actor_role": "mentor",
+   "kind": "mcp",
+   "name": "mcp.call",
+   "severity": "warn",
+   "payload": {
+    "duration_ms": 0,
+    "error_code": "FORBIDDEN",
+    "server": "absences",
+    "status": "forbidden",
+    "tool": "absences.create_day_off",
+    "tool_call_id": "call-4b480ae40e3f"
+   },
+   "created_at": "2026-11-13T11:54:56.1553133+03:00"
+  },
+  {
+   "id": "evt-6e6c88dd5cad",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-mentor-01",
+   "actor_role": "mentor",
+   "kind": "rbac",
+   "name": "rbac.decision",
+   "severity": "warn",
+   "payload": {
+    "allowed": false,
+    "code": "FORBIDDEN",
+    "constraint": "",
+    "operation": "absences.create_day_off",
+    "policy_id": "DEFAULT-DENY",
+    "reason": "Для роли «Наставник (buddy)» операция absences.create_day_off не разрешена (default deny)",
+    "role": "mentor",
+    "tool_call_id": "call-4b480ae40e3f"
+   },
+   "created_at": "2026-11-13T11:54:56.1553133+03:00"
+  },
+  {
+   "id": "evt-dde7006ba044",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-mentor-01",
+   "actor_role": "mentor",
+   "kind": "clickstream",
+   "name": "ui.action_confirmed",
+   "severity": "info",
+   "payload": {
+    "message_id": "msg-ffe9155b81e2",
+    "tool": "absences.create_day_off"
+   },
+   "created_at": "2026-11-13T11:54:56.1553133+03:00"
+  },
+  {
+   "id": "evt-c770260a3683",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "kind": "mcp",
+   "name": "mcp.call",
+   "severity": "warn",
+   "payload": {
+    "duration_ms": 0,
+    "error_code": "DUPLICATE",
+    "server": "absences",
+    "status": "error",
+    "tool": "absences.create_day_off",
+    "tool_call_id": "call-b35837fcb30e"
+   },
+   "created_at": "2026-11-13T11:54:56.1087518+03:00"
+  },
+  {
+   "id": "evt-28b8523da164",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "kind": "rbac",
+   "name": "rbac.decision",
+   "severity": "info",
+   "payload": {
+    "allowed": true,
+    "code": "ALLOWED",
+    "constraint": "",
+    "operation": "absences.create_day_off",
+    "policy_id": "POL-ABS-001",
+    "reason": "Отгул оформляется только на себя",
+    "role": "intern_backend",
+    "tool_call_id": "call-b35837fcb30e"
+   },
+   "created_at": "2026-11-13T11:54:56.1087518+03:00"
+  },
+  {
+   "id": "evt-9fc8b0d01e78",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "kind": "clickstream",
+   "name": "ui.action_confirmed",
+   "severity": "info",
+   "payload": {
+    "message_id": "msg-ffe9155b81e2",
+    "tool": "absences.create_day_off"
+   },
+   "created_at": "2026-11-13T11:54:56.1087518+03:00"
+  },
+  {
+   "id": "evt-39fe4d1f5dfe",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "kind": "agent",
+   "name": "agent.action",
+   "severity": "info",
+   "payload": {
+    "answered": true,
+    "engine": "smart",
+    "saving_key": "absence_created",
+    "tool": "absences.create_day_off"
+   },
+   "created_at": "2026-11-13T11:54:56.101154+03:00"
+  },
+  {
+   "id": "evt-f7699754efe3",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "kind": "clickstream",
+   "name": "checklist.updated",
+   "severity": "info",
+   "payload": {
+    "evidence": "Заявка #ABS-2026-84 оформлена через AI-Buddy",
+    "item": "absence_rules",
+    "status": "completed"
+   },
+   "created_at": "2026-11-13T11:54:56.1011037+03:00"
+  },
+  {
+   "id": "evt-8247540a9b26",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "kind": "mcp",
+   "name": "mcp.call",
+   "severity": "info",
+   "payload": {
+    "duration_ms": 0,
+    "error_code": "",
+    "server": "absences",
+    "status": "success",
+    "tool": "absences.create_day_off",
+    "tool_call_id": "call-51b6d549fc8e"
+   },
+   "created_at": "2026-11-13T11:54:56.1005903+03:00"
+  },
+  {
+   "id": "evt-4518bf9155fc",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "kind": "rbac",
+   "name": "rbac.decision",
+   "severity": "info",
+   "payload": {
+    "allowed": true,
+    "code": "ALLOWED",
+    "constraint": "",
+    "operation": "absences.create_day_off",
+    "policy_id": "POL-ABS-001",
+    "reason": "Отгул оформляется только на себя",
+    "role": "intern_backend",
+    "tool_call_id": "call-51b6d549fc8e"
+   },
+   "created_at": "2026-11-13T11:54:56.1005903+03:00"
+  },
+  {
+   "id": "evt-91e43ff0a3b7",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "kind": "clickstream",
+   "name": "ui.action_confirmed",
+   "severity": "info",
+   "payload": {
+    "message_id": "msg-ffe9155b81e2",
+    "tool": "absences.create_day_off"
+   },
+   "created_at": "2026-11-13T11:54:56.1005903+03:00"
+  },
+  {
+   "id": "evt-9352fcd38d8c",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "kind": "agent",
+   "name": "agent.answer",
+   "severity": "info",
+   "payload": {
+    "answered": true,
+    "engine": "smart",
+    "intent": "absence_day_off",
+    "latency_ms": 303.648,
+    "saving_key": "question_answered",
+    "scenario": "S3",
+    "tool_calls": 1
+   },
+   "created_at": "2026-11-13T11:54:56.0904149+03:00"
+  },
+  {
+   "id": "evt-8d5ada03f3ff",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "kind": "mcp",
+   "name": "mcp.call",
+   "severity": "info",
+   "payload": {
+    "duration_ms": 0.45,
+    "error_code": "",
+    "server": "playbook",
+    "status": "success",
+    "tool": "playbook.search_docs",
+    "tool_call_id": "call-dac1f27dadf0"
+   },
+   "created_at": "2026-11-13T11:54:55.9887788+03:00"
+  },
+  {
+   "id": "evt-df7615f54884",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "kind": "rbac",
+   "name": "rbac.decision",
+   "severity": "info",
+   "payload": {
+    "allowed": true,
+    "code": "ALLOWED",
+    "constraint": "",
+    "operation": "playbook.search_docs",
+    "policy_id": "POL-KB-001",
+    "reason": "Поиск по базе знаний; документы фильтруются по audience роли",
+    "role": "intern_backend",
+    "tool_call_id": "call-dac1f27dadf0"
+   },
+   "created_at": "2026-11-13T11:54:55.9887788+03:00"
+  },
+  {
+   "id": "evt-133c646408b4",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "kind": "clickstream",
+   "name": "chat.message_sent",
+   "severity": "info",
+   "payload": {
+    "length": 105
+   },
+   "created_at": "2026-11-13T11:54:55.7871675+03:00"
+  },
+  {
+   "id": "evt-e1e084c116f4",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "kind": "agent",
+   "name": "agent.answer",
+   "severity": "info",
+   "payload": {
+    "answered": true,
+    "engine": "smart",
+    "intent": "process_question",
+    "latency_ms": 302.451,
+    "saving_key": "question_answered",
+    "scenario": "S2",
+    "tool_calls": 1
+   },
+   "created_at": "2026-11-13T11:54:55.763751+03:00"
+  },
+  {
+   "id": "evt-467072c0f052",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "kind": "clickstream",
+   "name": "checklist.updated",
+   "severity": "info",
+   "payload": {
+    "evidence": "Инструкции изучены через AI-Buddy",
+    "item": "team_processes",
+    "status": "completed"
+   },
+   "created_at": "2026-11-13T11:54:55.763751+03:00"
+  },
+  {
+   "id": "evt-68f768fcc3f6",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "kind": "mcp",
+   "name": "mcp.call",
+   "severity": "info",
+   "payload": {
+    "duration_ms": 0.46,
+    "error_code": "",
+    "server": "playbook",
+    "status": "success",
+    "tool": "playbook.search_docs",
+    "tool_call_id": "call-f7f8045552cc"
+   },
+   "created_at": "2026-11-13T11:54:55.6626852+03:00"
+  },
+  {
+   "id": "evt-eb6ab06b1cae",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "kind": "rbac",
+   "name": "rbac.decision",
+   "severity": "info",
+   "payload": {
+    "allowed": true,
+    "code": "ALLOWED",
+    "constraint": "",
+    "operation": "playbook.search_docs",
+    "policy_id": "POL-KB-001",
+    "reason": "Поиск по базе знаний; документы фильтруются по audience роли",
+    "role": "intern_backend",
+    "tool_call_id": "call-f7f8045552cc"
+   },
+   "created_at": "2026-11-13T11:54:55.6626852+03:00"
+  },
+  {
+   "id": "evt-f385a7441936",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "kind": "clickstream",
+   "name": "chat.message_sent",
+   "severity": "info",
+   "payload": {
+    "length": 68
+   },
+   "created_at": "2026-11-13T11:54:55.4612998+03:00"
+  },
+  {
+   "id": "evt-8db2107dd189",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "kind": "agent",
+   "name": "agent.answer",
+   "severity": "info",
+   "payload": {
+    "answered": true,
+    "engine": "smart",
+    "intent": "restricted_data_export",
+    "latency_ms": 302.107,
+    "saving_key": "rbac_blocked",
+    "scenario": "S1B",
+    "tool_calls": 1
+   },
+   "created_at": "2026-11-13T11:54:55.4561962+03:00"
+  },
+  {
+   "id": "evt-f1eca1909547",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "kind": "mcp",
+   "name": "mcp.call",
+   "severity": "warn",
+   "payload": {
+    "duration_ms": 0,
+    "error_code": "FORBIDDEN",
+    "server": "db_admin",
+    "status": "forbidden",
+    "tool": "db_admin.export_prod_pii",
+    "tool_call_id": "call-7ffbfe601903"
+   },
+   "created_at": "2026-11-13T11:54:55.3553984+03:00"
+  },
+  {
+   "id": "evt-94aa113e4c3a",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "kind": "rbac",
+   "name": "rbac.incident",
+   "severity": "security",
+   "payload": {
+    "actor": "Алексей Смирнов",
+    "arguments": {
+     "dataset": "users_pii",
+     "reason": "Выгрузи дамп production-базы пользователей с персональными данными",
+     "requested_by": "u-intern-01"
+    },
+    "operation": "db_admin.export_prod_pii",
+    "policy_id": "POL-SEC-001",
+    "reason": "Выгрузка production-данных с ПДн и финансовых сведений запрещена всем ролям AI-Buddy",
+    "role": "intern_backend",
+    "tool_call_id": "call-7ffbfe601903"
+   },
+   "created_at": "2026-11-13T11:54:55.3553984+03:00"
+  },
+  {
+   "id": "evt-7e61926f4000",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "kind": "rbac",
+   "name": "rbac.decision",
+   "severity": "warn",
+   "payload": {
+    "allowed": false,
+    "code": "FORBIDDEN",
+    "constraint": "",
+    "operation": "db_admin.export_prod_pii",
+    "policy_id": "POL-SEC-001",
+    "reason": "Выгрузка production-данных с ПДн и финансовых сведений запрещена всем ролям AI-Buddy",
+    "role": "intern_backend",
+    "tool_call_id": "call-7ffbfe601903"
+   },
+   "created_at": "2026-11-13T11:54:55.3553984+03:00"
+  },
+  {
+   "id": "evt-c27f04c94373",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "kind": "clickstream",
+   "name": "chat.message_sent",
+   "severity": "info",
+   "payload": {
+    "length": 66
+   },
+   "created_at": "2026-11-13T11:54:55.1543238+03:00"
+  },
+  {
+   "id": "evt-84bdd534cd60",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "kind": "agent",
+   "name": "agent.answer",
+   "severity": "info",
+   "payload": {
+    "answered": true,
+    "engine": "smart",
+    "intent": "access_request",
+    "latency_ms": 301.375,
+    "saving_key": "access_granted",
+    "scenario": "S1A",
+    "tool_calls": 1
+   },
+   "created_at": "2026-11-13T11:54:55.1066804+03:00"
+  },
+  {
+   "id": "evt-d5f24c6821c6",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "kind": "clickstream",
+   "name": "checklist.updated",
+   "severity": "info",
+   "payload": {
+    "evidence": "Доступ к avito-autoteka-api выдан через IAM (AI-Buddy)",
+    "item": "access_repo",
+    "status": "completed"
+   },
+   "created_at": "2026-11-13T11:54:55.1066804+03:00"
+  },
+  {
+   "id": "evt-9b4f5c990a25",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "kind": "mcp",
+   "name": "mcp.call",
+   "severity": "info",
+   "payload": {
+    "duration_ms": 0.167,
+    "error_code": "",
+    "server": "iam_access",
+    "status": "success",
+    "tool": "iam_access.request_repo_access",
+    "tool_call_id": "call-c266da308cff"
+   },
+   "created_at": "2026-11-13T11:54:55.0066608+03:00"
+  },
+  {
+   "id": "evt-8da34d59a9c8",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "kind": "rbac",
+   "name": "rbac.decision",
+   "severity": "info",
+   "payload": {
+    "allowed": true,
+    "code": "ALLOWED",
+    "constraint": "",
+    "operation": "iam_access.request_repo_access",
+    "policy_id": "POL-IAM-001",
+    "reason": "Стажёр запрашивает доступ только себе и только к репозиториям своей команды",
+    "role": "intern_backend",
+    "tool_call_id": "call-c266da308cff"
+   },
+   "created_at": "2026-11-13T11:54:55.0066608+03:00"
+  },
+  {
+   "id": "evt-6b992ec429c2",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "kind": "clickstream",
+   "name": "chat.message_sent",
+   "severity": "info",
+   "payload": {
+    "length": 62
+   },
+   "created_at": "2026-11-13T11:54:54.8053052+03:00"
+  },
+  {
+   "id": "evt-8ae0c8eea487",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "kind": "clickstream",
+   "name": "demo.reset",
+   "severity": "info",
+   "payload": {},
+   "created_at": "2026-11-13T11:54:54.7989528+03:00"
+  }
+ ],
+ "tool_calls": [
+  {
+   "id": "call-6b75974b915b",
+   "intern_id": "u-intern-01",
+   "actor_id": "svc-ai-cron",
+   "actor_role": "system_cron",
+   "server": "mentor",
+   "tool": "mentor.send_1on1_brief",
+   "arguments": {
+    "architecture_question": "Где в avito-autoteka-api проходит граница между слоем сборки отчёта и агрегатором источников: на каком слое вычислять mileage_verified, чтобы не сломать контракт /v1/report/summary для существующих клиентов?",
+    "intern_id": "u-intern-01",
+    "learned_topics": [
+     "Изучил инструкцию «Как катить задачу под фича-флагом»",
+     "Изучил инструкцию «Как проходить код-ревью»",
+     "Изучил инструкцию «Отсутствия: отгул, отпуск, больничный»",
+     "Сам получил доступ к репозиторию avito-autoteka-api и тестовому стенду",
+     "Разобрался с оформлением отсутствий: заявка #ABS-2026-84"
+    ],
+    "mentor_id": "u-mentor-01",
+    "open_questions": [],
+    "signals": [
+     "Задача AUT-1423 «Первая задача в спринте» в статусе in_progress 3 дн., коммитов: 0",
+     "Прогресс чек-листа адаптации: 5 из 7 шагов"
+    ],
+    "task_key": "AUT-1423"
+   },
+   "result": {
+    "brief_id": "brief-f68677356177",
+    "delivered_to": "Мария Кузнецова"
+   },
+   "status": "success",
+   "rbac": {
+    "allowed": true,
+    "code": "ALLOWED",
+    "http_status": 200,
+    "role": "system_cron",
+    "operation": "mentor.send_1on1_brief",
+    "policy_id": "POL-MNT-001",
+    "reason": "Бриф наставнику формирует ИИ-крон; стажёр отправить его не может",
+    "incident": false
+   },
+   "duration_ms": 0,
+   "created_at": "2026-11-13T11:54:56.1616131+03:00"
+  },
+  {
+   "id": "call-c958dca5aace",
+   "intern_id": "u-intern-01",
+   "actor_id": "svc-ai-cron",
+   "actor_role": "system_cron",
+   "server": "tracker",
+   "tool": "tracker.get_task_activity",
+   "arguments": {
+    "intern_id": "u-intern-01"
+   },
+   "result": {
+    "architecture_question": "Где в avito-autoteka-api проходит граница между слоем сборки отчёта и агрегатором источников: на каком слое вычислять mileage_verified, чтобы не сломать контракт /v1/report/summary для существующих клиентов?",
+    "commits": 0,
+    "days_in_progress": 3,
+    "intern_id": "u-intern-01",
+    "key": "AUT-1423",
+    "repository": "avito-autoteka-api",
+    "stalled": true,
+    "status": "in_progress",
+    "summary": "Добавить поле mileage_verified в ответ ручки /v1/report/summary под фича-флагом",
+    "title": "Первая задача в спринте"
+   },
+   "status": "success",
+   "rbac": {
+    "allowed": true,
+    "code": "ALLOWED",
+    "http_status": 200,
+    "role": "system_cron",
+    "operation": "tracker.get_task_activity",
+    "policy_id": "POL-TRK-002",
+    "reason": "Разрешено политикой POL-TRK-002 для роли «ИИ-крон (сервисный аккаунт)»",
+    "incident": false
+   },
+   "duration_ms": 0.12,
+   "created_at": "2026-11-13T11:54:56.1614922+03:00"
+  },
+  {
+   "id": "call-4b480ae40e3f",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-mentor-01",
+   "actor_role": "mentor",
+   "server": "absences",
+   "tool": "absences.create_day_off",
+   "arguments": {
+    "date": "2026-11-20",
+    "intern_id": "u-intern-01",
+    "notify": [
+     "mentor",
+     "team_lead"
+    ],
+    "reason": "Зачёт в университете",
+    "time_from": "14:00",
+    "time_to": "18:00"
+   },
+   "result": {},
+   "status": "forbidden",
+   "error_code": "FORBIDDEN",
+   "error": "Для роли «Наставник (buddy)» операция absences.create_day_off не разрешена (default deny)",
+   "rbac": {
+    "allowed": false,
+    "code": "FORBIDDEN",
+    "http_status": 403,
+    "role": "mentor",
+    "operation": "absences.create_day_off",
+    "policy_id": "DEFAULT-DENY",
+    "reason": "Для роли «Наставник (buddy)» операция absences.create_day_off не разрешена (default deny)",
+    "incident": false
+   },
+   "duration_ms": 0,
+   "created_at": "2026-11-13T11:54:56.1553133+03:00"
+  },
+  {
+   "id": "call-b35837fcb30e",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "server": "absences",
+   "tool": "absences.create_day_off",
+   "arguments": {
+    "date": "2026-11-20",
+    "intern_id": "u-intern-01",
+    "notify": [
+     "mentor",
+     "team_lead"
+    ],
+    "reason": "Зачёт в университете",
+    "time_from": "14:00",
+    "time_to": "18:00"
+   },
+   "result": {},
+   "status": "error",
+   "error_code": "DUPLICATE",
+   "error": "заявка на 20.11.2026 уже оформлена: #ABS-2026-84",
+   "rbac": {
+    "allowed": true,
+    "code": "ALLOWED",
+    "http_status": 200,
+    "role": "intern_backend",
+    "operation": "absences.create_day_off",
+    "policy_id": "POL-ABS-001",
+    "reason": "Отгул оформляется только на себя",
+    "incident": false
+   },
+   "duration_ms": 0,
+   "created_at": "2026-11-13T11:54:56.1087518+03:00"
+  },
+  {
+   "id": "call-51b6d549fc8e",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "server": "absences",
+   "tool": "absences.create_day_off",
+   "arguments": {
+    "date": "2026-11-20",
+    "intern_id": "u-intern-01",
+    "notify": [
+     "mentor",
+     "team_lead"
+    ],
+    "reason": "Зачёт в университете",
+    "time_from": "14:00",
+    "time_to": "18:00"
+   },
+   "result": {
+    "date": "2026-11-20",
+    "is_synthetic": true,
+    "notified": [
+     "Мария Кузнецова",
+     "Дмитрий Орлов"
+    ],
+    "reason": "Зачёт в университете",
+    "request_id": "abs-a3afcc9043ac",
+    "request_number": "#ABS-2026-84",
+    "status": "pending_approval",
+    "time_from": "14:00",
+    "time_to": "18:00"
+   },
+   "status": "success",
+   "rbac": {
+    "allowed": true,
+    "code": "ALLOWED",
+    "http_status": 200,
+    "role": "intern_backend",
+    "operation": "absences.create_day_off",
+    "policy_id": "POL-ABS-001",
+    "reason": "Отгул оформляется только на себя",
+    "incident": false
+   },
+   "duration_ms": 0,
+   "created_at": "2026-11-13T11:54:56.1005903+03:00"
+  },
+  {
+   "id": "call-dac1f27dadf0",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "server": "playbook",
+   "tool": "playbook.search_docs",
+   "arguments": {
+    "limit": 3,
+    "query": "Мне нужно уйти в пятницу после обеда на зачёт в универ, как оформить отгул и надо ли писать руководителю?",
+    "stack": "Go",
+    "stage": "Week 1",
+    "team": "Autoteka",
+    "topics": [
+     "absences"
+    ]
+   },
+   "result": {
+    "documents": [
+     {
+      "disclaimer": "Тестовая инструкция (Синтетические данные)",
+      "id": "pb-absences",
+      "is_synthetic": true,
+      "source": "Синтетическая адаптация по мотивам AvitoTech Playbook (github.com/avito-tech/playbook)",
+      "steps": [
+       "Оформи заявку в сервисе «Отсутствия» минимум за один рабочий день: дата, время, причина.",
+       "Сервис автоматически уведомит наставника и руководителя — отдельное письмо руководителю не требуется.",
+       "Если из-за отгула пропускаешь встречу или дедлайн — коротко предупреди наставника в командном чате.",
+       "Учебные причины (зачёт, экзамен) согласуются автоматически, отрабатывать часы не нужно.",
+       "Больничный и отпуск оформляются в том же сервисе, но по своим формам."
+      ],
+      "summary": "Отгул оформляется заявкой в сервисе «Отсутствия»; отдельно писать руководителю не нужно — сервис уведомит его сам.",
+      "title": "Отсутствия: отгул, отпуск, больничный"
+     }
+    ],
+    "total": 1
+   },
+   "status": "success",
+   "rbac": {
+    "allowed": true,
+    "code": "ALLOWED",
+    "http_status": 200,
+    "role": "intern_backend",
+    "operation": "playbook.search_docs",
+    "policy_id": "POL-KB-001",
+    "reason": "Поиск по базе знаний; документы фильтруются по audience роли",
+    "incident": false
+   },
+   "duration_ms": 0.45,
+   "created_at": "2026-11-13T11:54:55.9883286+03:00"
+  },
+  {
+   "id": "call-f7f8045552cc",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "server": "playbook",
+   "tool": "playbook.search_docs",
+   "arguments": {
+    "limit": 3,
+    "query": "Как в нашей команде катить задачу под фича-флагом и проходить ревью?",
+    "stack": "Go",
+    "stage": "Week 1",
+    "team": "Autoteka",
+    "topics": [
+     "feature_flags",
+     "code_review"
+    ]
+   },
+   "result": {
+    "documents": [
+     {
+      "disclaimer": "Тестовая инструкция (Синтетические данные)",
+      "id": "pb-feature-flags",
+      "is_synthetic": true,
+      "source": "Синтетическая адаптация по мотивам AvitoTech Playbook (github.com/avito-tech/playbook)",
+      "steps": [
+       "Заведи runtime-флаг в сервисе Feature Flags: имя autoteka.<задача>, по умолчанию выключен.",
+       "Оберни новое поведение в проверку флага; старый путь оставь без изменений и покрой оба пути тестами.",
+       "Выкати код с выключенным флагом обычным релизом — на пользователей это не влияет.",
+       "Включай флаг ступенями: тестовый стенд → 1% → 10% → 100%, между шагами смотри графики ошибок.",
+       "Через две недели после 100% удали флаг и мёртвую ветку кода отдельным MR."
+      ],
+      "summary": "Любое изменение поведения в команде выкатывается выключенным под runtime-флагом и включается постепенно.",
+      "title": "Как катить задачу под фича-флагом"
+     },
+     {
+      "disclaimer": "Тестовая инструкция (Синтетические данные)",
+      "id": "pb-code-review",
+      "is_synthetic": true,
+      "source": "Синтетическая адаптация по мотивам AvitoTech Playbook (github.com/avito-tech/playbook)",
+      "steps": [
+       "Держи MR небольшим: до ~400 строк, одна логическая задача, в описании — ссылка на задачу и как проверить.",
+       "Перед отправкой прогони линтер и тесты локально; CI должен быть зелёным.",
+       "Назначь двух ревьюеров: наставника и дежурного ревьюера команды. Нужен минимум один аппрув, на первой неделе — аппрув наставника.",
+       "На замечания отвечай в течение рабочего дня; спорные вопросы выноси в созвон на 10 минут, а не в длинный тред.",
+       "После аппрува мержишь сам; флаг включаешь только после выкладки."
+      ],
+      "summary": "Ревью — способ поделиться контекстом, а не экзамен. Маленькие MR проходят быстрее.",
+      "title": "Как проходить код-ревью"
+     }
+    ],
+    "total": 2
+   },
+   "status": "success",
+   "rbac": {
+    "allowed": true,
+    "code": "ALLOWED",
+    "http_status": 200,
+    "role": "intern_backend",
+    "operation": "playbook.search_docs",
+    "policy_id": "POL-KB-001",
+    "reason": "Поиск по базе знаний; документы фильтруются по audience роли",
+    "incident": false
+   },
+   "duration_ms": 0.46,
+   "created_at": "2026-11-13T11:54:55.662225+03:00"
+  },
+  {
+   "id": "call-7ffbfe601903",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "server": "db_admin",
+   "tool": "db_admin.export_prod_pii",
+   "arguments": {
+    "dataset": "users_pii",
+    "reason": "Выгрузи дамп production-базы пользователей с персональными данными",
+    "requested_by": "u-intern-01"
+   },
+   "result": {},
+   "status": "forbidden",
+   "error_code": "FORBIDDEN",
+   "error": "Выгрузка production-данных с ПДн и финансовых сведений запрещена всем ролям AI-Buddy",
+   "rbac": {
+    "allowed": false,
+    "code": "FORBIDDEN",
+    "http_status": 403,
+    "role": "intern_backend",
+    "operation": "db_admin.export_prod_pii",
+    "policy_id": "POL-SEC-001",
+    "reason": "Выгрузка production-данных с ПДн и финансовых сведений запрещена всем ролям AI-Buddy",
+    "safe_alternative": "Тестовый стенд с синтетическими данными (iam_access.request_repo_access, stand=test)",
+    "incident": true
+   },
+   "duration_ms": 0,
+   "created_at": "2026-11-13T11:54:55.3553984+03:00"
+  },
+  {
+   "id": "call-c266da308cff",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "server": "iam_access",
+   "tool": "iam_access.request_repo_access",
+   "arguments": {
+    "access_level": "developer",
+    "intern_id": "u-intern-01",
+    "justification": "Онбординг стажёра: команда Autoteka · стек Go · этап Week 1",
+    "repository": "avito-autoteka-api",
+    "stand": "test"
+   },
+   "result": {
+    "access_level": "developer",
+    "already_granted": false,
+    "created_at": "2026-11-13T11:54:55.0064931+03:00",
+    "expires_at": "2027-02-11T11:54:55.0064931+03:00",
+    "id": "grant-914d096d5170",
+    "intern_id": "u-intern-01",
+    "is_synthetic": true,
+    "repository": "avito-autoteka-api",
+    "stand": "autoteka-test-07",
+    "status": "granted",
+    "token_masked": "glpat-synt-••••34c3"
+   },
+   "status": "success",
+   "rbac": {
+    "allowed": true,
+    "code": "ALLOWED",
+    "http_status": 200,
+    "role": "intern_backend",
+    "operation": "iam_access.request_repo_access",
+    "policy_id": "POL-IAM-001",
+    "reason": "Стажёр запрашивает доступ только себе и только к репозиториям своей команды",
+    "incident": false
+   },
+   "duration_ms": 0.167,
+   "created_at": "2026-11-13T11:54:55.0064931+03:00"
+  }
+ ],
+ "tools": [
+  {
+   "name": "iam_access.request_repo_access",
+   "server": "iam_access",
+   "title": "Запросить доступ к репозиторию и стенду",
+   "description": "Выдаёт стажёру доступ к репозиторию его команды и тестовому стенду. Возвращает маскированный синтетический токен.",
+   "side_effects": "write",
+   "requires_confirmation": false,
+   "input_schema": {
+    "additionalProperties": false,
+    "properties": {
+     "access_level": {
+      "description": "Уровень доступа (по умолчанию developer)",
+      "enum": [
+       "read",
+       "developer"
+      ],
+      "type": "string"
+     },
+     "intern_id": {
+      "description": "ID сотрудника, для которого запрашивается доступ",
+      "minLength": 1,
+      "type": "string"
+     },
+     "justification": {
+      "maxLength": 500,
+      "type": "string"
+     },
+     "repository": {
+      "description": "Имя репозитория, например avito-autoteka-api",
+      "pattern": "^[a-z0-9][a-z0-9-]{2,62}$",
+      "type": "string"
+     },
+     "stand": {
+      "description": "Тестовый стенд (по умолчанию test)",
+      "enum": [
+       "none",
+       "test",
+       "staging"
+      ],
+      "type": "string"
+     }
+    },
+    "required": [
+     "intern_id",
+     "repository"
+    ],
+    "type": "object"
+   },
+   "output_schema": {
+    "properties": {
+     "access_level": {
+      "type": "string"
+     },
+     "expires_at": {
+      "type": "string"
+     },
+     "grant_id": {
+      "type": "string"
+     },
+     "is_synthetic": {
+      "type": "boolean"
+     },
+     "repository": {
+      "type": "string"
+     },
+     "stand": {
+      "type": "string"
+     },
+     "status": {
+      "enum": [
+       "granted"
+      ],
+      "type": "string"
+     },
+     "token_masked": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "grant_id",
+     "repository",
+     "access_level",
+     "status",
+     "token_masked",
+     "is_synthetic"
+    ],
+    "type": "object"
+   },
+   "errors": [
+    {
+     "code": "FORBIDDEN",
+     "description": "RBAC: чужой сотрудник (self_only) или репозиторий не своей команды (team_scope). Несуществующий репозиторий неотличим от чужого — перечисление ресурсов невозможно"
+    }
+   ],
+   "allowed_for_viewer": true
+  },
+  {
+   "name": "db_admin.export_prod_pii",
+   "server": "db_admin",
+   "title": "Выгрузить прод-данные с ПДн",
+   "description": "Выгрузка production-данных с персональными или финансовыми сведениями. Запрещена политикой POL-SEC-001 для всех ролей прототипа.",
+   "side_effects": "read_sensitive",
+   "requires_confirmation": false,
+   "input_schema": {
+    "additionalProperties": false,
+    "properties": {
+     "dataset": {
+      "description": "Набор данных",
+      "enum": [
+       "users_pii",
+       "payroll"
+      ],
+      "type": "string"
+     },
+     "reason": {
+      "maxLength": 500,
+      "type": "string"
+     },
+     "requested_by": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "dataset"
+    ],
+    "type": "object"
+   },
+   "output_schema": {
+    "properties": {
+     "status": {
+      "enum": [
+       "refused"
+      ],
+      "type": "string"
+     }
+    },
+    "type": "object"
+   },
+   "errors": [
+    {
+     "code": "FORBIDDEN",
+     "description": "Всегда: RBAC блокирует вызов до обработчика"
+    }
+   ],
+   "allowed_for_viewer": false
+  },
+  {
+   "name": "playbook.search_docs",
+   "server": "playbook",
+   "title": "Поиск по базе знаний команды",
+   "description": "Ищет синтетические инструкции команды с учётом команды, стека и этапа стажёра. Документы, недоступные роли, не возвращаются.",
+   "side_effects": "read",
+   "requires_confirmation": false,
+   "input_schema": {
+    "additionalProperties": false,
+    "properties": {
+     "limit": {
+      "maximum": 5,
+      "minimum": 1,
+      "type": "integer"
+     },
+     "query": {
+      "maxLength": 500,
+      "minLength": 1,
+      "type": "string"
+     },
+     "stack": {
+      "type": "string"
+     },
+     "stage": {
+      "type": "string"
+     },
+     "team": {
+      "type": "string"
+     },
+     "topics": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     }
+    },
+    "required": [
+     "query"
+    ],
+    "type": "object"
+   },
+   "output_schema": {
+    "properties": {
+     "documents": {
+      "items": {
+       "properties": {
+        "disclaimer": {
+         "type": "string"
+        },
+        "id": {
+         "type": "string"
+        },
+        "is_synthetic": {
+         "type": "boolean"
+        },
+        "source": {
+         "type": "string"
+        },
+        "steps": {
+         "items": {
+          "type": "string"
+         },
+         "type": "array"
+        },
+        "summary": {
+         "type": "string"
+        },
+        "title": {
+         "type": "string"
+        }
+       },
+       "required": [
+        "id",
+        "title",
+        "is_synthetic",
+        "disclaimer"
+       ],
+       "type": "object"
+      },
+      "type": "array"
+     }
+    },
+    "required": [
+     "documents"
+    ],
+    "type": "object"
+   },
+   "allowed_for_viewer": true
+  },
+  {
+   "name": "absences.create_day_off",
+   "server": "absences",
+   "title": "Создать заявку на отгул",
+   "description": "Создаёт заявку на отгул в сервисе «Отсутствия», уведомляет наставника и руководителя, возвращает номер заявки.",
+   "side_effects": "write",
+   "requires_confirmation": true,
+   "input_schema": {
+    "additionalProperties": false,
+    "properties": {
+     "date": {
+      "description": "Дата отгула, YYYY-MM-DD",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "type": "string"
+     },
+     "intern_id": {
+      "minLength": 1,
+      "type": "string"
+     },
+     "notify": {
+      "items": {
+       "enum": [
+        "mentor",
+        "team_lead"
+       ],
+       "type": "string"
+      },
+      "type": "array"
+     },
+     "reason": {
+      "maxLength": 300,
+      "minLength": 3,
+      "type": "string"
+     },
+     "time_from": {
+      "description": "Начало, HH:MM",
+      "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+      "type": "string"
+     },
+     "time_to": {
+      "description": "Окончание, HH:MM",
+      "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+      "type": "string"
+     }
+    },
+    "required": [
+     "intern_id",
+     "date",
+     "reason"
+    ],
+    "type": "object"
+   },
+   "output_schema": {
+    "properties": {
+     "date": {
+      "type": "string"
+     },
+     "is_synthetic": {
+      "type": "boolean"
+     },
+     "notified": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     },
+     "request_number": {
+      "description": "Например #ABS-2026-84",
+      "type": "string"
+     },
+     "status": {
+      "enum": [
+       "pending_approval"
+      ],
+      "type": "string"
+     },
+     "time_from": {
+      "type": "string"
+     },
+     "time_to": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "request_number",
+     "status",
+     "date",
+     "notified",
+     "is_synthetic"
+    ],
+    "type": "object"
+   },
+   "errors": [
+    {
+     "code": "INVALID_ARGUMENTS",
+     "description": "Дата в прошлом, time_to раньше time_from"
+    },
+    {
+     "code": "DUPLICATE",
+     "description": "Заявка на эту дату уже существует"
+    }
+   ],
+   "allowed_for_viewer": true
+  },
+  {
+   "name": "mentor.send_1on1_brief",
+   "server": "mentor",
+   "title": "Отправить наставнику Structured 1:1 Brief",
+   "description": "Сохраняет и доставляет наставнику бриф: что стажёр изучил сам через AI-Buddy и один архитектурный вопрос, требующий сеньора.",
+   "side_effects": "write",
+   "requires_confirmation": false,
+   "input_schema": {
+    "additionalProperties": false,
+    "properties": {
+     "architecture_question": {
+      "minLength": 10,
+      "type": "string"
+     },
+     "intern_id": {
+      "minLength": 1,
+      "type": "string"
+     },
+     "learned_topics": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     },
+     "mentor_id": {
+      "minLength": 1,
+      "type": "string"
+     },
+     "open_questions": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     },
+     "signals": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array"
+     },
+     "task_key": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "intern_id",
+     "mentor_id",
+     "learned_topics",
+     "architecture_question"
+    ],
+    "type": "object"
+   },
+   "output_schema": {
+    "properties": {
+     "brief_id": {
+      "type": "string"
+     },
+     "delivered_to": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "brief_id",
+     "delivered_to"
+    ],
+    "type": "object"
+   },
+   "allowed_for_viewer": false
+  },
+  {
+   "name": "notifications.send",
+   "server": "notifications",
+   "title": "Отправить уведомление",
+   "description": "Отправляет уведомление сотруднику во входящие AI-Buddy.",
+   "side_effects": "write",
+   "requires_confirmation": false,
+   "input_schema": {
+    "additionalProperties": false,
+    "properties": {
+     "body": {
+      "maxLength": 2000,
+      "minLength": 1,
+      "type": "string"
+     },
+     "kind": {
+      "enum": [
+       "info",
+       "absence",
+       "brief",
+       "proactive"
+      ],
+      "type": "string"
+     },
+     "recipient_id": {
+      "minLength": 1,
+      "type": "string"
+     },
+     "title": {
+      "maxLength": 200,
+      "minLength": 1,
+      "type": "string"
+     }
+    },
+    "required": [
+     "recipient_id",
+     "title",
+     "body"
+    ],
+    "type": "object"
+   },
+   "output_schema": {
+    "properties": {
+     "notification_id": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "notification_id"
+    ],
+    "type": "object"
+   },
+   "allowed_for_viewer": false
+  },
+  {
+   "name": "tracker.get_task_activity",
+   "server": "tracker",
+   "title": "Активность по задаче спринта",
+   "description": "Возвращает статус задачи стажёра, число коммитов и дней в работе.",
+   "side_effects": "read",
+   "requires_confirmation": false,
+   "input_schema": {
+    "additionalProperties": false,
+    "properties": {
+     "intern_id": {
+      "minLength": 1,
+      "type": "string"
+     }
+    },
+    "required": [
+     "intern_id"
+    ],
+    "type": "object"
+   },
+   "output_schema": {
+    "properties": {
+     "commits": {
+      "type": "integer"
+     },
+     "days_in_progress": {
+      "type": "integer"
+     },
+     "key": {
+      "type": "string"
+     },
+     "stalled": {
+      "type": "boolean"
+     },
+     "status": {
+      "type": "string"
+     },
+     "title": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "key",
+     "title",
+     "status",
+     "commits",
+     "days_in_progress",
+     "stalled"
+    ],
+    "type": "object"
+   },
+   "allowed_for_viewer": true
+  },
+  {
+   "name": "feature_flags.list",
+   "server": "feature_flags",
+   "title": "Список feature flags",
+   "description": "Возвращает активные runtime и compile-time флаги AI-Buddy.",
+   "side_effects": "read",
+   "requires_confirmation": false,
+   "input_schema": {
+    "additionalProperties": false,
+    "properties": {},
+    "type": "object"
+   },
+   "output_schema": {
+    "properties": {
+     "flags": {
+      "items": {
+       "type": "object"
+      },
+      "type": "array"
+     }
+    },
+    "required": [
+     "flags"
+    ],
+    "type": "object"
+   },
+   "allowed_for_viewer": true
+  }
+ ],
+ "servers": [
+  {
+   "id": "iam_access",
+   "title": "IAM / Доступы",
+   "description": "Имитация сервиса выдачи доступов к репозиториям и стендам"
+  },
+  {
+   "id": "db_admin",
+   "title": "DB Admin",
+   "description": "Имитация админки баз данных. Выгрузка прод-ПДн запрещена всем ролям"
+  },
+  {
+   "id": "playbook",
+   "title": "Playbook / База знаний",
+   "description": "Синтетические инструкции команды по мотивам AvitoTech Playbook"
+  },
+  {
+   "id": "absences",
+   "title": "Отсутствия",
+   "description": "Имитация корпоративного сервиса отсутствий"
+  },
+  {
+   "id": "mentor",
+   "title": "Наставничество",
+   "description": "Доставка Structured 1:1 Brief наставнику"
+  },
+  {
+   "id": "notifications",
+   "title": "Уведомления",
+   "description": "Имитация корпоративных уведомлений"
+  },
+  {
+   "id": "tracker",
+   "title": "Трекер задач",
+   "description": "Имитация трекера: активность по задачам спринта"
+  },
+  {
+   "id": "feature_flags",
+   "title": "Feature Flags",
+   "description": "Имитация runtime/compile-time флагов"
+  }
+ ],
+ "roles": [
+  {
+   "id": "intern_backend",
+   "title": "Стажёр (Backend)",
+   "kind": "human"
+  },
+  {
+   "id": "mentor",
+   "title": "Наставник (buddy)",
+   "kind": "human"
+  },
+  {
+   "id": "team_lead",
+   "title": "Руководитель команды",
+   "kind": "human"
+  },
+  {
+   "id": "system_cron",
+   "title": "ИИ-крон (сервисный аккаунт)",
+   "kind": "service"
+  }
+ ],
+ "matrix": [
+  {
+   "operation": "absences.create_day_off",
+   "access": {
+    "intern_backend": true,
+    "mentor": false,
+    "system_cron": false,
+    "team_lead": false
+   }
+  },
+  {
+   "operation": "api.absences.read_team",
+   "access": {
+    "intern_backend": false,
+    "mentor": true,
+    "system_cron": false,
+    "team_lead": true
+   }
+  },
+  {
+   "operation": "api.briefs.read",
+   "access": {
+    "intern_backend": false,
+    "mentor": true,
+    "system_cron": false,
+    "team_lead": true
+   }
+  },
+  {
+   "operation": "api.chat.send",
+   "access": {
+    "intern_backend": true,
+    "mentor": false,
+    "system_cron": false,
+    "team_lead": false
+   }
+  },
+  {
+   "operation": "api.chat_history.read",
+   "access": {
+    "intern_backend": true,
+    "mentor": false,
+    "system_cron": false,
+    "team_lead": false
+   }
+  },
+  {
+   "operation": "api.cron.trigger",
+   "access": {
+    "intern_backend": true,
+    "mentor": true,
+    "system_cron": true,
+    "team_lead": true
+   }
+  },
+  {
+   "operation": "api.feature_flags.write",
+   "access": {
+    "intern_backend": false,
+    "mentor": false,
+    "system_cron": false,
+    "team_lead": true
+   }
+  },
+  {
+   "operation": "api.incidents.read",
+   "access": {
+    "intern_backend": false,
+    "mentor": false,
+    "system_cron": false,
+    "team_lead": true
+   }
+  },
+  {
+   "operation": "api.reset",
+   "access": {
+    "intern_backend": true,
+    "mentor": true,
+    "system_cron": false,
+    "team_lead": true
+   }
+  },
+  {
+   "operation": "api.telemetry.read",
+   "access": {
+    "intern_backend": true,
+    "mentor": true,
+    "system_cron": false,
+    "team_lead": true
+   }
+  },
+  {
+   "operation": "api.workspace.read",
+   "access": {
+    "intern_backend": true,
+    "mentor": true,
+    "system_cron": false,
+    "team_lead": true
+   }
+  },
+  {
+   "operation": "db_admin.export_prod_pii",
+   "access": {
+    "intern_backend": false,
+    "mentor": false,
+    "system_cron": false,
+    "team_lead": false
+   }
+  },
+  {
+   "operation": "feature_flags.list",
+   "access": {
+    "intern_backend": true,
+    "mentor": true,
+    "system_cron": true,
+    "team_lead": true
+   }
+  },
+  {
+   "operation": "iam_access.request_repo_access",
+   "access": {
+    "intern_backend": true,
+    "mentor": true,
+    "system_cron": false,
+    "team_lead": true
+   }
+  },
+  {
+   "operation": "mentor.send_1on1_brief",
+   "access": {
+    "intern_backend": false,
+    "mentor": true,
+    "system_cron": true,
+    "team_lead": false
+   }
+  },
+  {
+   "operation": "notifications.send",
+   "access": {
+    "intern_backend": false,
+    "mentor": true,
+    "system_cron": true,
+    "team_lead": true
+   }
+  },
+  {
+   "operation": "playbook.search_docs",
+   "access": {
+    "intern_backend": true,
+    "mentor": true,
+    "system_cron": true,
+    "team_lead": true
+   }
+  },
+  {
+   "operation": "tracker.get_task_activity",
+   "access": {
+    "intern_backend": true,
+    "mentor": true,
+    "system_cron": true,
+    "team_lead": true
+   }
+  }
+ ]
+}

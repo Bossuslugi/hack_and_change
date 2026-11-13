@@ -1,0 +1,219 @@
+# OpenSpec · Контракты MCP-инструментов AI-Buddy
+# Источник истины для internal/mcp: реестр строится из этого файла, обработчики
+# привязываются по имени. Тест конформности падает, если у инструмента из спеки нет
+# обработчика (или наоборот). Входные аргументы валидируются по input_schema.
+openspec: "1.0"
+kind: McpTools
+metadata:
+  id: avito-start-ai-buddy-mcp
+  version: "1.0.0"
+  is_synthetic: true
+  protocol: "MCP (JSON-RPC 2.0): initialize, tools/list, tools/call — POST /mcp"
+
+servers:
+  - { id: iam_access,    title: "IAM / Доступы",          description: "Имитация сервиса выдачи доступов к репозиториям и стендам" }
+  - { id: db_admin,      title: "DB Admin",               description: "Имитация админки баз данных. Выгрузка прод-ПДн запрещена всем ролям" }
+  - { id: playbook,      title: "Playbook / База знаний", description: "Синтетические инструкции команды по мотивам AvitoTech Playbook" }
+  - { id: absences,      title: "Отсутствия",             description: "Имитация корпоративного сервиса отсутствий" }
+  - { id: mentor,        title: "Наставничество",         description: "Доставка Structured 1:1 Brief наставнику" }
+  - { id: notifications, title: "Уведомления",            description: "Имитация корпоративных уведомлений" }
+  - { id: tracker,       title: "Трекер задач",           description: "Имитация трекера: активность по задачам спринта" }
+  - { id: feature_flags, title: "Feature Flags",          description: "Имитация runtime/compile-time флагов" }
+
+tools:
+  - name: iam_access.request_repo_access
+    server: iam_access
+    title: "Запросить доступ к репозиторию и стенду"
+    description: "Выдаёт стажёру доступ к репозиторию его команды и тестовому стенду. Возвращает маскированный синтетический токен."
+    side_effects: "write"
+    input_schema:
+      type: object
+      additionalProperties: false
+      required: [intern_id, repository]
+      properties:
+        intern_id:     { type: string, minLength: 1, description: "ID сотрудника, для которого запрашивается доступ" }
+        repository:    { type: string, pattern: "^[a-z0-9][a-z0-9-]{2,62}$", description: "Имя репозитория, например avito-autoteka-api" }
+        stand:         { type: string, enum: [none, test, staging], description: "Тестовый стенд (по умолчанию test)" }
+        access_level:  { type: string, enum: [read, developer], description: "Уровень доступа (по умолчанию developer)" }
+        justification: { type: string, maxLength: 500 }
+    output_schema:
+      type: object
+      required: [grant_id, repository, access_level, status, token_masked, is_synthetic]
+      properties:
+        grant_id:     { type: string }
+        repository:   { type: string }
+        access_level: { type: string }
+        stand:        { type: string }
+        status:       { type: string, enum: [granted] }
+        token_masked: { type: string }
+        expires_at:   { type: string }
+        is_synthetic: { type: boolean }
+    errors:
+      - { code: "FORBIDDEN", description: "RBAC: чужой сотрудник (self_only) или репозиторий не своей команды (team_scope). Несуществующий репозиторий неотличим от чужого — перечисление ресурсов невозможно" }
+
+  - name: db_admin.export_prod_pii
+    server: db_admin
+    title: "Выгрузить прод-данные с ПДн"
+    description: "Выгрузка production-данных с персональными или финансовыми сведениями. Запрещена политикой POL-SEC-001 для всех ролей прототипа."
+    side_effects: "read_sensitive"
+    input_schema:
+      type: object
+      additionalProperties: false
+      required: [dataset]
+      properties:
+        dataset:      { type: string, enum: [users_pii, payroll], description: "Набор данных" }
+        reason:       { type: string, maxLength: 500 }
+        requested_by: { type: string }
+    output_schema:
+      type: object
+      properties:
+        status: { type: string, enum: [refused] }
+    errors:
+      - { code: "FORBIDDEN", description: "Всегда: RBAC блокирует вызов до обработчика" }
+
+  - name: playbook.search_docs
+    server: playbook
+    title: "Поиск по базе знаний команды"
+    description: "Ищет синтетические инструкции команды с учётом команды, стека и этапа стажёра. Документы, недоступные роли, не возвращаются."
+    side_effects: "read"
+    input_schema:
+      type: object
+      additionalProperties: false
+      required: [query]
+      properties:
+        query:  { type: string, minLength: 1, maxLength: 500 }
+        team:   { type: string }
+        stack:  { type: string }
+        stage:  { type: string }
+        topics: { type: array, items: { type: string } }
+        limit:  { type: integer, minimum: 1, maximum: 5 }
+    output_schema:
+      type: object
+      required: [documents]
+      properties:
+        documents:
+          type: array
+          items:
+            type: object
+            required: [id, title, is_synthetic, disclaimer]
+            properties:
+              id:           { type: string }
+              title:        { type: string }
+              summary:      { type: string }
+              steps:        { type: array, items: { type: string } }
+              source:       { type: string }
+              is_synthetic: { type: boolean }
+              disclaimer:   { type: string }
+
+  - name: absences.create_day_off
+    server: absences
+    title: "Создать заявку на отгул"
+    description: "Создаёт заявку на отгул в сервисе «Отсутствия», уведомляет наставника и руководителя, возвращает номер заявки."
+    side_effects: "write"
+    requires_confirmation: true
+    input_schema:
+      type: object
+      additionalProperties: false
+      required: [intern_id, date, reason]
+      properties:
+        intern_id: { type: string, minLength: 1 }
+        date:      { type: string, pattern: "^\\d{4}-\\d{2}-\\d{2}$", description: "Дата отгула, YYYY-MM-DD" }
+        time_from: { type: string, pattern: "^([01]\\d|2[0-3]):[0-5]\\d$", description: "Начало, HH:MM" }
+        time_to:   { type: string, pattern: "^([01]\\d|2[0-3]):[0-5]\\d$", description: "Окончание, HH:MM" }
+        reason:    { type: string, minLength: 3, maxLength: 300 }
+        notify:    { type: array, items: { type: string, enum: [mentor, team_lead] } }
+    output_schema:
+      type: object
+      required: [request_number, status, date, notified, is_synthetic]
+      properties:
+        request_number: { type: string, description: "Например #ABS-2026-84" }
+        status:         { type: string, enum: [pending_approval] }
+        date:           { type: string }
+        time_from:      { type: string }
+        time_to:        { type: string }
+        notified:       { type: array, items: { type: string } }
+        is_synthetic:   { type: boolean }
+    errors:
+      - { code: "INVALID_ARGUMENTS", description: "Дата в прошлом, time_to раньше time_from" }
+      - { code: "DUPLICATE", description: "Заявка на эту дату уже существует" }
+
+  - name: mentor.send_1on1_brief
+    server: mentor
+    title: "Отправить наставнику Structured 1:1 Brief"
+    description: "Сохраняет и доставляет наставнику бриф: что стажёр изучил сам через AI-Buddy и один архитектурный вопрос, требующий сеньора."
+    side_effects: "write"
+    input_schema:
+      type: object
+      additionalProperties: false
+      required: [intern_id, mentor_id, learned_topics, architecture_question]
+      properties:
+        intern_id:             { type: string, minLength: 1 }
+        mentor_id:             { type: string, minLength: 1 }
+        task_key:              { type: string }
+        learned_topics:        { type: array, items: { type: string } }
+        architecture_question: { type: string, minLength: 10 }
+        signals:               { type: array, items: { type: string } }
+        open_questions:        { type: array, items: { type: string } }
+    output_schema:
+      type: object
+      required: [brief_id, delivered_to]
+      properties:
+        brief_id:     { type: string }
+        delivered_to: { type: string }
+
+  - name: notifications.send
+    server: notifications
+    title: "Отправить уведомление"
+    description: "Отправляет уведомление сотруднику во входящие AI-Buddy."
+    side_effects: "write"
+    input_schema:
+      type: object
+      additionalProperties: false
+      required: [recipient_id, title, body]
+      properties:
+        recipient_id: { type: string, minLength: 1 }
+        title:        { type: string, minLength: 1, maxLength: 200 }
+        body:         { type: string, minLength: 1, maxLength: 2000 }
+        kind:         { type: string, enum: [info, absence, brief, proactive] }
+    output_schema:
+      type: object
+      required: [notification_id]
+      properties:
+        notification_id: { type: string }
+
+  - name: tracker.get_task_activity
+    server: tracker
+    title: "Активность по задаче спринта"
+    description: "Возвращает статус задачи стажёра, число коммитов и дней в работе."
+    side_effects: "read"
+    input_schema:
+      type: object
+      additionalProperties: false
+      required: [intern_id]
+      properties:
+        intern_id: { type: string, minLength: 1 }
+    output_schema:
+      type: object
+      required: [key, title, status, commits, days_in_progress, stalled]
+      properties:
+        key:              { type: string }
+        title:            { type: string }
+        status:           { type: string }
+        commits:          { type: integer }
+        days_in_progress: { type: integer }
+        stalled:          { type: boolean }
+
+  - name: feature_flags.list
+    server: feature_flags
+    title: "Список feature flags"
+    description: "Возвращает активные runtime и compile-time флаги AI-Buddy."
+    side_effects: "read"
+    input_schema:
+      type: object
+      additionalProperties: false
+      properties: {}
+    output_schema:
+      type: object
+      required: [flags]
+      properties:
+        flags: { type: array, items: { type: object } }

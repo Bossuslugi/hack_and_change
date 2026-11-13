@@ -1,0 +1,16 @@
+{
+ "error": {
+  "code": "FORBIDDEN",
+  "message": "Для роли «Наставник (buddy)» операция api.chat.send не разрешена (default deny)",
+  "rbac": {
+   "allowed": false,
+   "code": "FORBIDDEN",
+   "http_status": 403,
+   "role": "mentor",
+   "operation": "api.chat.send",
+   "policy_id": "DEFAULT-DENY",
+   "reason": "Для роли «Наставник (buddy)» операция api.chat.send не разрешена (default deny)",
+   "incident": false
+  }
+ }
+}

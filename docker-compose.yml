@@ -1,0 +1,87 @@
+# Avito Start AI-Buddy — запуск одной командой:
+#   docker compose up --build
+# Интерфейс: http://localhost:3000   API: http://localhost:8080
+# Тесты и покрытие без локальных Go/Node:
+#   docker compose --profile tests run --rm backend-tests
+#   docker compose --profile tests run --rm frontend-tests
+name: ai-buddy
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: aibuddy
+      POSTGRES_PASSWORD: aibuddy   # тестовые учётные данные локального стенда, не секрет
+      POSTGRES_DB: aibuddy
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aibuddy -d aibuddy"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      PORT: "8080"
+      DATABASE_URL: postgres://aibuddy:aibuddy@postgres:5432/aibuddy?sslmode=disable
+      REDIS_URL: redis://redis:6379/0
+      # Внешняя LLM — необязательно. Значения берутся из .env (см. .env.example).
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_BASE_URL: ${LLM_BASE_URL:-}
+      LLM_MODEL: ${LLM_MODEL:-}
+      LLM_TIMEOUT_MS: ${LLM_TIMEOUT_MS:-12000}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "${FRONTEND_PORT:-3000}:80"
+    restart: unless-stopped
+
+  # ---------- Тесты и отчёты покрытия (профиль tests) ----------
+  backend-tests:
+    profiles: ["tests"]
+    image: golang:1.26
+    working_dir: /src
+    volumes:
+      - .:/src
+      - gocache:/go/pkg/mod
+    command: ["bash", "scripts/coverage.sh"]
+
+  frontend-tests:
+    profiles: ["tests"]
+    image: node:22
+    working_dir: /src/frontend
+    volumes:
+      - ./frontend:/src/frontend
+      - frontend_node_modules:/src/frontend/node_modules
+    command: ["sh", "-c", "npm ci --no-audit --no-fund && npm run coverage"]
+
+volumes:
+  pgdata:
+  gocache:
+  frontend_node_modules:

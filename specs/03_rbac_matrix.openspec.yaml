@@ -1,0 +1,138 @@
+# OpenSpec · Матрица прав RBAC AI-Buddy
+# Источник истины для internal/rbac. Модель: default deny + deny-overrides.
+# Роль берётся из имитации корпоративной авторизации (токен → сотрудник → роль),
+# клиент не может передать роль сам. Шлюз MCP проверяет КАЖДЫЙ вызов до обработчика.
+openspec: "1.0"
+kind: RbacMatrix
+metadata:
+  id: avito-start-ai-buddy-rbac
+  version: "1.0.0"
+  is_synthetic: true
+
+default_effect: deny
+
+roles:
+  - { id: intern_backend, title: "Стажёр (Backend)",        kind: human }
+  - { id: mentor,         title: "Наставник (buddy)",       kind: human }
+  - { id: team_lead,      title: "Руководитель команды",    kind: human }
+  - { id: system_cron,    title: "ИИ-крон (сервисный аккаунт)", kind: service }
+
+# Ограничения (ABAC поверх ролей):
+#   self_only  — resource.intern_id обязан совпадать с principal.id
+#   team_scope — resource.team обязан совпадать с principal.team
+constraints:
+  - { id: self_only,  description: "Только над собственными данными" }
+  - { id: team_scope, description: "Только ресурсы собственной команды" }
+
+policies:
+  # ---------- MCP-инструменты ----------
+  - id: POL-IAM-001
+    operation: iam_access.request_repo_access
+    effect: allow
+    roles: [intern_backend]
+    constraints: [self_only, team_scope]
+    description: "Стажёр запрашивает доступ только себе и только к репозиториям своей команды"
+  - id: POL-IAM-002
+    operation: iam_access.request_repo_access
+    effect: allow
+    roles: [mentor, team_lead]
+    constraints: [team_scope]
+    description: "Наставник и руководитель могут запросить доступ стажёру своей команды"
+
+  - id: POL-SEC-001
+    operation: db_admin.export_prod_pii
+    effect: deny
+    roles: ["*"]
+    incident: true
+    reason: "Выгрузка production-данных с ПДн и финансовых сведений запрещена всем ролям AI-Buddy"
+    safe_alternative: "Тестовый стенд с синтетическими данными (iam_access.request_repo_access, stand=test)"
+    description: "Чувствительные ПДн и финансы вне области задачи; каждая попытка — инцидент"
+
+  - id: POL-KB-001
+    operation: playbook.search_docs
+    effect: allow
+    roles: [intern_backend, mentor, team_lead, system_cron]
+    description: "Поиск по базе знаний; документы фильтруются по audience роли"
+
+  - id: POL-ABS-001
+    operation: absences.create_day_off
+    effect: allow
+    roles: [intern_backend]
+    constraints: [self_only]
+    description: "Отгул оформляется только на себя"
+
+  - id: POL-MNT-001
+    operation: mentor.send_1on1_brief
+    effect: allow
+    roles: [system_cron, mentor]
+    description: "Бриф наставнику формирует ИИ-крон; стажёр отправить его не может"
+
+  - id: POL-NTF-001
+    operation: notifications.send
+    effect: allow
+    roles: [system_cron, mentor, team_lead]
+    description: "Произвольные уведомления стажёр отправлять не может"
+
+  - id: POL-TRK-001
+    operation: tracker.get_task_activity
+    effect: allow
+    roles: [intern_backend]
+    constraints: [self_only]
+  - id: POL-TRK-002
+    operation: tracker.get_task_activity
+    effect: allow
+    roles: [mentor, team_lead, system_cron]
+
+  - id: POL-FF-001
+    operation: feature_flags.list
+    effect: allow
+    roles: [intern_backend, mentor, team_lead, system_cron]
+
+  # ---------- Операции REST API ----------
+  - id: POL-API-001
+    operation: api.workspace.read
+    effect: allow
+    roles: [intern_backend, mentor, team_lead]
+  - id: POL-API-002
+    operation: api.chat.send
+    effect: allow
+    roles: [intern_backend]
+    description: "Чат AI-Buddy — инструмент стажёра"
+  - id: POL-API-003
+    operation: api.chat_history.read
+    effect: allow
+    roles: [intern_backend]
+    description: "Переписку видит только сам стажёр; наставник получает только бриф"
+  - id: POL-API-004
+    operation: api.briefs.read
+    effect: allow
+    roles: [mentor, team_lead]
+  - id: POL-API-005
+    operation: api.cron.trigger
+    effect: allow
+    roles: [intern_backend, mentor, team_lead, system_cron]
+    description: "Демо-кнопка имитации фонового крона; сам джоб исполняется от system_cron"
+  - id: POL-API-006
+    operation: api.reset
+    effect: allow
+    roles: [intern_backend, mentor, team_lead]
+    description: "Сброс демо-данных для повторного прогона жюри"
+  - id: POL-API-007
+    operation: api.telemetry.read
+    effect: allow
+    roles: [intern_backend, mentor, team_lead]
+    description: "Демо-инспектор телеметрии (MCP + RBAC + Clickstream)"
+  - id: POL-API-008
+    operation: api.feature_flags.write
+    effect: allow
+    roles: [team_lead]
+    description: "Runtime-флаги переключает только руководитель"
+  - id: POL-API-009
+    operation: api.absences.read_team
+    effect: allow
+    roles: [mentor, team_lead]
+  - id: POL-API-010
+    operation: api.incidents.read
+    effect: allow
+    roles: [team_lead]
+    description: "Инциденты безопасности видит руководитель"
