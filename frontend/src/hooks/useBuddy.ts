@@ -7,7 +7,8 @@ import { ApiError } from '../api/client';
 import type { ChatMessage, ChatResult, CronResult, ToolCall, Workspace } from '../api/schemas';
 import { useUi } from '../store/ui';
 
-export const workspaceKey = (role: DemoRole) => ['workspace', role] as const;
+export const workspaceKey = (role: DemoRole, internId?: string) =>
+  internId ? (['workspace', role, internId] as const) : (['workspace', role] as const);
 export const telemetryKey = (role: DemoRole) => ['telemetry', role] as const;
 
 export function errorText(error: unknown): string {
@@ -17,8 +18,9 @@ export function errorText(error: unknown): string {
 
 export function useWorkspace() {
   const role = useUi((s) => s.role);
+  const internId = useUi((s) => s.activeInternId);
   return useQuery({
-    queryKey: workspaceKey(role),
+    queryKey: workspaceKey(role, internId),
     queryFn: () => api.getWorkspace(),
     staleTime: 3_000,
     // Наставник и руководитель видят новые брифы и уведомления без перезагрузки.
@@ -64,7 +66,8 @@ function upsertMessages(existing: ChatMessage[], incoming: Array<ChatMessage | n
 /** Применяет результат чата/действия к кэшу workspace и обновляет зависимые данные в фоне. */
 export function applyChatResult(client: QueryClient, role: DemoRole, result: ChatResult, submittedMessageId?: string): void {
   useUi.getState().rememberToolCalls(result.tool_calls);
-  client.setQueryData<Workspace>(workspaceKey(role), (ws) => {
+  const internId = useUi.getState().activeInternId;
+  const updateWorkspace = (ws: Workspace | undefined): Workspace | undefined => {
     if (!ws) return ws;
     let messages = upsertMessages(ws.messages, [result.user_message, result.message]);
     if (submittedMessageId && result.message) {
@@ -79,7 +82,9 @@ export function applyChatResult(client: QueryClient, role: DemoRole, result: Cha
       progress: result.progress,
       next_step: result.next_step ?? null,
     };
-  });
+  };
+  client.setQueryData<Workspace>(workspaceKey(role, internId), updateWorkspace);
+  client.setQueryData<Workspace>(workspaceKey(role), updateWorkspace);
   void client.invalidateQueries({ queryKey: ['workspace'] });
   void client.invalidateQueries({ queryKey: ['telemetry'] });
 }
@@ -120,6 +125,43 @@ export function useExecuteAction() {
     mutationFn: ({ tool, args, messageId }: ExecuteInput) => api.executeTool(tool, args, messageId),
     onSuccess: (result, input) => applyChatResult(client, useUi.getState().role, result, input.messageId),
     onError: () => void client.invalidateQueries({ queryKey: ['telemetry'] }),
+  });
+}
+
+export interface ReviewAbsenceInput {
+  id: string;
+  decision: 'approved' | 'rejected';
+  comment?: string;
+}
+
+/** Согласование или отклонение заявки на отгул руководителем → POST /api/v1/absences/review */
+export function useReviewAbsence() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, decision, comment }: ReviewAbsenceInput) => api.reviewAbsence(id, decision, comment),
+    onSuccess: (updated) => {
+      const role = useUi.getState().role;
+      const internId = useUi.getState().activeInternId;
+      const updateFn = (ws: Workspace | undefined): Workspace | undefined => {
+        if (!ws) return ws;
+        return {
+          ...ws,
+          absences: ws.absences.map((a) => (a.id === updated.id ? { ...a, ...updated } : a)),
+        };
+      };
+      client.setQueryData<Workspace>(workspaceKey(role, internId), updateFn);
+      client.setQueryData<Workspace>(workspaceKey(role), updateFn);
+      void client.invalidateQueries({ queryKey: ['workspace'] });
+      void client.invalidateQueries({ queryKey: ['telemetry'] });
+      useUi.getState().showToast({
+        kind: 'success',
+        text:
+          updated.decision === 'approved' || updated.status === 'approved'
+            ? `Заявка ${updated.number} согласована`
+            : `Заявка ${updated.number} отклонена`,
+      });
+    },
+    onError: (error) => useUi.getState().showToast({ kind: 'error', text: errorText(error) }),
   });
 }
 

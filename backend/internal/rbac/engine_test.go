@@ -50,6 +50,10 @@ func TestMatrixFromSpec(t *testing.T) {
 		{"стажёр: отгул за другого", intern, "absences.create_day_off", Resource{InternID: "u-other"}, false, "POL-ABS-001", ConstraintSelfOnly},
 		{"наставник: отгул за стажёра", mentor, "absences.create_day_off", self, false, PolicyDefaultDeny, ""},
 		{"руководитель: отгул за стажёра", lead, "absences.create_day_off", self, false, PolicyDefaultDeny, ""},
+		{"руководитель: согласование отгула (MCP)", lead, "absences.review_day_off", Resource{}, true, "POL-ABS-002", ""},
+		{"стажёр: согласование отгула (MCP)", intern, "absences.review_day_off", Resource{}, false, PolicyDefaultDeny, ""},
+		{"руководитель: согласование отгула (API)", lead, "api.absences.review", Resource{}, true, "POL-API-011", ""},
+		{"стажёр: согласование отгула (API)", intern, "api.absences.review", Resource{}, false, PolicyDefaultDeny, ""},
 
 		{"стажёр: отправка брифа", intern, "mentor.send_1on1_brief", self, false, PolicyDefaultDeny, ""},
 		{"крон: отправка брифа", cron, "mentor.send_1on1_brief", self, true, "POL-MNT-001", ""},

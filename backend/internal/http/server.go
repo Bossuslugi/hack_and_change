@@ -56,6 +56,7 @@ func New(o Options) http.Handler {
 	s.mux.Handle("POST /api/v1/chat", s.auth(s.chat))
 	s.mux.Handle("POST /api/v1/chat/stream", s.auth(s.chatStream))
 	s.mux.Handle("POST /api/v1/mcp/execute", s.auth(s.execute))
+	s.mux.Handle("POST /api/v1/absences/review", s.auth(s.reviewAbsence))
 	s.mux.Handle("POST /api/v1/cron/trigger", s.auth(s.cron))
 	s.mux.Handle("POST /api/v1/reset", s.auth(s.reset))
 	s.mux.Handle("GET /api/v1/telemetry", s.auth(s.telemetry))
@@ -214,8 +215,24 @@ func (s *Server) health(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, status, map[string]any{"status": state, "store": info.Store, "cache": info.Cache})
 }
 
+func getInternID(r *http.Request, explicit ...string) string {
+	for _, id := range explicit {
+		if s := strings.TrimSpace(id); s != "" {
+			return s
+		}
+	}
+	if id := strings.TrimSpace(r.URL.Query().Get("intern_id")); id != "" {
+		return id
+	}
+	if id := strings.TrimSpace(r.Header.Get("X-Intern-ID")); id != "" {
+		return id
+	}
+	return ""
+}
+
 func (s *Server) workspace(w http.ResponseWriter, r *http.Request, p domain.Principal) {
-	view, err := s.svc.Workspace(r.Context(), p)
+	internID := getInternID(r)
+	view, err := s.svc.Workspace(r.Context(), p, internID)
 	if err != nil {
 		s.fail(w, r, err)
 		return
@@ -224,7 +241,8 @@ func (s *Server) workspace(w http.ResponseWriter, r *http.Request, p domain.Prin
 }
 
 type chatRequest struct {
-	Message string `json:"message"`
+	Message  string `json:"message"`
+	InternID string `json:"intern_id,omitempty"`
 }
 
 func (s *Server) chat(w http.ResponseWriter, r *http.Request, p domain.Principal) {
@@ -233,7 +251,8 @@ func (s *Server) chat(w http.ResponseWriter, r *http.Request, p domain.Principal
 		s.fail(w, r, err)
 		return
 	}
-	res, err := s.svc.Chat(r.Context(), p, req.Message, nil)
+	internID := getInternID(r, req.InternID)
+	res, err := s.svc.Chat(r.Context(), p, req.Message, nil, internID)
 	if err != nil {
 		s.fail(w, r, err)
 		return
@@ -286,7 +305,8 @@ func (s *Server) chatStream(w http.ResponseWriter, r *http.Request, p domain.Pri
 	w.WriteHeader(http.StatusOK)
 	flusher.Flush()
 
-	res, err := s.svc.Chat(r.Context(), p, req.Message, func(st agent.Stage) { sseEvent(w, flusher, "stage", st) })
+	internID := getInternID(r, req.InternID)
+	res, err := s.svc.Chat(r.Context(), p, req.Message, func(st agent.Stage) { sseEvent(w, flusher, "stage", st) }, internID)
 	if err != nil {
 		status, body := classify(err)
 		if status >= 500 {
@@ -311,6 +331,7 @@ type executeRequest struct {
 	Tool      string         `json:"tool"`
 	Arguments map[string]any `json:"arguments"`
 	MessageID string         `json:"message_id"`
+	InternID  string         `json:"intern_id,omitempty"`
 }
 
 // execute — прямое подтверждение интерактивной карточки: вызов MCP-инструмента через RBAC-шлюз.
@@ -320,7 +341,8 @@ func (s *Server) execute(w http.ResponseWriter, r *http.Request, p domain.Princi
 		s.fail(w, r, err)
 		return
 	}
-	res, err := s.svc.Execute(r.Context(), p, req.Tool, req.Arguments, req.MessageID)
+	internID := getInternID(r, req.InternID)
+	res, err := s.svc.Execute(r.Context(), p, req.Tool, req.Arguments, req.MessageID, internID)
 	if err != nil {
 		s.fail(w, r, err)
 		return
@@ -342,6 +364,26 @@ func (s *Server) execute(w http.ResponseWriter, r *http.Request, p domain.Princi
 		status = http.StatusNotFound
 	}
 	writeJSON(w, status, errorEnvelope{Error: body, Result: res})
+}
+
+type reviewAbsenceRequest struct {
+	ID       string `json:"id"`
+	Decision string `json:"decision"`
+	Comment  string `json:"comment"`
+}
+
+func (s *Server) reviewAbsence(w http.ResponseWriter, r *http.Request, p domain.Principal) {
+	var req reviewAbsenceRequest
+	if err := decode(r, &req); err != nil {
+		s.fail(w, r, err)
+		return
+	}
+	updated, err := s.svc.ReviewAbsence(r.Context(), p, req.ID, req.Decision, req.Comment)
+	if err != nil {
+		s.fail(w, r, err)
+		return
+	}
+	writeJSON(w, http.StatusOK, updated)
 }
 
 func (s *Server) cron(w http.ResponseWriter, r *http.Request, p domain.Principal) {

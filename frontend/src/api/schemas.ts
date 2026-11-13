@@ -231,6 +231,10 @@ export const absenceSchema = z.object({
   notified: list(z.string()),
   is_synthetic: z.boolean(),
   created_at: z.string(),
+  decision: z.string().optional(),
+  reviewer_id: z.string().optional(),
+  reviewed_at: z.string().optional(),
+  comment: z.string().optional(),
 });
 export type Absence = z.infer<typeof absenceSchema>;
 

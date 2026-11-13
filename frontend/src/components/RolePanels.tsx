@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import type { Brief, Notification, Workspace } from '../api/schemas';
-import { useCron, useSetFlag } from '../hooks/useBuddy';
+import { useCron, useReviewAbsence, useSetFlag } from '../hooks/useBuddy';
 import { ABSENCE_STATUS_LABEL, formatDate, formatDateTime, formatMinutes, plural } from '../lib/format';
 import { Icon } from './ui/icons';
 import { Badge, Button, Card, CardTitle, EmptyState, Eyebrow, FOCUS, cn, type Tone } from './ui/primitives';
@@ -140,6 +140,9 @@ function Notifications({ items }: { items: Notification[] }) {
 }
 
 function Absences({ workspace }: { workspace: Workspace }) {
+  const reviewAbsence = useReviewAbsence();
+  const isLead = workspace.viewer.role === 'team_lead';
+
   return (
     <Card className="p-4">
       <CardTitle aside={<Badge>{workspace.absences.length}</Badge>}>Заявки на отсутствие</CardTitle>
@@ -155,24 +158,62 @@ function Absences({ workspace }: { workspace: Workspace }) {
                   <th className="py-2 pr-4 font-normal">Сотрудник</th>
                   <th className="py-2 pr-4 font-normal">Когда</th>
                   <th className="py-2 pr-4 font-normal">Причина</th>
-                  <th className="py-2 font-normal">Статус</th>
+                  <th className="py-2 pr-4 font-normal">Статус</th>
+                  {isLead && <th className="py-2 font-normal">Решение руководителя</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
-                {workspace.absences.map((a) => (
-                  <tr key={a.id}>
-                    <td className="py-2 pr-4 font-mono text-meta font-medium text-ink-900">{a.number}</td>
-                    <td className="py-2 pr-4 text-ink-900">{a.intern_name}</td>
-                    <td className="py-2 pr-4 text-ink-500">
-                      {formatDate(a.date)}
-                      {a.time_from && `, ${a.time_from}–${a.time_to}`}
-                    </td>
-                    <td className="py-2 pr-4 text-ink-500">{a.reason}</td>
-                    <td className="py-2">
-                      <Badge tone="warn">{ABSENCE_STATUS_LABEL[a.status] ?? a.status}</Badge>
-                    </td>
-                  </tr>
-                ))}
+                {workspace.absences.map((a) => {
+                  const tone: Tone = a.status === 'approved' ? 'ok' : a.status === 'rejected' ? 'danger' : 'warn';
+                  return (
+                    <tr key={a.id} data-testid={`absence-row-${a.id}`}>
+                      <td className="py-2 pr-4 font-mono text-meta font-medium text-ink-900">{a.number}</td>
+                      <td className="py-2 pr-4 text-ink-900">{a.intern_name}</td>
+                      <td className="py-2 pr-4 text-ink-500">
+                        {formatDate(a.date)}
+                        {a.time_from && `, ${a.time_from}–${a.time_to}`}
+                      </td>
+                      <td className="py-2 pr-4 text-ink-500">{a.reason}</td>
+                      <td className="py-2 pr-4">
+                        <Badge tone={tone}>{ABSENCE_STATUS_LABEL[a.status] ?? a.status}</Badge>
+                      </td>
+                      {isLead && (
+                        <td className="py-2">
+                          {a.status === 'pending_approval' ? (
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                disabled={reviewAbsence.isPending}
+                                onClick={() => reviewAbsence.mutate({ id: a.id, decision: 'approved' })}
+                                aria-label={`Согласовать отгул ${a.number}`}
+                                className={cn(
+                                  'inline-flex h-7 items-center rounded-button bg-[#00C257] px-2.5 text-meta font-medium text-white transition-colors hover:bg-[#00A84B] disabled:opacity-50',
+                                  FOCUS,
+                                )}
+                              >
+                                Согласовать
+                              </button>
+                              <button
+                                type="button"
+                                disabled={reviewAbsence.isPending}
+                                onClick={() => reviewAbsence.mutate({ id: a.id, decision: 'rejected' })}
+                                aria-label={`Отклонить отгул ${a.number}`}
+                                className={cn(
+                                  'inline-flex h-7 items-center rounded-button border border-line px-2.5 text-meta font-medium text-ink-700 transition-colors hover:border-danger-500 hover:bg-danger-50 hover:text-danger-600 disabled:opacity-50',
+                                  FOCUS,
+                                )}
+                              >
+                                Отклонить
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="text-meta text-ink-400">—</span>
+                          )}
+                        </td>
+                      )}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

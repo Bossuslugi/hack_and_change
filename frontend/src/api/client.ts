@@ -2,6 +2,7 @@
 // добавляет демо-токен роли, валидирует каждый ответ Zod-схемой и приводит ошибки к ApiError.
 import type { z } from 'zod';
 import {
+  absenceSchema,
   apiErrorSchema,
   chatResultSchema,
   cronResultSchema,
@@ -10,6 +11,7 @@ import {
   streamErrorSchema,
   telemetrySchema,
   workspaceSchema,
+  type Absence,
   type ChatResult,
   type CronResult,
   type FeatureFlag,
@@ -54,6 +56,8 @@ export interface ApiClientOptions {
   baseUrl?: string;
   /** Возвращает демо-токен текущей роли. */
   getToken: () => string;
+  /** Возвращает id активного стажёра (для контекста нескольких команд). */
+  getInternId?: () => string;
   fetch?: typeof fetch;
 }
 
@@ -67,6 +71,7 @@ export interface ApiClient {
   sendChat(message: string): Promise<ChatResult>;
   streamChat(message: string, handlers?: StreamHandlers): Promise<ChatResult>;
   executeTool(tool: string, args: Record<string, unknown>, messageId?: string): Promise<ChatResult>;
+  reviewAbsence(id: string, decision: 'approved' | 'rejected', comment?: string): Promise<Absence>;
   triggerCron(): Promise<CronResult>;
   reset(): Promise<Workspace>;
   getTelemetry(): Promise<Telemetry>;
@@ -105,9 +110,16 @@ export function createApiClient(options: ApiClientOptions): ApiClient {
 
   async function send(method: string, path: string, body?: unknown): Promise<Response> {
     const headers: Record<string, string> = { Authorization: `Bearer ${options.getToken()}` };
+    const internId = options.getInternId?.();
+    if (internId) {
+      headers['X-Intern-ID'] = internId;
+    }
     if (body !== undefined) headers['Content-Type'] = 'application/json';
+    const targetUrl = internId && !path.includes('intern_id=')
+      ? `${baseUrl}${path}${path.includes('?') ? '&' : '?'}intern_id=${encodeURIComponent(internId)}`
+      : `${baseUrl}${path}`;
     try {
-      return await doFetch(`${baseUrl}${path}`, {
+      return await doFetch(targetUrl, {
         method,
         headers,
         body: body === undefined ? undefined : JSON.stringify(body),
@@ -178,7 +190,13 @@ export function createApiClient(options: ApiClientOptions): ApiClient {
     },
 
     executeTool: (tool, args, messageId) =>
-      request(chatResultSchema, 'POST', '/api/v1/mcp/execute', { tool, arguments: args, message_id: messageId ?? '' }),
+      request(chatResultSchema, 'POST', '/api/v1/mcp/execute', {
+        tool,
+        arguments: args,
+        message_id: messageId ?? '',
+      }),
+    reviewAbsence: (id, decision, comment) =>
+      request(absenceSchema, 'POST', '/api/v1/absences/review', { id, decision, comment: comment ?? '' }),
     triggerCron: () => request(cronResultSchema, 'POST', '/api/v1/cron/trigger'),
     reset: () => request(workspaceSchema, 'POST', '/api/v1/reset'),
     getTelemetry: () => request(telemetrySchema, 'GET', '/api/v1/telemetry'),

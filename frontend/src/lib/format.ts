@@ -58,6 +58,8 @@ export const TOOL_STATUS_LABEL: Record<string, string> = {
 
 export const ABSENCE_STATUS_LABEL: Record<string, string> = {
   pending_approval: 'Ожидает согласования',
+  approved: 'Согласовано руководителем',
+  rejected: 'Отклонено',
 };
 
 /** Сегодняшняя дата в формате YYYY-MM-DD (локальное время). */
@@ -94,5 +96,6 @@ export function internContext(intern: { team: string; stack: string; stage: stri
   const week = /\d+/.exec(intern.stage)?.[0];
   const months = /(\d+)\s*месяц/.exec(intern.program)?.[1];
   const stage = week ? `Неделя ${week}${months ? ` из ${Number(months) * 4}` : ''}` : intern.stage;
-  return `Команда: ${intern.team} • Backend ${intern.stack} • ${stage}`;
+  const stack = intern.stack === 'Go' ? 'Backend Go' : intern.stack;
+  return `Команда: ${intern.team} • ${stack} • ${stage}`;
 }

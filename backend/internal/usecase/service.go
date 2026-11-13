@@ -14,6 +14,7 @@ import (
 	"aibuddy/backend/internal/domain"
 	"aibuddy/backend/internal/mcp"
 	"aibuddy/backend/internal/rbac"
+	"aibuddy/backend/internal/seed"
 	"aibuddy/backend/internal/spec"
 )
 
@@ -28,6 +29,7 @@ const (
 	OpTelemetryRead   = "api.telemetry.read"
 	OpFlagsWrite      = "api.feature_flags.write"
 	OpAbsencesTeam    = "api.absences.read_team"
+	OpAbsencesReview  = "api.absences.review"
 	OpIncidentsRead   = "api.incidents.read"
 )
 
@@ -82,19 +84,34 @@ type session struct {
 	Turns      int    `json:"turns"`
 }
 
-func (s *Service) sessionKey() string { return "session:" + s.internID }
+func (s *Service) resolveInternID(p domain.Principal, explicit ...string) string {
+	if len(explicit) > 0 && strings.TrimSpace(explicit[0]) != "" {
+		return strings.TrimSpace(explicit[0])
+	}
+	if p.Role == domain.RoleInternBackend && p.ID != "" {
+		return p.ID
+	}
+	return s.internID
+}
 
-func (s *Service) loadSession(ctx context.Context) session {
+func (s *Service) sessionKey(internID string) string {
+	if internID == "" {
+		internID = s.internID
+	}
+	return "session:" + internID
+}
+
+func (s *Service) loadSession(ctx context.Context, internID string) session {
 	var sess session
-	if raw, ok, err := s.Cache.Get(ctx, s.sessionKey()); err == nil && ok {
+	if raw, ok, err := s.Cache.Get(ctx, s.sessionKey(internID)); err == nil && ok {
 		_ = json.Unmarshal([]byte(raw), &sess)
 	}
 	return sess
 }
 
-func (s *Service) saveSession(ctx context.Context, sess session) {
+func (s *Service) saveSession(ctx context.Context, internID string, sess session) {
 	if raw, err := json.Marshal(sess); err == nil {
-		_ = s.Cache.Set(ctx, s.sessionKey(), string(raw), sessionTTL)
+		_ = s.Cache.Set(ctx, s.sessionKey(internID), string(raw), sessionTTL)
 	}
 }
 
@@ -131,20 +148,38 @@ func (s *Service) seedRecords() ([]domain.Record, error) {
 	if err != nil {
 		return nil, err
 	}
-	in := s.Seed.Intern
-	greeting, _ := s.Spec.Agent.IntentByID(agent.IntentGreeting)
-	welcome := domain.ChatMessage{
-		ID: welcomeMessage, InternID: in.ID, Role: domain.MessageAssistant,
-		Text:   s.Spec.Agent.Response("greeting", map[string]string{"name": in.FirstName(), "team": in.Team}),
-		Intent: agent.IntentGreeting, Engine: domain.EngineSmart,
-		Sources: []domain.DocRef{}, Suggestions: append([]string{}, greeting.Suggestions...),
-		ToolCallIDs: []string{}, CreatedAt: now,
+	interns := s.Seed.Interns
+	if len(interns) == 0 {
+		interns = []domain.InternProfile{s.Seed.Intern}
 	}
-	rec, err := domain.NewRecord(domain.KindMessage, welcome.ID, in.ID, now, welcome)
-	if err != nil {
-		return nil, err
+	for _, in := range interns {
+		greeting, _ := s.Spec.Agent.IntentByID(agent.IntentGreeting)
+		msgID := welcomeMessage
+		if in.ID != s.internID {
+			msgID = welcomeMessage + "-" + in.ID
+		}
+		suggestions := append([]string{}, greeting.Suggestions...)
+		if in.ID == seed.Intern2ID {
+			suggestions = []string{
+				"Как устроены ML-пайплайны в команде: DVC, Airflow и версионирование данных?",
+				"Как в нашей команде катить ML-модель под фича-флагом и запустить A/B-тест?",
+				"Что дальше по чек-листу?",
+			}
+		}
+		welcome := domain.ChatMessage{
+			ID: msgID, InternID: in.ID, Role: domain.MessageAssistant,
+			Text:   s.Spec.Agent.Response("greeting", map[string]string{"name": in.FirstName(), "team": in.Team}),
+			Intent: agent.IntentGreeting, Engine: domain.EngineSmart,
+			Sources: []domain.DocRef{}, Suggestions: suggestions,
+			ToolCallIDs: []string{}, CreatedAt: now,
+		}
+		rec, err := domain.NewRecord(domain.KindMessage, welcome.ID, in.ID, now, welcome)
+		if err != nil {
+			return nil, err
+		}
+		recs = append(recs, rec)
 	}
-	return append(recs, rec), nil
+	return recs, nil
 }
 
 // EnsureSeed загружает синтетические данные при первом старте (пустое хранилище).
@@ -168,7 +203,10 @@ func (s *Service) resetData(ctx context.Context) error {
 		return err
 	}
 	_ = s.Services.Flags.Reset(ctx)
-	_ = s.Cache.Del(ctx, s.sessionKey())
+	_ = s.Cache.Del(ctx, s.sessionKey(s.internID))
+	for _, in := range s.Seed.Interns {
+		_ = s.Cache.Del(ctx, s.sessionKey(in.ID))
+	}
 	return nil
 }
 
@@ -233,7 +271,14 @@ type openQuestion struct {
 }
 
 func (s *Service) docsRead(ctx context.Context) ([]string, error) {
-	reads, err := domain.Load[docRead](ctx, s.Store, domain.KindDocRead, s.internID)
+	return s.docsReadFor(ctx, s.internID)
+}
+
+func (s *Service) docsReadFor(ctx context.Context, internID string) ([]string, error) {
+	if internID == "" {
+		internID = s.internID
+	}
+	reads, err := domain.Load[docRead](ctx, s.Store, domain.KindDocRead, internID)
 	if err != nil {
 		return nil, err
 	}
@@ -281,20 +326,21 @@ func (s *Service) metrics(ctx context.Context, progress domain.Progress) (domain
 
 // Workspace возвращает состояние с учётом прав роли: переписку видит только стажёр,
 // брифы — наставник и руководитель, инциденты безопасности — руководитель.
-func (s *Service) Workspace(ctx context.Context, p domain.Principal) (WorkspaceView, error) {
+func (s *Service) Workspace(ctx context.Context, p domain.Principal, targetInternID ...string) (WorkspaceView, error) {
 	var v WorkspaceView
 	if err := s.authorize(ctx, p, OpWorkspaceRead); err != nil {
 		return v, err
 	}
-	intern, err := domain.LoadOne[domain.InternProfile](ctx, s.Store, domain.KindIntern, s.internID)
+	internID := s.resolveInternID(p, targetInternID...)
+	intern, err := domain.LoadOne[domain.InternProfile](ctx, s.Store, domain.KindIntern, internID)
 	if err != nil {
 		return v, err
 	}
-	checklist, err := domain.LoadChecklist(ctx, s.Store, s.internID)
+	checklist, err := domain.LoadChecklist(ctx, s.Store, internID)
 	if err != nil {
 		return v, err
 	}
-	task, err := domain.LoadOne[domain.SprintTask](ctx, s.Store, domain.KindSprintTask, s.internID)
+	task, err := domain.LoadOne[domain.SprintTask](ctx, s.Store, domain.KindSprintTask, internID)
 	if err != nil {
 		return v, err
 	}
@@ -303,7 +349,7 @@ func (s *Service) Workspace(ctx context.Context, p domain.Principal) (WorkspaceV
 	if err != nil {
 		return v, err
 	}
-	read, err := s.docsRead(ctx)
+	read, err := s.docsReadFor(ctx, internID)
 	if err != nil {
 		return v, err
 	}
@@ -332,32 +378,32 @@ func (s *Service) Workspace(ctx context.Context, p domain.Principal) (WorkspaceV
 		Disclaimer: s.Spec.Agent.Agent.SyntheticData.Disclaimer,
 	}
 
-	isOwner := p.ID == s.internID
+	isOwner := p.ID == internID
 	if s.can(p, OpChatHistoryRead) && isOwner {
-		if v.Messages, err = domain.Load[domain.ChatMessage](ctx, s.Store, domain.KindMessage, s.internID); err != nil {
+		if v.Messages, err = domain.Load[domain.ChatMessage](ctx, s.Store, domain.KindMessage, internID); err != nil {
 			return v, err
 		}
 	}
 	if isOwner || s.can(p, OpAbsencesTeam) {
-		absences, err := domain.Load[domain.AbsenceRequest](ctx, s.Store, domain.KindAbsence, s.internID)
+		absences, err := domain.Load[domain.AbsenceRequest](ctx, s.Store, domain.KindAbsence, internID)
 		if err != nil {
 			return v, err
 		}
-		grants, err := domain.Load[domain.AccessGrant](ctx, s.Store, domain.KindAccessGrant, s.internID)
+		grants, err := domain.Load[domain.AccessGrant](ctx, s.Store, domain.KindAccessGrant, internID)
 		if err != nil {
 			return v, err
 		}
 		v.Absences, v.AccessGrants = reverse(absences), grants
 	}
 	if s.can(p, OpBriefsRead) {
-		briefs, err := domain.Load[domain.MentorBrief](ctx, s.Store, domain.KindBrief, s.internID)
+		briefs, err := domain.Load[domain.MentorBrief](ctx, s.Store, domain.KindBrief, internID)
 		if err != nil {
 			return v, err
 		}
 		v.Briefs = reverse(briefs)
 	}
 	if s.can(p, OpIncidentsRead) {
-		events, err := domain.Load[domain.TelemetryEvent](ctx, s.Store, domain.KindEvent, s.internID)
+		events, err := domain.Load[domain.TelemetryEvent](ctx, s.Store, domain.KindEvent, internID)
 		if err != nil {
 			return v, err
 		}
@@ -368,6 +414,85 @@ func (s *Service) Workspace(ctx context.Context, p domain.Principal) (WorkspaceV
 		}
 	}
 	return v, nil
+}
+
+// ReviewAbsence согласовывает или отклоняет заявку на отгул руководителем.
+func (s *Service) ReviewAbsence(ctx context.Context, p domain.Principal, id, decision, comment string) (*domain.AbsenceRequest, error) {
+	if err := s.authorize(ctx, p, OpAbsencesReview); err != nil {
+		return nil, err
+	}
+	id = strings.TrimSpace(id)
+	decision = strings.TrimSpace(decision)
+	comment = strings.TrimSpace(comment)
+	if id == "" {
+		return nil, fmt.Errorf("%w: не указан id заявки", domain.ErrValidation)
+	}
+	if decision != domain.AbsenceStatusApproved && decision != domain.AbsenceStatusRejected {
+		return nil, fmt.Errorf("%w: некорректное решение %q (ожидается approved или rejected)", domain.ErrValidation, decision)
+	}
+
+	all, err := domain.Load[domain.AbsenceRequest](ctx, s.Store, domain.KindAbsence, "")
+	if err != nil {
+		return nil, err
+	}
+	var target *domain.AbsenceRequest
+	for i := range all {
+		if all[i].ID == id || all[i].Number == id {
+			target = &all[i]
+			break
+		}
+	}
+	if target == nil {
+		return nil, domain.ErrNotFound
+	}
+
+	now := s.Clock.Now()
+	target.Status = decision
+	target.Decision = decision
+	target.Comment = comment
+	target.ReviewerID = p.ID
+	target.ReviewedAt = &now
+
+	if err := domain.Save(ctx, s.Store, domain.KindAbsence, target.ID, target.InternID, target.CreatedAt, *target); err != nil {
+		return nil, err
+	}
+
+	// 1. Clickstream-событие absence.reviewed
+	s.Events.Track(ctx, target.InternID, p, domain.EventKindClickstream, "absence.reviewed", domain.SeverityInfo, map[string]any{
+		"id":          target.ID,
+		"number":      target.Number,
+		"decision":    decision,
+		"comment":     comment,
+		"reviewer_id": p.ID,
+	})
+
+	// 2. Системное уведомление от AI-Buddy в чат стажёра
+	var notifyText string
+	if decision == domain.AbsenceStatusApproved {
+		notifyText = fmt.Sprintf("✅ Руководитель согласовал твою заявку на отгул %s. Статус в системе «Отсутствия» обновлён.", target.Number)
+	} else {
+		notifyText = fmt.Sprintf("❌ Руководитель отклонил твою заявку на отгул %s. Статус в системе «Отсутствия» обновлён.", target.Number)
+		if comment != "" {
+			notifyText += fmt.Sprintf("\nКомментарий: %s", comment)
+		}
+	}
+
+	msg := domain.ChatMessage{
+		ID:        s.IDs.NewID("msg"),
+		InternID:  target.InternID,
+		Role:      domain.MessageAssistant,
+		Text:      notifyText,
+		Intent:    "absence_reviewed",
+		Engine:    domain.EngineSmart,
+		Sources:   []domain.DocRef{},
+		CreatedAt: now,
+	}
+	_ = s.saveMessage(ctx, msg)
+
+	// Уведомление во входящие
+	_, _ = s.Services.Notifications.Send(ctx, target.InternID, "Согласование отгула", notifyText, "absence", now)
+
+	return target, nil
 }
 
 func reverse[T any](in []T) []T {
@@ -411,7 +536,7 @@ func nonNil[T any](in []T) []T {
 }
 
 // Chat обрабатывает сообщение стажёра: агент → MCP/RBAC → эффекты на чек-лист → ответ.
-func (s *Service) Chat(ctx context.Context, p domain.Principal, text string, emit func(agent.Stage)) (ChatResult, error) {
+func (s *Service) Chat(ctx context.Context, p domain.Principal, text string, emit func(agent.Stage), targetInternID ...string) (ChatResult, error) {
 	started := time.Now()
 	var res ChatResult
 	if err := s.authorize(ctx, p, OpChatSend); err != nil {
@@ -421,28 +546,29 @@ func (s *Service) Chat(ctx context.Context, p domain.Principal, text string, emi
 	if n := len([]rune(text)); n == 0 || n > maxMessageLen {
 		return res, fmt.Errorf("%w: сообщение должно быть от 1 до %d символов", domain.ErrValidation, maxMessageLen)
 	}
-	intern, err := domain.LoadOne[domain.InternProfile](ctx, s.Store, domain.KindIntern, s.internID)
+	internID := s.resolveInternID(p, targetInternID...)
+	intern, err := domain.LoadOne[domain.InternProfile](ctx, s.Store, domain.KindIntern, internID)
 	if err != nil {
 		return res, err
 	}
-	checklist, err := domain.LoadChecklist(ctx, s.Store, s.internID)
+	checklist, err := domain.LoadChecklist(ctx, s.Store, internID)
 	if err != nil {
 		return res, err
 	}
-	task, err := domain.LoadOne[domain.SprintTask](ctx, s.Store, domain.KindSprintTask, s.internID)
+	task, err := domain.LoadOne[domain.SprintTask](ctx, s.Store, domain.KindSprintTask, internID)
 	if err != nil {
 		return res, err
 	}
-	sess := s.loadSession(ctx)
+	sess := s.loadSession(ctx, internID)
 
 	user := domain.ChatMessage{
-		ID: s.IDs.NewID("msg"), InternID: s.internID, Role: domain.MessageUser, Text: text,
+		ID: s.IDs.NewID("msg"), InternID: internID, Role: domain.MessageUser, Text: text,
 		Sources: []domain.DocRef{}, Suggestions: []string{}, ToolCallIDs: []string{}, CreatedAt: s.Clock.Now(),
 	}
 	if err := s.saveMessage(ctx, user); err != nil {
 		return res, err
 	}
-	s.Events.Track(ctx, s.internID, p, domain.EventKindClickstream, "chat.message_sent", domain.SeverityInfo,
+	s.Events.Track(ctx, internID, p, domain.EventKindClickstream, "chat.message_sent", domain.SeverityInfo,
 		map[string]any{"length": len([]rune(text))})
 
 	reply := s.Agent.Handle(ctx, agent.Request{
@@ -450,23 +576,23 @@ func (s *Service) Chat(ctx context.Context, p domain.Principal, text string, emi
 		LastIntent: sess.LastIntent, Emit: emit,
 	})
 
-	updates, err := s.applyEffects(ctx, p, reply.ToolCalls, reply.DocsRead)
+	updates, err := s.applyEffects(ctx, p, reply.ToolCalls, reply.DocsRead, internID)
 	if err != nil {
 		return res, err
 	}
 	if reply.OpenQuestion != "" {
 		q := openQuestion{Text: reply.OpenQuestion, AskedAt: s.Clock.Now()}
-		if err := domain.Save(ctx, s.Store, domain.KindOpenQuestion, s.IDs.NewID("q"), s.internID, q.AskedAt, q); err != nil {
+		if err := domain.Save(ctx, s.Store, domain.KindOpenQuestion, s.IDs.NewID("q"), internID, q.AskedAt, q); err != nil {
 			return res, err
 		}
 	}
-	checklist, err = domain.LoadChecklist(ctx, s.Store, s.internID)
+	checklist, err = domain.LoadChecklist(ctx, s.Store, internID)
 	if err != nil {
 		return res, err
 	}
 
 	assistant := domain.ChatMessage{
-		ID: s.IDs.NewID("msg"), InternID: s.internID, Role: domain.MessageAssistant,
+		ID: s.IDs.NewID("msg"), InternID: internID, Role: domain.MessageAssistant,
 		Text:   reply.Text + checklistNote(updates, checklist),
 		Intent: reply.Intent, Engine: reply.Engine, Sources: nonNil(reply.Sources),
 		ActionCard: reply.ActionCard, ResultCard: reply.ResultCard, Suggestions: nonNil(reply.Suggestions),
@@ -475,7 +601,7 @@ func (s *Service) Chat(ctx context.Context, p domain.Principal, text string, emi
 	if err := s.saveMessage(ctx, assistant); err != nil {
 		return res, err
 	}
-	s.saveSession(ctx, session{LastIntent: reply.Intent, Turns: sess.Turns + 1})
+	s.saveSession(ctx, internID, session{LastIntent: reply.Intent, Turns: sess.Turns + 1})
 
 	latency := float64(time.Since(started).Microseconds()) / 1000
 	payload := map[string]any{
@@ -485,9 +611,9 @@ func (s *Service) Chat(ctx context.Context, p domain.Principal, text string, emi
 	if reply.SavingKey != "" {
 		payload["saving_key"] = reply.SavingKey
 	}
-	s.Events.Track(ctx, s.internID, p, domain.EventKindAgent, "agent.answer", domain.SeverityInfo, payload)
+	s.Events.Track(ctx, internID, p, domain.EventKindAgent, "agent.answer", domain.SeverityInfo, payload)
 	if reply.LLMFallback != "" {
-		s.Events.Track(ctx, s.internID, p, domain.EventKindAgent, "llm.fallback", domain.SeverityWarn,
+		s.Events.Track(ctx, internID, p, domain.EventKindAgent, "llm.fallback", domain.SeverityWarn,
 			map[string]any{"reason": reply.LLMFallback, "fallback": "smart_engine"})
 	}
 
@@ -532,16 +658,17 @@ func evidence(call domain.MCPToolCall) string {
 }
 
 // applyEffects применяет правила checklist_effects из спецификации агента.
-func (s *Service) applyEffects(ctx context.Context, p domain.Principal, calls []domain.MCPToolCall, docs []string) ([]domain.ChecklistItem, error) {
+func (s *Service) applyEffects(ctx context.Context, p domain.Principal, calls []domain.MCPToolCall, docs []string, targetInternID ...string) ([]domain.ChecklistItem, error) {
+	internID := s.resolveInternID(p, targetInternID...)
 	now := s.Clock.Now()
 	for _, id := range docs {
-		if err := domain.Save(ctx, s.Store, domain.KindDocRead, s.internID+":"+id, s.internID, now, docRead{DocID: id, ReadAt: now}); err != nil {
+		if err := domain.Save(ctx, s.Store, domain.KindDocRead, internID+":"+id, internID, now, docRead{DocID: id, ReadAt: now}); err != nil {
 			return nil, err
 		}
 	}
 	read := map[string]bool{}
 	if len(docs) > 0 {
-		ids, err := s.docsRead(ctx)
+		ids, err := s.docsReadFor(ctx, internID)
 		if err != nil {
 			return nil, err
 		}
@@ -577,7 +704,7 @@ func (s *Service) applyEffects(ctx context.Context, p domain.Principal, calls []
 		if status == "" {
 			continue
 		}
-		item, err := domain.LoadOne[domain.ChecklistItem](ctx, s.Store, domain.KindChecklist, domain.ChecklistRecordID(s.internID, eff.Item))
+		item, err := domain.LoadOne[domain.ChecklistItem](ctx, s.Store, domain.KindChecklist, domain.ChecklistRecordID(internID, eff.Item))
 		if errors.Is(err, domain.ErrNotFound) {
 			continue
 		}
@@ -588,11 +715,11 @@ func (s *Service) applyEffects(ctx context.Context, p domain.Principal, calls []
 		if err != nil || !changed {
 			continue // шаг уже в этом или более позднем статусе
 		}
-		if err := domain.SaveChecklistItem(ctx, s.Store, s.internID, next); err != nil {
+		if err := domain.SaveChecklistItem(ctx, s.Store, internID, next); err != nil {
 			return nil, err
 		}
 		updates = append(updates, next)
-		s.Events.Track(ctx, s.internID, p, domain.EventKindClickstream, "checklist.updated", domain.SeverityInfo,
+		s.Events.Track(ctx, internID, p, domain.EventKindClickstream, "checklist.updated", domain.SeverityInfo,
 			map[string]any{"item": next.ID, "status": string(next.Status), "evidence": next.Evidence})
 	}
 	return updates, nil

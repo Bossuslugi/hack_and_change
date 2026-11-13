@@ -1,4 +1,5 @@
-import { api, DEMO_ROLES, DEMO_USERS, type DemoRole } from '../api/auth';
+import { useQueryClient } from '@tanstack/react-query';
+import { api, DEMO_INTERNS, DEMO_ROLES, DEMO_USERS, type DemoRole } from '../api/auth';
 import type { Workspace } from '../api/schemas';
 import { useCron, useReset } from '../hooks/useBuddy';
 import { internContext } from '../lib/format';
@@ -7,10 +8,8 @@ import { Icon, type IconName } from './ui/icons';
 import { Badge, Button, FOCUS, cn } from './ui/primitives';
 
 const ROLE_ICON: Record<DemoRole, IconName> = { intern: 'user', mentor: 'mentor', lead: 'chart' };
-/** Что жюри увидит под ролью: подпись рядом с названием сегмента. */
-const ROLE_HINT: Record<DemoRole, string> = { intern: 'Go Intern', mentor: 'бриф к 1:1', lead: 'метрики' };
 
-function RoleSwitcher() {
+function RoleSwitcher({ stack }: { stack?: string }) {
   const role = useUi((s) => s.role);
   const setRole = useUi((s) => s.setRole);
 
@@ -18,6 +17,12 @@ function RoleSwitcher() {
     if (next === role) return;
     setRole(next);
     void api.trackEvent('ui.role_switched', { role: next });
+  };
+
+  const roleHint = (r: DemoRole) => {
+    if (r === 'intern') return stack?.includes('ML') ? 'ML Intern' : 'Go Intern';
+    if (r === 'mentor') return 'бриф к 1:1';
+    return 'метрики';
   };
 
   return (
@@ -43,7 +48,61 @@ function RoleSwitcher() {
             <Icon name={ROLE_ICON[r]} className={active ? 'text-accent-500' : undefined} />
             <span>{user.label}</span>
             <span className="hidden font-mono text-meta font-normal text-ink-400 2xl:inline">
-              {user.name.split(' ')[0]} · {ROLE_HINT[r]}
+              {user.name.split(' ')[0]} · {roleHint(r)}
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function InternSwitcher() {
+  const activeInternId = useUi((s) => s.activeInternId);
+  const setActiveInternId = useUi((s) => s.setActiveInternId);
+  const queryClient = useQueryClient();
+
+  const choose = (id: string) => {
+    if (id === activeInternId) return;
+    setActiveInternId(id);
+    void api.trackEvent('ui.intern_switched', { intern_id: id });
+    void queryClient.invalidateQueries({ queryKey: ['workspace'] });
+    void queryClient.invalidateQueries({ queryKey: ['telemetry'] });
+  };
+
+  return (
+    <div
+      role="radiogroup"
+      aria-label="Профиль стажёра"
+      className="inline-flex h-8 items-center gap-1 rounded-card bg-ink-900/5 p-0.5"
+    >
+      {DEMO_INTERNS.map((intern) => {
+        const active = activeInternId === intern.id;
+        return (
+          <button
+            key={intern.id}
+            type="button"
+            role="radio"
+            aria-checked={active}
+            aria-label={`${intern.name} (${intern.team})`}
+            title={`${intern.name} — ${intern.roleTitle} • ${intern.team} • ${intern.stage}`}
+            onClick={() => choose(intern.id)}
+            className={cn(
+              'inline-flex h-7 items-center gap-1.5 rounded-tag px-2 text-meta font-medium transition-colors',
+              FOCUS,
+              active ? 'bg-white text-ink-900 shadow-card' : 'text-ink-500 hover:text-ink-900',
+            )}
+          >
+            <span
+              className={cn(
+                'h-2 w-2 rounded-full',
+                intern.stack === 'Go' ? 'bg-[#0095E0]' : 'bg-[#9B51E0]',
+              )}
+              aria-hidden="true"
+            />
+            <span>{intern.name.split(' ')[0]}</span>
+            <span className="hidden xl:inline font-mono text-meta font-normal text-ink-400">
+              · {intern.stack === 'Go' ? 'Go' : 'ML'}
             </span>
           </button>
         );
@@ -66,7 +125,7 @@ export function Header({ workspace }: { workspace?: Workspace }) {
 
   return (
     <header className="glass relative z-20 grid h-14 shrink-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4 border-x-0 border-t-0 px-4 shadow-card">
-      <div className="flex min-w-0 items-center gap-4">
+      <div className="flex min-w-0 items-center gap-3">
         <div className="flex shrink-0 items-center gap-2">
           <span className="grid h-8 w-8 place-items-center rounded-tag bg-accent-500 text-white" aria-hidden="true">
             <svg viewBox="0 0 32 32" className="h-5 w-5">
@@ -78,6 +137,7 @@ export function Header({ workspace }: { workspace?: Workspace }) {
             Avito Start <span className="font-normal text-ink-400">AI-Buddy</span>
           </p>
         </div>
+        <InternSwitcher />
         {workspace && (
           <Badge className="hidden min-w-0 xl:inline-flex" title={`${workspace.intern.name} · ${workspace.intern.program}`}>
             <span className="truncate" aria-label="Контекст стажёра">
@@ -87,7 +147,7 @@ export function Header({ workspace }: { workspace?: Workspace }) {
         )}
       </div>
 
-      <RoleSwitcher />
+      <RoleSwitcher stack={workspace?.intern.stack} />
 
       <div className="flex min-w-0 items-center justify-end gap-2">
         {workspace && (

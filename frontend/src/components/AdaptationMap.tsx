@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import type { ChecklistItem, Workspace } from '../api/schemas';
 import { formatMinutes, initials, plural, STATUS_LABEL } from '../lib/format';
 import { groupByStage, stepMeta, STEP_PROMPTS, type StageGroup } from '../lib/onboarding';
@@ -8,11 +9,17 @@ import { Badge, Button, Card, CardTitle, Eyebrow, cn, type Tone } from './ui/pri
 const STATUS_TONE: Record<ChecklistItem['status'], Tone> = { pending: 'neutral', in_progress: 'warn', completed: 'ok' };
 const SEGMENT: Record<ChecklistItem['status'], string> = { pending: 'bg-ink-900/10', in_progress: 'bg-warn-500', completed: 'bg-ok-500' };
 
-function StatusIcon({ status }: { status: ChecklistItem['status'] }) {
+function StatusIcon({ status, justCompleted }: { status: ChecklistItem['status']; justCompleted?: boolean }) {
   if (status === 'completed') {
     return (
-      <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-ok-500 text-white" aria-hidden="true">
-        <Icon name="check" className="h-3 w-3" strokeWidth="2.4" />
+      <span
+        className={cn(
+          'grid h-5 w-5 shrink-0 place-items-center rounded-full bg-[#00C257] text-white transition-all duration-500 ease-out',
+          justCompleted && 'animate-checkmark-pop scale-110 shadow-sm shadow-[#00C257]/50',
+        )}
+        aria-hidden="true"
+      >
+        <Icon name="check" className={cn('h-3 w-3', justCompleted && 'scale-110')} strokeWidth="2.4" />
       </span>
     );
   }
@@ -133,14 +140,32 @@ function MentorTile({ workspace }: { workspace: Workspace }) {
 function Step({ item, isNext, onAsk }: { item: ChecklistItem; isNext: boolean; onAsk?: (text: string) => void }) {
   const prompt = STEP_PROMPTS[item.id];
   const done = item.status === 'completed';
+  const prevStatusRef = useRef(item.status);
+  const [justCompleted, setJustCompleted] = useState(false);
+
+  useEffect(() => {
+    if (prevStatusRef.current !== 'completed' && item.status === 'completed') {
+      setJustCompleted(true);
+      const timer = setTimeout(() => setJustCompleted(false), 3000);
+      return () => clearTimeout(timer);
+    }
+    prevStatusRef.current = item.status;
+  }, [item.status]);
+
   return (
     <li
       data-testid={`step-${item.id}`}
       data-status={item.status}
-      className={cn('flex items-start gap-2 rounded-card p-2 transition-colors', isNext ? 'bg-accent-50' : 'hover:bg-canvas')}
+      data-just-completed={justCompleted ? 'true' : undefined}
+      className={cn(
+        'flex items-start gap-2 rounded-card p-2 transition-all duration-500 ease-out',
+        justCompleted && 'ring-2 ring-[#00C257]/40 bg-[#E8F9EF]/40 shadow-sm',
+        !justCompleted && isNext && 'bg-accent-50',
+        !justCompleted && !isNext && 'hover:bg-canvas',
+      )}
     >
       <div className="pt-0.5">
-        <StatusIcon status={item.status} />
+        <StatusIcon status={item.status} justCompleted={justCompleted} />
       </div>
       <div className="min-w-0 flex-1">
         <p className={cn('text-body', done ? 'text-ink-500' : 'font-medium text-ink-900')} title={item.description}>

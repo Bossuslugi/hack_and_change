@@ -37,6 +37,33 @@ export const SCENARIOS: Array<{ label: string; hint: string; icon: IconName; tex
   },
 ];
 
+export const ML_SCENARIOS: Array<{ label: string; hint: string; icon: IconName; text: string }> = [
+  {
+    label: 'ML-пайплайны: Airflow & DVC',
+    hint: 'ML-контекст · версионирование данных',
+    icon: 'book',
+    text: 'Как устроены ML-пайплайны в команде: DVC, Airflow и версионирование данных?',
+  },
+  {
+    label: 'Катить ML-модель & A/B-тест',
+    hint: 'ML-контекст · раскатка под флагом',
+    icon: 'spark',
+    text: 'Как в нашей команде катить ML-модель под фича-флагом и запустить A/B-тест?',
+  },
+  {
+    label: 'Доступ к avito-moderation-ml',
+    hint: 'Сценарий 1 · MCP IAM',
+    icon: 'key',
+    text: 'Дай доступ к репозиторию avito-moderation-ml и тестовому стенду',
+  },
+  {
+    label: 'Оформить отгул на пятницу',
+    hint: 'Сценарий 3 · карточка сервиса «Отсутствия»',
+    icon: 'calendar',
+    text: 'Мне нужно уйти в пятницу после обеда на зачёт в универ, как оформить отгул и надо ли писать руководителю?',
+  },
+];
+
 function AiMark() {
   return (
     <span className="grid h-6 w-6 shrink-0 place-items-center rounded-tag bg-ai-50 text-ai-700" aria-hidden="true">
@@ -244,10 +271,13 @@ function Composer({ onSend, busy }: { onSend: (text: string) => void; busy: bool
     }
   };
 
+  const activeInternId = useUi((s) => s.activeInternId);
+  const scenarioItems = activeInternId === 'u-intern-02' ? ML_SCENARIOS : SCENARIOS;
+
   return (
     <form onSubmit={submit} className="glass absolute inset-x-2 bottom-2 z-10 rounded-panel p-2 shadow-float">
       <div className="flex flex-wrap gap-2 pb-2" aria-label="Сценарии">
-        {SCENARIOS.map((s) => (
+        {scenarioItems.map((s) => (
           <button
             key={s.label}
             type="button"

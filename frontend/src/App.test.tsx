@@ -3,7 +3,7 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import App from './App';
-import { setApiRole } from './api/auth';
+import { setApiInternId, setApiRole } from './api/auth';
 import { SCENARIOS } from './components/chat/ChatPanel';
 import { useUi } from './store/ui';
 import { chatStream, fakeFetch, fixtures, json, type Call, type Route } from './test/helpers';
@@ -13,6 +13,7 @@ type ChatFixture = typeof fixtures.chatAccess;
 /** Имитация бэкенда с состоянием: ответы — реальные фикстуры API. */
 function backend(overrides: Route = () => undefined) {
   let intern: Record<string, unknown> = structuredClone(fixtures.workspaceInitial);
+  let lead: Record<string, unknown> = structuredClone(fixtures.workspaceLead);
   const byText: Record<string, unknown> = {
     [SCENARIOS[0]!.text]: fixtures.chatAccess,
     [SCENARIOS[1]!.text]: fixtures.chatPii,
@@ -29,7 +30,7 @@ function backend(overrides: Route = () => undefined) {
     const { method, path, token } = call;
     if (method === 'GET' && path === '/api/v1/workspace') {
       if (token === 'demo-mentor-token') return json(fixtures.workspaceMentor);
-      if (token === 'demo-lead-token') return json(fixtures.workspaceLead);
+      if (token === 'demo-lead-token') return json(lead);
       return json(intern);
     }
     if (path === '/api/v1/chat/stream') {
@@ -40,6 +41,19 @@ function backend(overrides: Route = () => undefined) {
     if (path === '/api/v1/mcp/execute') {
       apply(fixtures.executeAbsence as unknown as ChatFixture);
       return json(fixtures.executeAbsence);
+    }
+    if (path === '/api/v1/absences/review') {
+      const b = (call.body ?? {}) as { id: string; decision: string; comment?: string };
+      const current = ((lead.absences as any[]) ?? [])[0] ?? fixtures.workspaceLead.absences[0];
+      const updated = {
+        ...current,
+        id: b.id || 'abs-a3afcc9043ac',
+        status: b.decision || 'approved',
+        decision: b.decision || 'approved',
+        comment: b.comment,
+      };
+      lead.absences = ((lead.absences as any[]) ?? []).map((a: any) => (a.id === updated.id ? updated : a));
+      return json(updated);
     }
     if (path === '/api/v1/cron/trigger') return json(fixtures.cron);
     if (path === '/api/v1/reset') {
@@ -71,9 +85,10 @@ beforeEach(() => {
   // Фиксируем «сегодня»: форма отгула проверяет, что дата не в прошлом.
   vi.useFakeTimers({ toFake: ['Date'] });
   vi.setSystemTime(new Date(2026, 10, 13, 10, 0, 0));
-  useUi.setState({ role: 'intern', inspectorOpen: false, inspectorTab: 'mcp', toast: null });
+  useUi.setState({ role: 'intern', activeInternId: 'u-intern-01', inspectorOpen: false, inspectorTab: 'mcp', toast: null });
   useUi.getState().resetSession();
   setApiRole('intern');
+  setApiInternId('u-intern-01');
 });
 
 afterEach(() => {
@@ -344,6 +359,100 @@ describe('роли наставника и руководителя', () => {
     await user.click(flag);
     expect(await screen.findByText(/default deny/)).toBeInTheDocument();
     await waitFor(() => expect(screen.getByRole('switch', { name: 'ai_buddy.absence_action_card' })).toBeChecked());
+  });
+
+  it('руководитель согласует заявку на отгул стажёра (двусторонний цикл)', async () => {
+    const { calls } = backend();
+    const user = userEvent.setup();
+    useUi.getState().setRole('lead');
+    renderApp();
+
+    expect(await screen.findByText(/Кабинет руководителя/)).toBeInTheDocument();
+    const row = screen.getByTestId('absence-row-abs-a3afcc9043ac');
+    expect(within(row).getByText('Ожидает согласования')).toBeInTheDocument();
+
+    const approveBtn = within(row).getByRole('button', { name: /Согласовать отгул/ });
+    expect(approveBtn).toBeInTheDocument();
+    await user.click(approveBtn);
+
+    await waitFor(() => {
+      expect(within(row).getByText('Согласовано руководителем')).toBeInTheDocument();
+    });
+    expect(calls.some((c) => c.path === '/api/v1/absences/review')).toBe(true);
+  });
+
+  it('руководитель отклоняет заявку на отгул стажёра', async () => {
+    const { calls } = backend();
+    const user = userEvent.setup();
+    useUi.getState().setRole('lead');
+    renderApp();
+
+    expect(await screen.findByText(/Кабинет руководителя/)).toBeInTheDocument();
+    const row = screen.getByTestId('absence-row-abs-a3afcc9043ac');
+    const rejectBtn = within(row).getByRole('button', { name: /Отклонить отгул/ });
+    await user.click(rejectBtn);
+
+    await waitFor(() => {
+      expect(within(row).getByText('Отклонено')).toBeInTheDocument();
+    });
+    expect(calls.some((c) => c.path === '/api/v1/absences/review')).toBe(true);
+  });
+
+  it('переключает профиль стажёра в шапке и адаптирует контекст под ML', async () => {
+    let activeInternId = 'u-intern-01';
+    const mariaWorkspace = {
+      ...fixtures.workspaceInitial,
+      intern: {
+        id: 'u-intern-02',
+        name: 'Мария Козлова',
+        role: 'intern_backend',
+        team: 'Авито Товары (Модерация)',
+        stack: 'Python/ML',
+        stage: 'Week 3',
+        program: 'Стажировка ML, 6 месяцев',
+        start_date: '2026-10-26',
+        repository: 'avito-moderation-ml',
+        mentor_id: 'u-mentor-02',
+        mentor_name: 'Елена Соколова',
+        team_lead_id: 'u-lead-01',
+        team_lead_name: 'Дмитрий Орлов',
+        is_synthetic: true,
+      },
+    };
+    backend((call) => {
+      if (call.path === '/api/v1/workspace') {
+        if (call.internId === 'u-intern-02' || call.url?.includes('intern_id=u-intern-02') || activeInternId === 'u-intern-02') {
+          return json(mariaWorkspace);
+        }
+      }
+      return undefined;
+    });
+    const user = userEvent.setup();
+    renderApp();
+    await screen.findByText('Чек-лист адаптации');
+
+    activeInternId = 'u-intern-02';
+    // Кликаем по переключателю профиля стажёра "Мария"
+    const mariaBtn = screen.getByRole('radio', { name: /Мария/ });
+    expect(mariaBtn).toBeInTheDocument();
+    await user.click(mariaBtn);
+
+    // Контекст в шапке обновляется
+    expect(await screen.findByLabelText('Контекст стажёра')).toHaveTextContent(/Авито Товары \(Модерация\)/);
+    expect(screen.getByLabelText('Контекст стажёра')).toHaveTextContent(/Python\/ML/);
+
+    // Специфичные ML сценарии в чате
+    expect(await screen.findByText('ML-пайплайны: Airflow & DVC')).toBeInTheDocument();
+    expect(screen.getByText('Катить ML-модель & A/B-тест')).toBeInTheDocument();
+  });
+
+  it('шаг чек-листа имеет микроанимационные классы перехода', async () => {
+    backend();
+    renderApp();
+    await screen.findByText('Чек-лист адаптации');
+    const step1 = screen.getByTestId('step-access_repo');
+    expect(step1.className).toContain('transition-all');
+    expect(step1.className).toContain('duration-500');
   });
 });
 
