@@ -1,0 +1,82 @@
+name: CI/CD Pipeline · Avito Start AI-Buddy
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["**"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (Go + OpenSpec + Coverage)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+          cache: true
+          cache-dependency-path: backend/go.sum
+
+      - name: Download Go dependencies
+        run: go mod download
+
+      - name: Verify OpenSpec contracts & Run Tests
+        run: |
+          go test -v -race -covermode=atomic -coverprofile=coverage.out ./...
+
+      - name: Enforce Test Coverage Threshold (>80%)
+        run: |
+          COVERAGE=$(go tool cover -func=coverage.out | grep total: | awk '{print $3}' | tr -d '%')
+          echo "Total statement coverage: ${COVERAGE}%"
+          awk -v cov="$COVERAGE" 'BEGIN {
+            if (cov + 0 < 80.0) {
+              print "❌ ERROR: Total coverage " cov "% is below threshold 80.0%"
+              exit 1
+            } else {
+              print "✅ Coverage check passed: " cov "% >= 80.0%"
+            }
+          }'
+
+      - name: Build Backend Binary
+        run: |
+          go build -v -ldflags="-s -w" -o /dev/null ./cmd/server
+
+  frontend:
+    name: Frontend (TypeScript + React + Coverage)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript Type Check
+        run: npx tsc --noEmit
+
+      - name: Unit & Component Tests with Coverage
+        run: npm run coverage
+
+      - name: Production Build
+        run: npm run build

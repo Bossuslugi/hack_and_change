@@ -20,7 +20,42 @@ export const DEMO_USERS: Record<DemoRole, DemoUser> = {
 
 export const DEMO_ROLES: DemoRole[] = ['intern', 'mentor', 'lead'];
 
+export interface DemoInternProfile {
+  id: string;
+  name: string;
+  roleTitle: string;
+  team: string;
+  stage: string;
+  stack: string;
+  mentorName: string;
+  token: string;
+}
+
+export const DEMO_INTERNS: DemoInternProfile[] = [
+  {
+    id: 'u-intern-01',
+    name: 'Алексей Смирнов',
+    roleTitle: 'Backend Go Intern',
+    team: 'Автотека',
+    stage: 'Неделя 1',
+    stack: 'Go',
+    mentorName: 'Мария Кузнецова',
+    token: 'demo-intern-token',
+  },
+  {
+    id: 'u-intern-02',
+    name: 'Мария Козлова',
+    roleTitle: 'Python/ML Intern',
+    team: 'Авито Товары (Модерация)',
+    stage: 'Неделя 3',
+    stack: 'Python/ML',
+    mentorName: 'Елена Соколова',
+    token: 'demo-intern-token-2',
+  },
+];
+
 let currentRole: DemoRole = 'intern';
+let currentInternId: string = 'u-intern-01';
 
 /** Устанавливает роль, от имени которой клиент выполняет запросы. */
 export function setApiRole(role: DemoRole): void {
@@ -31,8 +66,24 @@ export function getApiRole(): DemoRole {
   return currentRole;
 }
 
+/** Устанавливает ID активного стажёра для контекста API. */
+export function setApiInternId(id: string): void {
+  currentInternId = id;
+}
+
+export function getApiInternId(): string {
+  return currentInternId;
+}
+
 /** Общий экземпляр API-клиента приложения. */
 export const api = createApiClient({
   baseUrl: import.meta.env.VITE_API_URL ?? '',
-  getToken: () => DEMO_USERS[currentRole].token,
+  getToken: () => {
+    if (currentRole === 'intern') {
+      const intern = DEMO_INTERNS.find((i) => i.id === currentInternId);
+      return intern?.token ?? DEMO_USERS.intern.token;
+    }
+    return DEMO_USERS[currentRole].token;
+  },
+  getInternId: () => currentInternId,
 });

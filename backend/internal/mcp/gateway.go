@@ -50,6 +50,7 @@ const (
 	CodeInvalidArgs = "INVALID_ARGUMENTS"
 	CodeInternal    = "INTERNAL"
 	CodeDuplicate   = "DUPLICATE"
+	CodeNotFound    = "NOT_FOUND"
 )
 
 type boundTool struct {

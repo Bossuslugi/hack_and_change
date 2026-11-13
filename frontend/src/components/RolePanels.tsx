@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
-import type { Brief, Notification, Workspace } from '../api/schemas';
-import { useCron, useSetFlag } from '../hooks/useBuddy';
+import type { AgentSkill, Brief, Notification, Workspace } from '../api/schemas';
+import { useCron, useReviewAbsence, useSetFlag } from '../hooks/useBuddy';
 import { ABSENCE_STATUS_LABEL, formatDate, formatDateTime, formatMinutes, initials, plural } from '../lib/format';
 import { Icon, type IconName } from './ui/icons';
 import { Badge, Button, Card, EmptyState, Eyebrow, FOCUS, IconTile, SectionTitle, cn, type Tone } from './ui/primitives';
@@ -162,6 +162,9 @@ function Notifications({ items }: { items: Notification[] }) {
 }
 
 function Absences({ workspace }: { workspace: Workspace }) {
+  const reviewAbsence = useReviewAbsence();
+  const isLead = workspace.viewer.role === 'team_lead';
+
   return (
     <Card className="p-4">
       <SectionTitle icon="calendar" tone="warn" aside={<Badge>{workspace.absences.length}</Badge>}>
@@ -179,24 +182,62 @@ function Absences({ workspace }: { workspace: Workspace }) {
                   <th className="py-2 pr-4 font-normal">Сотрудник</th>
                   <th className="py-2 pr-4 font-normal">Когда</th>
                   <th className="py-2 pr-4 font-normal">Причина</th>
-                  <th className="py-2 font-normal">Статус</th>
+                  <th className="py-2 pr-4 font-normal">Статус</th>
+                  {isLead && <th className="py-2 font-normal">Решение руководителя</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-line">
-                {workspace.absences.map((a) => (
-                  <tr key={a.id} className="transition-colors hover:bg-canvas">
-                    <td className="py-2 pr-4 font-mono text-meta font-medium text-ink-900">{a.number}</td>
-                    <td className="py-2 pr-4 text-ink-900">{a.intern_name}</td>
-                    <td className="py-2 pr-4 text-ink-500">
-                      {formatDate(a.date)}
-                      {a.time_from && `, ${a.time_from}–${a.time_to}`}
-                    </td>
-                    <td className="py-2 pr-4 text-ink-500">{a.reason}</td>
-                    <td className="py-2">
-                      <Badge tone="warn">{ABSENCE_STATUS_LABEL[a.status] ?? a.status}</Badge>
-                    </td>
-                  </tr>
-                ))}
+                {workspace.absences.map((a) => {
+                  const tone: Tone = a.status === 'approved' ? 'ok' : a.status === 'rejected' ? 'danger' : 'warn';
+                  return (
+                    <tr key={a.id} data-testid={`absence-row-${a.id}`} className="transition-colors hover:bg-canvas">
+                      <td className="py-2 pr-4 font-mono text-meta font-medium text-ink-900">{a.number}</td>
+                      <td className="py-2 pr-4 text-ink-900">{a.intern_name}</td>
+                      <td className="py-2 pr-4 text-ink-500">
+                        {formatDate(a.date)}
+                        {a.time_from && `, ${a.time_from}–${a.time_to}`}
+                      </td>
+                      <td className="py-2 pr-4 text-ink-500">{a.reason}</td>
+                      <td className="py-2 pr-4">
+                        <Badge tone={tone}>{ABSENCE_STATUS_LABEL[a.status] ?? a.status}</Badge>
+                      </td>
+                      {isLead && (
+                        <td className="py-2">
+                          {a.status === 'pending_approval' ? (
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                disabled={reviewAbsence.isPending}
+                                onClick={() => reviewAbsence.mutate({ id: a.id, decision: 'approved' })}
+                                aria-label={`Согласовать отгул ${a.number}`}
+                                className={cn(
+                                  'inline-flex h-7 items-center rounded-tag bg-ok-500 px-2.5 text-meta font-medium text-white transition-colors hover:bg-ok-700 disabled:opacity-50',
+                                  FOCUS,
+                                )}
+                              >
+                                Согласовать
+                              </button>
+                              <button
+                                type="button"
+                                disabled={reviewAbsence.isPending}
+                                onClick={() => reviewAbsence.mutate({ id: a.id, decision: 'rejected' })}
+                                aria-label={`Отклонить отгул ${a.number}`}
+                                className={cn(
+                                  'inline-flex h-7 items-center rounded-tag border border-line px-2.5 text-meta font-medium text-ink-700 transition-colors hover:border-danger-500 hover:bg-danger-50 hover:text-danger-700 disabled:opacity-50',
+                                  FOCUS,
+                                )}
+                              >
+                                Отклонить
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="text-meta text-ink-400">—</span>
+                          )}
+                        </td>
+                      )}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -238,45 +279,114 @@ function Incidents({ workspace }: { workspace: Workspace }) {
   );
 }
 
+function AgentSkills({ skills }: { skills: AgentSkill[] }) {
+  if (!skills || skills.length === 0) return null;
+  return (
+    <Card className="p-4">
+      <SectionTitle icon="spark" tone="ai" aside={<Badge tone="ai">{skills.length}</Badge>}>
+        Модульные скиллы агента (Agent Skills)
+      </SectionTitle>
+      <p className="mt-1 text-meta text-ink-500">
+        Подключённые функциональные модули AI-Buddy, реализующие специализированные сценарии помощи стажёру.
+      </p>
+      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        {skills.map((s) => (
+          <div key={s.id} className="rounded-card border border-line bg-white p-3 shadow-card">
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-mono text-meta font-medium text-ink-900">{s.id}</span>
+              <Badge tone={s.active ? 'ok' : 'neutral'}>{s.active ? 'active' : 'disabled'}</Badge>
+            </div>
+            <p className="mt-1 text-body font-medium text-ink-900">{s.name}</p>
+            <p className="mt-0.5 text-meta text-ink-500">{s.description}</p>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
 function Flags({ workspace }: { workspace: Workspace }) {
   const setFlag = useSetFlag();
   const canWrite = workspace.permissions.flags_write === true;
+  const runtimeFlags = workspace.feature_flags.filter((f) => f.kind === 'runtime');
+  const compileFlags = workspace.feature_flags.filter((f) => f.kind === 'compile_time');
+
   return (
     <Card className="p-4">
-      <SectionTitle icon="sliders" tone="ai">Feature flags</SectionTitle>
-      <p className="mt-1 text-meta text-ink-500">Runtime-флаги хранятся в Redis и применяются без перезапуска. Compile-time задаются при сборке.</p>
-      <ul className="mt-2 divide-y divide-line">
-        {workspace.feature_flags.map((f) => {
-          const locked = f.kind !== 'runtime' || !canWrite;
-          return (
-            <li key={f.key} className="flex items-center justify-between gap-4 py-2">
-              <div className="min-w-0">
-                <p className="truncate font-mono text-meta font-medium text-ink-900">{f.key}</p>
-                <p className="text-meta text-ink-500">{f.description}</p>
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
-                <Badge mono>{f.kind === 'runtime' ? 'runtime' : 'compile-time'}</Badge>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={f.enabled}
-                  aria-label={f.key}
-                  disabled={locked}
-                  onClick={() => setFlag.mutate({ key: f.key, enabled: !f.enabled })}
-                  className={cn(
-                    'relative h-6 w-10 rounded-full transition-colors',
-                    FOCUS,
-                    f.enabled ? 'bg-ok-500' : 'bg-ink-400/50',
-                    locked && 'cursor-not-allowed opacity-50',
-                  )}
-                >
-                  <span className={cn('absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-card transition-[left]', f.enabled ? 'left-[18px]' : 'left-0.5')} />
-                </button>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
+      <SectionTitle icon="sliders" tone="ai">
+        Feature flags (Runtime vs Compile-Time)
+      </SectionTitle>
+      <p className="mt-1 text-meta text-ink-500">
+        Runtime-флаги хранятся в Redis и переключаются на лету. Compile-time флаги зафиксированы при сборке бинарника через embed/ldflags.
+      </p>
+
+      <div className="mt-4 space-y-4">
+        <div>
+          <Eyebrow className="mb-2 text-ink-700">Runtime Flags (переключаемые на лету)</Eyebrow>
+          <ul className="divide-y divide-line rounded-card border border-line bg-canvas px-3">
+            {runtimeFlags.map((f) => {
+              const locked = !canWrite;
+              return (
+                <li key={f.key} className="flex items-center justify-between gap-4 py-2.5">
+                  <div className="min-w-0">
+                    <p className="truncate font-mono text-meta font-medium text-ink-900">{f.key}</p>
+                    <p className="text-meta text-ink-500">{f.description}</p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <Badge mono>runtime</Badge>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={f.enabled}
+                      aria-label={f.key}
+                      disabled={locked}
+                      onClick={() => setFlag.mutate({ key: f.key, enabled: !f.enabled })}
+                      className={cn(
+                        'relative h-6 w-10 rounded-full transition-colors',
+                        FOCUS,
+                        f.enabled ? 'bg-ok-500' : 'bg-ink-400/50',
+                        locked && 'cursor-not-allowed opacity-50',
+                      )}
+                    >
+                      <span className={cn('absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-card transition-[left]', f.enabled ? 'left-[18px]' : 'left-0.5')} />
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+
+        <div>
+          <Eyebrow className="mb-2 text-ink-700">Compile-Time Flags (зафиксированы при сборке)</Eyebrow>
+          <ul className="divide-y divide-line rounded-card border border-line bg-canvas px-3">
+            {compileFlags.map((f) => (
+              <li key={f.key} className="flex items-center justify-between gap-4 py-2.5">
+                <div className="min-w-0">
+                  <p className="truncate font-mono text-meta font-medium text-ink-900">{f.key}</p>
+                  <p className="text-meta text-ink-500">{f.description}</p>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <Badge mono tone="neutral">compile-time</Badge>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={f.enabled}
+                    aria-label={f.key}
+                    disabled
+                    className={cn(
+                      'relative h-6 w-10 cursor-not-allowed rounded-full opacity-50 transition-colors',
+                      f.enabled ? 'bg-ok-500' : 'bg-ink-400/50',
+                    )}
+                  >
+                    <span className={cn('absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-card transition-[left]', f.enabled ? 'left-[18px]' : 'left-0.5')} />
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
     </Card>
   );
 }
@@ -368,6 +478,7 @@ export function LeadPanel({ workspace }: { workspace: Workspace }) {
         <Incidents workspace={workspace} />
       </div>
       <Notifications items={workspace.notifications} />
+      <AgentSkills skills={workspace.skills} />
       <Flags workspace={workspace} />
       <Briefs workspace={workspace} />
     </div>

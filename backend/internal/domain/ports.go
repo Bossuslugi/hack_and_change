@@ -187,8 +187,11 @@ func SaveChecklistItem(ctx context.Context, s Store, internID string, item Check
 type SeedData struct {
 	Employees []Employee
 	Intern    InternProfile
+	Interns   []InternProfile
 	Checklist []ChecklistItem
+	Checklists map[string][]ChecklistItem
 	Task      SprintTask
+	Tasks     map[string]SprintTask
 	Docs      []KnowledgeDoc
 	Flags     []FeatureFlag
 	// Repositories — каталог репозиториев: имя → команда-владелец.
@@ -198,24 +201,45 @@ type SeedData struct {
 // Records превращает seed в записи хранилища.
 func (d SeedData) Records(now time.Time) ([]Record, error) {
 	var out []Record
-	rec, err := NewRecord(KindIntern, d.Intern.ID, d.Intern.ID, now, d.Intern)
-	if err != nil {
-		return nil, err
+	interns := d.Interns
+	if len(interns) == 0 {
+		interns = []InternProfile{d.Intern}
 	}
-	out = append(out, rec)
-	for _, it := range d.Checklist {
-		it.UpdatedAt = now
-		rec, err := NewRecord(KindChecklist, ChecklistRecordID(d.Intern.ID, it.ID), d.Intern.ID, now, it)
+	for _, in := range interns {
+		rec, err := NewRecord(KindIntern, in.ID, in.ID, now, in)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, rec)
+
+		// Чек-лист для данного стажёра
+		items := d.Checklist
+		if d.Checklists != nil && len(d.Checklists[in.ID]) > 0 {
+			items = d.Checklists[in.ID]
+		}
+		for _, it := range items {
+			it.UpdatedAt = now
+			rec, err := NewRecord(KindChecklist, ChecklistRecordID(in.ID, it.ID), in.ID, now, it)
+			if err != nil {
+				return nil, err
+			}
+			out = append(out, rec)
+		}
+
+		// Спринт-задача для данного стажёра
+		task := d.Task
+		if d.Tasks != nil {
+			if t, ok := d.Tasks[in.ID]; ok {
+				task = t
+			}
+		}
+		rec, err = NewRecord(KindSprintTask, in.ID, in.ID, now, task)
 		if err != nil {
 			return nil, err
 		}
 		out = append(out, rec)
 	}
-	rec, err = NewRecord(KindSprintTask, d.Intern.ID, d.Intern.ID, now, d.Task)
-	if err != nil {
-		return nil, err
-	}
-	return append(out, rec), nil
+	return out, nil
 }
 
 // Directory — имитация корпоративного справочника сотрудников и авторизации.

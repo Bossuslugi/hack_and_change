@@ -65,3 +65,27 @@ func TestRunFailsFast(t *testing.T) {
 		t.Fatalf("err = %v", err)
 	}
 }
+
+func TestHealthcheckHelper(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	ready, done := make(chan string, 1), make(chan error, 1)
+	go func() { done <- run(ctx, config.Config{Port: "0", ConnectAttempts: 1}, quiet, ready) }()
+
+	var addr string
+	select {
+	case addr = <-ready:
+	case err := <-done:
+		t.Fatalf("сервер не стартовал: %v", err)
+	case <-time.After(10 * time.Second):
+		t.Fatal("таймаут старта сервера")
+	}
+	port := addr[strings.LastIndex(addr, ":")+1:]
+	resp, err := http.Get("http://127.0.0.1:" + port + "/healthz")
+	if err != nil || resp.StatusCode != http.StatusOK {
+		t.Fatalf("healthcheck check failed: %v", err)
+	}
+	resp.Body.Close()
+	cancel()
+	<-done
+}

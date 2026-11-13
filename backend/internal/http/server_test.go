@@ -387,6 +387,87 @@ func TestExecuteDayOff(t *testing.T) {
 	}
 }
 
+func TestReviewAbsenceEndpoint(t *testing.T) {
+	a := newAPI(t, config.Config{})
+	createResp := a.do("POST", "/api/v1/mcp/execute", seed.InternToken, map[string]any{
+		"tool": "absences.create_day_off",
+		"arguments": map[string]any{
+			"intern_id": seed.InternID,
+			"date":      "2026-11-20",
+			"time_from": "14:00",
+			"time_to":   "18:00",
+			"reason":    "Зачёт по базам данных",
+		},
+	})
+	if createResp.status != 200 {
+		t.Fatalf("создание отгула: %d %s", createResp.status, createResp.raw)
+	}
+	var absID string
+	if list, ok := createResp.body["tool_calls"].([]any); ok && len(list) > 0 {
+		if tc, ok := list[0].(map[string]any); ok {
+			if res, ok := tc["result"].(map[string]any); ok {
+				absID, _ = res["request_id"].(string)
+			}
+		}
+	}
+	if absID == "" {
+		absID = "#ABS-2026-84"
+	}
+
+	// Intern cannot review -> 403
+	r := a.do("POST", "/api/v1/absences/review", seed.InternToken, map[string]any{
+		"id":       absID,
+		"decision": "approved",
+	})
+	if r.status != 403 {
+		t.Fatalf("стажёр не может согласовать: %d", r.status)
+	}
+
+	// Lead invalid decision -> 422
+	r = a.do("POST", "/api/v1/absences/review", seed.LeadToken, map[string]any{
+		"id":       absID,
+		"decision": "invalid",
+	})
+	if r.status != 422 {
+		t.Fatalf("невалидное решение: %d", r.status)
+	}
+
+	// Lead not found -> 404
+	r = a.do("POST", "/api/v1/absences/review", seed.LeadToken, map[string]any{
+		"id":       "abs-non-existent",
+		"decision": "approved",
+	})
+	if r.status != 404 {
+		t.Fatalf("несуществующая заявка: %d", r.status)
+	}
+
+	// Lead approves -> 200
+	r = a.do("POST", "/api/v1/absences/review", seed.LeadToken, map[string]any{
+		"id":       absID,
+		"decision": "approved",
+		"comment":  "Согласовано!",
+	})
+	if r.status != 200 || r.body["status"] != "approved" {
+		t.Fatalf("успешное согласование: %d %s", r.status, r.raw)
+	}
+
+	// Intern receives notification in chat
+	ws := a.do("GET", "/api/v1/workspace", seed.InternToken, nil)
+	msgs, _ := ws.body["messages"].([]any)
+	foundNotify := false
+	for _, m := range msgs {
+		if msg, ok := m.(map[string]any); ok {
+			if txt, ok := msg["text"].(string); ok && strings.Contains(txt, "Руководитель согласовал твою заявку на отгул") {
+				foundNotify = true
+				break
+			}
+		}
+	}
+	if !foundNotify {
+		t.Fatal("стажёр не получил уведомление в чате")
+	}
+}
+
 func TestCronResetTelemetry(t *testing.T) {
 	a := newAPI(t, config.Config{})
 	r := a.do("POST", "/api/v1/cron/trigger", seed.MentorToken, nil)
@@ -460,7 +541,7 @@ func TestFeatureFlagsAndEvents(t *testing.T) {
 func TestMCPEndpoint(t *testing.T) {
 	a := newAPI(t, config.Config{})
 	r := a.do("POST", "/mcp", seed.InternToken, `{"jsonrpc":"2.0","id":1,"method":"tools/list"}`)
-	if tools, _ := obj(r.body, "result")["tools"].([]any); r.status != 200 || len(tools) != 8 {
+	if tools, _ := obj(r.body, "result")["tools"].([]any); r.status != 200 || len(tools) != 9 {
 		t.Fatalf("tools/list: %d %s", r.status, r.raw)
 	}
 	r = a.do("POST", "/mcp", seed.InternToken, `{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"db_admin.export_prod_pii","arguments":{"dataset":"payroll"}}}`)
@@ -518,5 +599,33 @@ func TestPanicRecovery(t *testing.T) {
 	_ = json.NewDecoder(resp.Body).Decode(&body)
 	if resp.StatusCode != 500 || obj(body, "error")["code"] != "INTERNAL" {
 		t.Fatalf("panic: %d %v", resp.StatusCode, body)
+	}
+}
+
+func TestMetricsEndpoint(t *testing.T) {
+	a := newAPI(t, config.Config{})
+	res, err := http.Get(a.srv.URL + "/metrics")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer res.Body.Close()
+	if res.StatusCode != 200 {
+		t.Fatalf("status %d, want 200", res.StatusCode)
+	}
+	contentType := res.Header.Get("Content-Type")
+	if !strings.Contains(contentType, "text/plain") {
+		t.Errorf("content-type %q, want text/plain", contentType)
+	}
+	body, _ := io.ReadAll(res.Body)
+	text := string(body)
+	for _, metric := range []string{
+		"aibuddy_mentor_minutes_saved_total",
+		"aibuddy_mcp_calls_total",
+		"aibuddy_rbac_denials_total",
+		"aibuddy_checklist_completed_ratio",
+	} {
+		if !strings.Contains(text, metric) {
+			t.Errorf("метрика %s не найдена в выводе /metrics", metric)
+		}
 	}
 }

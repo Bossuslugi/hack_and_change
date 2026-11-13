@@ -1,4 +1,5 @@
-import { api, DEMO_ROLES, DEMO_USERS, type DemoRole } from '../api/auth';
+import { useQueryClient } from '@tanstack/react-query';
+import { api, DEMO_INTERNS, DEMO_ROLES, DEMO_USERS, type DemoRole } from '../api/auth';
 import type { Workspace } from '../api/schemas';
 import { useCron, useReset, useTelemetry } from '../hooks/useBuddy';
 import { internContext } from '../lib/format';
@@ -72,6 +73,49 @@ function RoleSwitcher({ workspace }: { workspace?: Workspace }) {
   );
 }
 
+/** Профиль стажёра: переключает демо-данные между Go- и ML-стажёром. */
+function InternSwitcher() {
+  const activeInternId = useUi((s) => s.activeInternId);
+  const setActiveInternId = useUi((s) => s.setActiveInternId);
+  const queryClient = useQueryClient();
+
+  const choose = (id: string) => {
+    if (id === activeInternId) return;
+    setActiveInternId(id);
+    void api.trackEvent('ui.intern_switched', { intern_id: id });
+    void queryClient.invalidateQueries({ queryKey: ['workspace'] });
+    void queryClient.invalidateQueries({ queryKey: ['telemetry'] });
+  };
+
+  return (
+    <div role="radiogroup" aria-label="Профиль стажёра" className="inline-flex shrink-0 items-center gap-1 rounded-card bg-ink-900/5 p-1">
+      {DEMO_INTERNS.map((intern) => {
+        const active = activeInternId === intern.id;
+        return (
+          <button
+            key={intern.id}
+            type="button"
+            role="radio"
+            aria-checked={active}
+            aria-label={`${intern.name} (${intern.team})`}
+            title={`${intern.name}: ${intern.roleTitle} • ${intern.team} • ${intern.stage}`}
+            onClick={() => choose(intern.id)}
+            className={cn(
+              'inline-flex h-8 items-center gap-2 whitespace-nowrap rounded-tag px-2 text-meta font-medium transition-all',
+              FOCUS,
+              active ? 'bg-white text-ink-900 shadow-card' : 'text-ink-500 hover:text-ink-900',
+            )}
+          >
+            <span className={cn('h-2 w-2 rounded-full', intern.stack === 'Go' ? 'bg-accent-500' : 'bg-ai-500')} aria-hidden="true" />
+            {intern.name.split(' ')[0]}
+            <span className="font-mono font-normal text-ink-400">{intern.stack === 'Go' ? 'Go' : 'ML'}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export function Header({ workspace }: { workspace?: Workspace }) {
   const inspectorOpen = useUi((s) => s.inspectorOpen);
   const reset = useReset();
@@ -95,8 +139,9 @@ export function Header({ workspace }: { workspace?: Workspace }) {
             AI-Buddy
           </Badge>
         </div>
+        <InternSwitcher />
         {workspace && (
-          <Badge className="hidden min-w-0 max-w-full xl:inline-flex" title={`${workspace.intern.name} · ${workspace.intern.program}`}>
+          <Badge className="hidden min-w-0 max-w-full 2xl:inline-flex" title={`${workspace.intern.name} · ${workspace.intern.program}`}>
             <span className="truncate whitespace-nowrap" aria-label="Контекст стажёра">
               {internContext(workspace.intern)}
             </span>

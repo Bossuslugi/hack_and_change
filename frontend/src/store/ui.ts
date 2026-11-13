@@ -2,7 +2,7 @@
 // оптимистичный UI чата. Серверное состояние живёт в TanStack Query (src/hooks/useBuddy.ts).
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { setApiRole, type DemoRole } from '../api/auth';
+import { setApiInternId, setApiRole, type DemoRole } from '../api/auth';
 import type { CronResult, Stage, ToolCall } from '../api/schemas';
 
 export type InspectorTab = 'mcp' | 'rbac' | 'clickstream' | 'registry' | 'sdd';
@@ -25,6 +25,7 @@ export interface ChatErrorState {
 
 export interface UiState {
   role: DemoRole;
+  activeInternId: string;
   inspectorOpen: boolean;
   inspectorTab: InspectorTab;
   /** Сообщение пользователя, показанное до ответа сервера (оптимистичный UI). */
@@ -38,6 +39,7 @@ export interface UiState {
   toolCalls: Record<string, ToolCall>;
 
   setRole: (role: DemoRole) => void;
+  setActiveInternId: (id: string) => void;
   openInspector: (tab?: InspectorTab) => void;
   closeInspector: () => void;
   setInspectorTab: (tab: InspectorTab) => void;
@@ -66,6 +68,7 @@ export const useUi = create<UiState>()(
   persist(
     (set) => ({
       role: 'intern',
+      activeInternId: 'u-intern-01',
       inspectorOpen: false,
       inspectorTab: 'mcp',
       toast: null,
@@ -74,6 +77,10 @@ export const useUi = create<UiState>()(
       setRole: (role) => {
         setApiRole(role);
         set({ role, ...sessionDefaults });
+      },
+      setActiveInternId: (activeInternId) => {
+        setApiInternId(activeInternId);
+        set({ activeInternId, ...sessionDefaults });
       },
       openInspector: (tab) => set((s) => ({ inspectorOpen: true, inspectorTab: tab ?? s.inspectorTab })),
       closeInspector: () => set({ inspectorOpen: false }),

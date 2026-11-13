@@ -17,40 +17,41 @@ import (
 
 // Execute выполняет MCP-инструмент по прямому подтверждению из интерфейса
 // (например, отправка формы отгула). Права проверяет RBAC-шлюз по роли вызывающего.
-func (s *Service) Execute(ctx context.Context, p domain.Principal, tool string, args map[string]any, messageID string) (ChatResult, error) {
+func (s *Service) Execute(ctx context.Context, p domain.Principal, tool string, args map[string]any, messageID string, targetInternID ...string) (ChatResult, error) {
 	started := time.Now()
 	var res ChatResult
 	if strings.TrimSpace(tool) == "" {
 		return res, fmt.Errorf("%w: не указан инструмент", domain.ErrValidation)
 	}
-	s.Events.Track(ctx, s.internID, p, domain.EventKindClickstream, "ui.action_confirmed", domain.SeverityInfo,
+	internID := s.resolveInternID(p, targetInternID...)
+	s.Events.Track(ctx, internID, p, domain.EventKindClickstream, "ui.action_confirmed", domain.SeverityInfo,
 		map[string]any{"tool": tool, "message_id": messageID})
 
-	call := s.Gateway.Execute(ctx, p, s.internID, tool, args)
+	call := s.Gateway.Execute(ctx, p, internID, tool, args)
 	verdict := call.RBAC
 	res = ChatResult{ToolCalls: []domain.MCPToolCall{call}, RBAC: &verdict, ChecklistUpdates: []domain.ChecklistItem{}}
 
 	var updates []domain.ChecklistItem
 	if call.OK() {
 		var err error
-		if updates, err = s.applyEffects(ctx, p, res.ToolCalls, nil); err != nil {
+		if updates, err = s.applyEffects(ctx, p, res.ToolCalls, nil, internID); err != nil {
 			return res, err
 		}
 		res.ChecklistUpdates = nonNil(updates)
 	}
-	checklist, err := domain.LoadChecklist(ctx, s.Store, s.internID)
+	checklist, err := domain.LoadChecklist(ctx, s.Store, internID)
 	if err != nil {
 		return res, err
 	}
 	res.Checklist, res.Progress, res.NextStep = checklist, domain.ComputeProgress(checklist), domain.NextStep(checklist)
 
-	if call.OK() && p.ID == s.internID {
+	if call.OK() && p.ID == internID {
 		if messageID != "" {
-			s.markCardSubmitted(ctx, messageID)
+			s.markCardSubmitted(ctx, messageID, internID)
 		}
 		text, card, saving := s.describeAction(call)
 		msg := domain.ChatMessage{
-			ID: s.IDs.NewID("msg"), InternID: s.internID, Role: domain.MessageAssistant,
+			ID: s.IDs.NewID("msg"), InternID: internID, Role: domain.MessageAssistant,
 			Text: text + checklistNote(updates, checklist), Intent: "action_confirmed", Engine: domain.EngineSmart,
 			Sources: []domain.DocRef{}, ResultCard: card, Suggestions: []string{"Что дальше по чек-листу?"},
 			ToolCallIDs: []string{call.ID}, CreatedAt: s.Clock.Now(),
@@ -63,16 +64,16 @@ func (s *Service) Execute(ctx context.Context, p domain.Principal, tool string, 
 		if saving != "" {
 			payload["saving_key"] = saving
 		}
-		s.Events.Track(ctx, s.internID, p, domain.EventKindAgent, "agent.action", domain.SeverityInfo, payload)
+		s.Events.Track(ctx, internID, p, domain.EventKindAgent, "agent.action", domain.SeverityInfo, payload)
 	}
 	res.LatencyMS = float64(time.Since(started).Microseconds()) / 1000
 	return res, nil
 }
 
 // markCardSubmitted помечает карточку исходного сообщения как отправленную (best-effort).
-func (s *Service) markCardSubmitted(ctx context.Context, messageID string) {
+func (s *Service) markCardSubmitted(ctx context.Context, messageID, internID string) {
 	msg, err := domain.LoadOne[domain.ChatMessage](ctx, s.Store, domain.KindMessage, messageID)
-	if err != nil || msg.InternID != s.internID || msg.ActionCard == nil {
+	if err != nil || msg.InternID != internID || msg.ActionCard == nil {
 		return
 	}
 	msg.ActionCard.Status = domain.ActionStatusDone
@@ -130,6 +131,18 @@ func (s *Service) describeAction(call domain.MCPToolCall) (string, *domain.Resul
 			},
 			Footnote: "Имитация IAM · синтетические данные",
 		}, domain.SavingAccess
+	case mcp.ToolReviewDayOff:
+		number := str(r, "request_number")
+		decision := str(r, "decision")
+		text := fmt.Sprintf("Заявка %s рассмотрена: статус %s.", number, decision)
+		return text, &domain.ResultCard{
+			Type: "absence_reviewed", Status: domain.CardStatusSuccess, Title: "Заявка рассмотрена",
+			Lines: []domain.CardLine{
+				{Label: "Номер заявки", Value: number},
+				{Label: "Решение", Value: decision},
+			},
+			Footnote: "Имитация сервиса «Отсутствия» · синтетические данные",
+		}, ""
 	}
 	return fmt.Sprintf("Инструмент %s выполнен.", call.Tool), &domain.ResultCard{
 		Type: "tool_result", Status: domain.CardStatusInfo, Title: "Действие выполнено",

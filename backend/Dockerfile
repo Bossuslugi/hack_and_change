@@ -10,6 +10,7 @@ COPY backend ./backend
 RUN CGO_ENABLED=0 go build -trimpath -ldflags="-s -w" -o /out/server ./backend/cmd/server
 
 FROM alpine:3.21
+RUN apk add --no-cache wget ca-certificates
 RUN adduser -D -u 10001 app
 USER app
 COPY --from=build /out/server /server

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { chatStream, fakeFetch, fixtures, json, sse } from '../test/helpers';
+import { getApiInternId, setApiInternId } from './auth';
 import { ApiError, createApiClient } from './client';
 import {
   chatResultSchema,
@@ -184,6 +185,56 @@ describe('API-клиент', () => {
 
     expect(new ApiError(401, 'UNAUTHORIZED', 'x').userMessage).toContain('роль');
     expect(new ApiError(0, 'NETWORK', 'x', null).rbac).toBeUndefined();
+  });
+
+  it('reviewAbsence отправляет решение руководителя и возвращает обновлённую заявку', async () => {
+    const fakeAbsence = {
+      id: 'abs-1',
+      number: '#ABS-2026-84',
+      intern_id: 'u-intern-01',
+      intern_name: 'Алексей Смирнов',
+      date: '2026-11-20',
+      time_from: '14:00',
+      time_to: '18:00',
+      reason: 'Зачёт в университете',
+      status: 'approved',
+      decision: 'approved',
+      notified: ['u-mentor-01', 'u-lead-01'],
+      is_synthetic: true,
+      created_at: '2026-11-13T10:00:00Z',
+    };
+    const { api, calls } = client(({ path }) => {
+      if (path === '/api/v1/absences/review') return json(fakeAbsence);
+      return undefined;
+    });
+    const res = await api.reviewAbsence('abs-1', 'approved', 'Согласовано');
+    expect(res.status).toBe('approved');
+    expect(res.number).toBe('#ABS-2026-84');
+    expect(calls[0]).toMatchObject({
+      method: 'POST',
+      path: '/api/v1/absences/review',
+      body: { id: 'abs-1', decision: 'approved', comment: 'Согласовано' },
+    });
+  });
+
+  it('передаёт X-Intern-ID и query-параметр при наличии getInternId', async () => {
+    const fake = fakeFetch(() => json(fixtures.workspaceInitial));
+    const customApi = createApiClient({
+      baseUrl: 'http://api.test/',
+      getToken: () => 'lead-token',
+      getInternId: () => 'u-intern-02',
+      fetch: fake.fn,
+    });
+    await customApi.getWorkspace();
+    expect(fake.calls[0]?.url).toBe('/api/v1/workspace?intern_id=u-intern-02');
+    expect(fake.calls[0]?.internId).toBe('u-intern-02');
+  });
+
+  it('управляет активным ID стажёра в auth', () => {
+    setApiInternId('u-intern-02');
+    expect(getApiInternId()).toBe('u-intern-02');
+    setApiInternId('u-intern-01');
+    expect(getApiInternId()).toBe('u-intern-01');
   });
 });
 

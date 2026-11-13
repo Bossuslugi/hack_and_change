@@ -135,9 +135,31 @@ function Matrix({ data }: { data: Telemetry }) {
 
 /** Спецификации и активные флаги: чем управляется поведение агента в эту минуту. */
 function SpecsAndFlags() {
-  const flags = useWorkspace().data?.feature_flags ?? [];
+  const ws = useWorkspace().data;
+  const flags = ws?.feature_flags ?? [];
+  const skills = ws?.skills ?? [];
+  const runtimeFlags = flags.filter((f) => f.kind === 'runtime');
+  const compileFlags = flags.filter((f) => f.kind === 'compile_time');
+
   return (
     <div className="space-y-4">
+      {skills.length > 0 && (
+        <div>
+          <Eyebrow className="mb-2">Модульные скиллы агента (Skills)</Eyebrow>
+          <ul className="space-y-2">
+            {skills.map((skill) => (
+              <li key={skill.id} className={cn(cardClass, 'p-2')}>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-mono text-meta font-medium text-ink-900">{skill.id}</span>
+                  <Badge tone={skill.active ? 'ok' : 'neutral'}>{skill.active ? 'active' : 'disabled'}</Badge>
+                </div>
+                <p className="mt-1 text-meta font-medium text-ink-800">{skill.name}</p>
+                <p className="mt-0.5 text-meta text-ink-500">{skill.description}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       <div>
         <Eyebrow className="mb-2">Применённые спецификации</Eyebrow>
         <ul className="space-y-2">
@@ -152,14 +174,42 @@ function SpecsAndFlags() {
       </div>
       <div>
         <Eyebrow className="mb-2">Feature flags</Eyebrow>
-        <ul className={cn(cardClass, 'divide-y divide-line')}>
-          {flags.map((flag) => (
-            <li key={flag.key} className="flex items-center justify-between gap-2 p-2 font-mono text-meta" title={flag.description}>
-              <span className="min-w-0 truncate text-ink-900">{flag.key}</span>
-              <span className={cn('shrink-0 font-medium', flag.enabled ? 'text-ok-700' : 'text-ink-400')}>{String(flag.enabled)}</span>
-            </li>
-          ))}
-        </ul>
+        <div className="space-y-3">
+          <div>
+            <p className="mb-1 text-meta font-medium text-ink-700">Runtime Flags (Redis / на лету)</p>
+            <ul className={cn(cardClass, 'divide-y divide-line')}>
+              {runtimeFlags.map((flag) => (
+                <li key={flag.key} className="flex items-center justify-between gap-2 p-2 font-mono text-meta" title={flag.description}>
+                  <div className="min-w-0">
+                    <span className="block truncate text-ink-900">{flag.key}</span>
+                    <span className="text-meta text-ink-400 font-sans">{flag.description}</span>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    <Badge mono>runtime</Badge>
+                    <span className={cn('font-medium', flag.enabled ? 'text-ok-700' : 'text-ink-400')}>{String(flag.enabled)}</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <p className="mb-1 text-meta font-medium text-ink-700">Compile-Time Flags (embed / сборка)</p>
+            <ul className={cn(cardClass, 'divide-y divide-line')}>
+              {compileFlags.map((flag) => (
+                <li key={flag.key} className="flex items-center justify-between gap-2 p-2 font-mono text-meta" title={flag.description}>
+                  <div className="min-w-0">
+                    <span className="block truncate text-ink-900">{flag.key}</span>
+                    <span className="text-meta text-ink-400 font-sans">{flag.description}</span>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    <Badge mono tone="neutral">compile-time</Badge>
+                    <span className={cn('font-medium', flag.enabled ? 'text-ok-700' : 'text-ink-400')}>{String(flag.enabled)}</span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
   );

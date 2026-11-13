@@ -744,7 +744,7 @@ func TestWorkspaceByRole(t *testing.T) {
 			if ws.Intern.ID != seed.InternID || len(ws.Checklist) != 7 || ws.Progress.Completed != 2 || ws.NextStep.ID != "access_repo" {
 				t.Fatalf("состояние стажёра: %+v", ws.Progress)
 			}
-			if ws.SprintTask.Key != "AUT-1423" || len(ws.FeatureFlags) != 5 || ws.Storage.Store != "memory" || ws.Storage.Cache != "memory" {
+			if ws.SprintTask.Key != "AUT-1423" || len(ws.FeatureFlags) != 10 || len(ws.Skills) != 5 || ws.Storage.Store != "memory" || ws.Storage.Cache != "memory" {
 				t.Fatalf("задача/флаги/хранилище: %+v", ws.Storage)
 			}
 			if ws.Engine.Mode != domain.EngineSmart || ws.Metrics.MentorHoursBaselineMin != 40 || ws.Metrics.MentorHoursBaselineMax != 48 {
@@ -851,7 +851,7 @@ func TestTelemetryView(t *testing.T) {
 	for _, tool := range v.Tools {
 		allowed[tool.Name] = tool.AllowedForViewer
 	}
-	if len(v.Tools) != 8 || !allowed[mcp.ToolCreateDayOff] || allowed[mcp.ToolExportProdPII] || allowed[mcp.ToolSendBrief] {
+	if len(v.Tools) != 9 || !allowed[mcp.ToolCreateDayOff] || allowed[mcp.ToolExportProdPII] || allowed[mcp.ToolSendBrief] || allowed[mcp.ToolReviewDayOff] {
 		t.Fatalf("доступность инструментов для стажёра: %v", allowed)
 	}
 	if len(v.Matrix) == 0 || len(v.Roles) != 4 || len(v.Servers) != 8 {
@@ -995,4 +995,70 @@ func TestStoreFailuresSurfaceAsErrors(t *testing.T) {
 			})
 		}
 	})
+}
+
+func TestReviewAbsenceFlow(t *testing.T) {
+	e := newEnv(t, nil)
+	fields := map[string]any{"intern_id": seed.InternID, "date": "2026-11-20", "reason": "Зачёт"}
+	_, err := e.svc.Execute(e.ctx, e.intern, mcp.ToolCreateDayOff, fields, "")
+	if err != nil {
+		t.Fatalf("создание отгула: %v", err)
+	}
+
+	all, err := domain.Load[domain.AbsenceRequest](e.ctx, e.store, domain.KindAbsence, "")
+	if err != nil || len(all) == 0 {
+		t.Fatalf("нет сохранённых отсутствий: %v", err)
+	}
+	abs := all[0]
+
+	// Intern cannot review
+	if _, err := e.svc.ReviewAbsence(e.ctx, e.intern, abs.ID, "approved", ""); err == nil {
+		t.Fatal("стажёр не может согласовать отгул")
+	}
+
+	// Lead invalid decision
+	if _, err := e.svc.ReviewAbsence(e.ctx, e.lead, abs.ID, "unknown", ""); err == nil {
+		t.Fatal("невалидное решение должно давать ошибку")
+	}
+
+	// Lead approves
+	updated, err := e.svc.ReviewAbsence(e.ctx, e.lead, abs.ID, "approved", "Отлично, согласовано")
+	if err != nil || updated.Status != "approved" {
+		t.Fatalf("согласование: %v, %+v", err, updated)
+	}
+
+	// Check clickstream
+	events := e.events("absence.reviewed")
+	if len(events) != 1 || events[0].Payload["decision"] != "approved" {
+		t.Fatalf("clickstream absence.reviewed: %+v", events)
+	}
+
+	// Check chat message added
+	msgs, err := domain.Load[domain.ChatMessage](e.ctx, e.store, domain.KindMessage, seed.InternID)
+	if err != nil {
+		t.Fatalf("сообщения чата: %v", err)
+	}
+	found := false
+	for _, m := range msgs {
+		if strings.Contains(m.Text, "Руководитель согласовал твою заявку на отгул") {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatal("системное уведомление не добавлено в чат стажёра")
+	}
+
+	// Lead rejects another request
+	fields2 := map[string]any{"intern_id": seed.InternID, "date": "2026-11-21", "reason": "Конференция"}
+	_, err = e.svc.Execute(e.ctx, e.intern, mcp.ToolCreateDayOff, fields2, "")
+	if err != nil {
+		t.Fatalf("создание второго отгула: %v", err)
+	}
+	all, _ = domain.Load[domain.AbsenceRequest](e.ctx, e.store, domain.KindAbsence, "")
+	abs2 := all[1]
+	rej, err := e.svc.ReviewAbsence(e.ctx, e.lead, abs2.ID, "rejected", "В этот день релиз")
+	if err != nil || rej.Status != "rejected" {
+		t.Fatalf("отклонение: %v, %+v", err, rej)
+	}
 }

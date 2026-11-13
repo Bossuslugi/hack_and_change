@@ -185,11 +185,20 @@ func TestPlaybookSearch(t *testing.T) {
 			}
 		})
 	}
-	if n, total := pb.VisibleCount(domain.RoleInternBackend, "Autoteka"), len(f.seed.Docs); n != total-1 {
-		t.Fatalf("стажёру видно %d документов из %d, ожидалось %d", n, total, total-1)
+	autotekaTotal := 0
+	for _, d := range f.seed.Docs {
+		if d.Team == "Autoteka" {
+			autotekaTotal++
+		}
 	}
-	if pb.VisibleCount(domain.RoleMentor, "Autoteka") != len(f.seed.Docs) {
+	if n := pb.VisibleCount(domain.RoleInternBackend, "Autoteka"); n != autotekaTotal-1 {
+		t.Fatalf("стажёру видно %d документов из %d, ожидалось %d", n, autotekaTotal, autotekaTotal-1)
+	}
+	if pb.VisibleCount(domain.RoleMentor, "Autoteka") != autotekaTotal {
 		t.Fatal("наставнику должны быть видны все документы команды")
+	}
+	if n := pb.VisibleCount(domain.RoleInternBackend, seed.Team2); n != 2 {
+		t.Fatalf("ML-стажёру видно %d документов, ожидалось 2", n)
 	}
 	if d, ok := pb.Doc("pb-absences"); !ok || d.Title == "" {
 		t.Fatal("Doc")

@@ -48,6 +48,38 @@ const AGENT_SKILLS: Array<{ label: string; icon: IconName }> = [
   { label: 'Отсутствия', icon: 'calendar' },
 ];
 
+/** Сценарии для ML-стажёра (Мария): те же четыре кейса, но с ML-контекстом. */
+export const ML_SCENARIOS: Array<{ label: string; hint: string; icon: IconName; iconClass: string; text: string }> = [
+  {
+    label: 'ML-пайплайны: Airflow & DVC',
+    hint: 'ML-контекст · версионирование данных',
+    icon: 'book',
+    iconClass: 'text-accent-500',
+    text: 'Как устроены ML-пайплайны в команде: DVC, Airflow и версионирование данных?',
+  },
+  {
+    label: 'Катить ML-модель & A/B-тест',
+    hint: 'ML-контекст · раскатка под флагом',
+    icon: 'spark',
+    iconClass: 'text-ai-500',
+    text: 'Как в нашей команде катить ML-модель под фича-флагом и запустить A/B-тест?',
+  },
+  {
+    label: 'Доступ к avito-moderation-ml',
+    hint: 'Сценарий 1 · MCP IAM',
+    icon: 'key',
+    iconClass: 'text-ok-500',
+    text: 'Дай доступ к репозиторию avito-moderation-ml и тестовому стенду',
+  },
+  {
+    label: 'Оформить отгул на пятницу',
+    hint: 'Сценарий 3 · карточка сервиса «Отсутствия»',
+    icon: 'calendar',
+    iconClass: 'text-ai-500',
+    text: 'Мне нужно уйти в пятницу после обеда на зачёт в универ, как оформить отгул и надо ли писать руководителю?',
+  },
+];
+
 function AiMark() {
   return (
     <span className="grid h-8 w-8 shrink-0 place-items-center rounded-card bg-gradient-to-br from-ai-500 to-accent-500 text-white shadow-card" aria-hidden="true">
@@ -260,11 +292,14 @@ function Composer({ onSend, busy }: { onSend: (text: string) => void; busy: bool
     }
   };
 
+  const activeInternId = useUi((s) => s.activeInternId);
+  const scenarioItems = activeInternId === 'u-intern-02' ? ML_SCENARIOS : SCENARIOS;
+
   return (
     <form onSubmit={submit} className="composer-fade pointer-events-none absolute inset-x-0 bottom-0 z-10 px-4 pb-4 pt-12">
       <div className="pointer-events-auto">
         <div className="flex flex-wrap gap-2 pb-2" aria-label="Сценарии">
-          {SCENARIOS.map((s) => (
+          {scenarioItems.map((s) => (
             <button
               key={s.label}
               type="button"

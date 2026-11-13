@@ -61,6 +61,12 @@ policies:
     constraints: [self_only]
     description: "Отгул оформляется только на себя"
 
+  - id: POL-ABS-002
+    operation: absences.review_day_off
+    effect: allow
+    roles: [team_lead]
+    description: "Согласование или отклонение заявки на отгул руководителем"
+
   - id: POL-MNT-001
     operation: mentor.send_1on1_brief
     effect: allow
@@ -136,3 +142,8 @@ policies:
     effect: allow
     roles: [team_lead]
     description: "Инциденты безопасности видит руководитель"
+  - id: POL-API-011
+    operation: api.absences.review
+    effect: allow
+    roles: [team_lead]
+    description: "Согласование или отклонение заявки на отгул руководителем"

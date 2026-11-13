@@ -91,22 +91,31 @@ func TestSeedRecords(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if want := 1 + len(data.Checklist) + 1; len(recs) != want {
+	internCount := len(data.Interns)
+	if internCount == 0 {
+		internCount = 1
+	}
+	if want := internCount * (1 + len(data.Checklist) + 1); len(recs) != want {
 		t.Fatalf("записей %d, want %d", len(recs), want)
 	}
 	kinds := map[domain.Kind]int{}
+	validOwners := map[string]bool{data.Intern.ID: true}
+	for _, in := range data.Interns {
+		validOwners[in.ID] = true
+	}
 	for _, r := range recs {
 		kinds[r.Kind]++
-		if r.OwnerID != data.Intern.ID || !r.CreatedAt.Equal(now) {
-			t.Fatalf("запись %s/%s: владелец или время неверны", r.Kind, r.ID)
+		if !validOwners[r.OwnerID] || !r.CreatedAt.Equal(now) {
+			t.Fatalf("запись %s/%s: владелец %s или время неверны", r.Kind, r.ID, r.OwnerID)
 		}
 	}
-	if kinds[domain.KindIntern] != 1 || kinds[domain.KindSprintTask] != 1 || kinds[domain.KindChecklist] != len(data.Checklist) {
+	if kinds[domain.KindIntern] != internCount || kinds[domain.KindSprintTask] != internCount || kinds[domain.KindChecklist] != internCount*len(data.Checklist) {
 		t.Fatalf("виды записей: %v", kinds)
 	}
 
 	broken := data
 	broken.Intern.ID = ""
+	broken.Interns = nil
 	if _, err := broken.Records(now); err == nil {
 		t.Fatal("seed без id стажёра должен давать ошибку")
 	}
