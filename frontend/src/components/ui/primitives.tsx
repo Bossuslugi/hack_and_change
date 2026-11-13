@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import type { Inline } from '../../lib/richText';
 import { parseRichText } from '../../lib/richText';
-import { Icon } from './icons';
+import { Icon, type IconName } from './icons';
 
 export function cn(...parts: Array<string | false | null | undefined>): string {
   return parts.filter(Boolean).join(' ');
@@ -11,6 +11,25 @@ export function cn(...parts: Array<string | false | null | undefined>): string {
 export const FOCUS = 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-500';
 
 export type Tone = 'neutral' | 'accent' | 'ok' | 'ai' | 'warn' | 'danger';
+
+const DOT_TONE: Record<Tone, string> = {
+  neutral: 'bg-ink-400',
+  accent: 'bg-accent-500',
+  ok: 'bg-ok-500',
+  ai: 'bg-ai-500',
+  warn: 'bg-warn-500',
+  danger: 'bg-danger-500',
+};
+
+/** Цветная точка статуса; с `pulse` вокруг неё расходится кольцо («в сети», «работает»). */
+export function StatusDot({ tone = 'ok', pulse = false, className }: { tone?: Tone; pulse?: boolean; className?: string }) {
+  return (
+    <span className={cn('relative inline-flex h-2 w-2 shrink-0', className)} aria-hidden="true">
+      {pulse && <span className={cn('absolute inline-flex h-full w-full animate-ping rounded-full opacity-60', DOT_TONE[tone])} />}
+      <span className={cn('relative inline-flex h-2 w-2 rounded-full', DOT_TONE[tone])} />
+    </span>
+  );
+}
 
 const BADGE_TONE: Record<Tone, string> = {
   neutral: 'bg-canvas text-ink-500',
@@ -55,20 +74,30 @@ export function SyntheticBadge({ text }: { text: string }) {
   );
 }
 
-type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'ai';
+type ButtonVariant = 'primary' | 'dark' | 'secondary' | 'ghost' | 'danger' | 'ai';
+
+const BUTTON_SIZE = {
+  sm: 'h-8 rounded-tag px-2 text-meta',
+  md: 'h-10 rounded-card px-4 text-body',
+  compact: 'h-10 rounded-card px-3 text-meta font-semibold',
+  icon: 'h-10 w-10 rounded-card',
+  iconSm: 'h-8 w-8 rounded-tag',
+} as const;
 
 const BUTTON_VARIANT: Record<ButtonVariant, string> = {
   primary: 'bg-accent-500 text-white hover:bg-accent-600 disabled:bg-ink-400',
+  dark: 'bg-ink-900 text-white shadow-card hover:bg-accent-500 disabled:bg-ink-400',
   secondary: 'border border-line bg-white text-ink-900 hover:bg-canvas disabled:text-ink-400',
   ghost: 'text-ink-500 hover:bg-canvas hover:text-ink-900 disabled:text-ink-400',
   danger: 'border border-danger-500/30 bg-white text-danger-700 hover:bg-danger-50 disabled:text-ink-400',
-  ai: 'bg-ai-50 text-ai-700 hover:bg-ai-500/20 disabled:text-ink-400',
+  ai: 'border border-ai-500/25 bg-ai-50 text-ai-700 hover:bg-ai-100 disabled:text-ink-400',
 };
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
   loading?: boolean;
-  size?: 'sm' | 'md';
+  /** sm: компактная 32px; md: основная 40px; compact: 40px для шапки; icon: квадрат 40px под иконку. */
+  size?: 'sm' | 'md' | 'compact' | 'icon' | 'iconSm';
 }
 
 export function Button({ variant = 'secondary', loading = false, size = 'md', className, children, disabled, ...rest }: ButtonProps) {
@@ -80,7 +109,7 @@ export function Button({ variant = 'secondary', loading = false, size = 'md', cl
       aria-busy={loading || undefined}
       className={cn(
         'inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors disabled:cursor-not-allowed',
-        size === 'sm' ? 'h-8 rounded-tag px-2 text-meta' : 'h-10 rounded-card px-4 text-body',
+        BUTTON_SIZE[size],
         FOCUS,
         BUTTON_VARIANT[variant],
         className,
@@ -101,15 +130,46 @@ export function Spinner({ className }: { className?: string }) {
   );
 }
 
-/** Карточка внутри панели: белая поверхность, тонкий бордер, мягкая тень. */
+/** Карточка внутри панели: белая поверхность, тонкий бордер, приподнятая тень. */
 export function Card({ children, className }: { children: ReactNode; className?: string }) {
-  return <section className={cn('rounded-card border border-line bg-white shadow-card', className)}>{children}</section>;
+  return <section className={cn('rounded-card border border-line bg-white shadow-lift', className)}>{children}</section>;
 }
 
 export function CardTitle({ children, aside }: { children: ReactNode; aside?: ReactNode }) {
   return (
     <div className="flex min-h-6 items-center justify-between gap-4">
       <h2 className="text-body font-semibold text-ink-900">{children}</h2>
+      {aside}
+    </div>
+  );
+}
+
+const ICON_TILE_TONE: Record<Tone, string> = {
+  neutral: 'bg-ink-900/5 text-ink-500',
+  accent: 'bg-accent-500/10 text-accent-700',
+  ok: 'bg-ok-500/10 text-ok-700',
+  ai: 'bg-ai-500/10 text-ai-700',
+  warn: 'bg-warn-500/10 text-warn-700',
+  danger: 'bg-danger-500/10 text-danger-700',
+};
+
+/** Иконка в цветной плашке: метка карточки или плитки Bento. */
+export function IconTile({ name, tone = 'neutral' }: { name: IconName; tone?: Tone }) {
+  return (
+    <span className={cn('grid h-8 w-8 shrink-0 place-items-center rounded-tag', ICON_TILE_TONE[tone])} aria-hidden="true">
+      <Icon name={name} />
+    </span>
+  );
+}
+
+/** Заголовок карточки с иконкой и счётчиком или действием справа. */
+export function SectionTitle({ icon, tone, children, aside }: { icon: IconName; tone?: Tone; children: ReactNode; aside?: ReactNode }) {
+  return (
+    <div className="flex min-h-8 items-center justify-between gap-4">
+      <div className="flex min-w-0 items-center gap-3">
+        <IconTile name={icon} tone={tone} />
+        <h2 className="truncate text-body font-semibold text-ink-900">{children}</h2>
+      </div>
       {aside}
     </div>
   );
@@ -182,7 +242,7 @@ export function JsonBlock({ value, label }: { value: unknown; label: string }) {
   return (
     <div>
       <Eyebrow className="mb-1">{label}</Eyebrow>
-      <pre className="scroll-thin max-h-48 overflow-auto rounded-tag border border-line bg-canvas p-2 font-mono text-meta text-ink-900">
+      <pre className="scroll-thin max-h-48 overflow-auto rounded-tag bg-ink-900 p-3 font-mono text-meta text-white/85">
         {JSON.stringify(value, null, 2)}
       </pre>
     </div>

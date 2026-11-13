@@ -1,16 +1,37 @@
 import { api, DEMO_ROLES, DEMO_USERS, type DemoRole } from '../api/auth';
 import type { Workspace } from '../api/schemas';
-import { useCron, useReset } from '../hooks/useBuddy';
+import { useCron, useReset, useTelemetry } from '../hooks/useBuddy';
 import { internContext } from '../lib/format';
 import { useUi } from '../store/ui';
 import { Icon, type IconName } from './ui/icons';
-import { Badge, Button, FOCUS, cn } from './ui/primitives';
+import { Badge, Button, FOCUS, StatusDot, cn, type Tone } from './ui/primitives';
 
 const ROLE_ICON: Record<DemoRole, IconName> = { intern: 'user', mentor: 'mentor', lead: 'chart' };
-/** Что жюри увидит под ролью: подпись рядом с названием сегмента. */
-const ROLE_HINT: Record<DemoRole, string> = { intern: 'Go Intern', mentor: 'бриф к 1:1', lead: 'метрики' };
 
-function RoleSwitcher() {
+/** Четыре круга палитры: знак продукта. */
+function BrandMark() {
+  return (
+    <svg viewBox="0 0 32 32" className="h-8 w-8 shrink-0" role="img" aria-label="Avito Start">
+      <circle cx="10" cy="10" r="6" fill="#00AAFF" />
+      <circle cx="22" cy="10" r="6" fill="#00C257" />
+      <circle cx="10" cy="22" r="6" fill="#8B5CF6" />
+      <circle cx="22" cy="22" r="6" fill="#FF3B30" />
+    </svg>
+  );
+}
+
+/** Индикатор у вкладки роли: что ждёт этой роли (готовый бриф, заявка на согласование). */
+function roleSignal(role: DemoRole, workspace?: Workspace): { tone: Tone; hint: string } | null {
+  if (!workspace) return null;
+  if (role === 'mentor' && workspace.metrics.briefs_prepared > 0) return { tone: 'ok', hint: 'бриф к 1:1 готов' };
+  if (role === 'lead') {
+    const pending = workspace.absences.filter((a) => a.status === 'pending_approval').length;
+    if (pending > 0) return { tone: 'warn', hint: `заявок на согласование: ${pending}` };
+  }
+  return null;
+}
+
+function RoleSwitcher({ workspace }: { workspace?: Workspace }) {
   const role = useUi((s) => s.role);
   const setRole = useUi((s) => s.setRole);
 
@@ -21,10 +42,11 @@ function RoleSwitcher() {
   };
 
   return (
-    <div role="radiogroup" aria-label="Роль пользователя" className="inline-flex h-10 items-center gap-1 rounded-card bg-ink-900/5 p-1">
+    <div role="radiogroup" aria-label="Роль пользователя" className="inline-flex items-center gap-1 rounded-card bg-ink-900/5 p-1">
       {DEMO_ROLES.map((r) => {
         const user = DEMO_USERS[r];
         const active = role === r;
+        const signal = roleSignal(r, workspace);
         return (
           <button
             key={r}
@@ -32,19 +54,17 @@ function RoleSwitcher() {
             role="radio"
             aria-checked={active}
             aria-label={user.label}
-            title={`${user.label}: ${user.name}`}
+            title={signal ? `${user.label}: ${user.name} · ${signal.hint}` : `${user.label}: ${user.name}`}
             onClick={() => choose(r)}
             className={cn(
-              'inline-flex h-8 items-center gap-2 rounded-tag px-2 text-body font-medium transition-colors',
+              'inline-flex h-8 items-center gap-2 whitespace-nowrap rounded-tag px-3 text-meta font-semibold transition-all',
               FOCUS,
-              active ? 'bg-white text-ink-900 shadow-card' : 'text-ink-500 hover:text-ink-900',
+              active ? 'bg-ink-900 text-white shadow-card' : 'text-ink-500 hover:bg-white/70 hover:text-ink-900',
             )}
           >
-            <Icon name={ROLE_ICON[r]} className={active ? 'text-accent-500' : undefined} />
-            <span>{user.label}</span>
-            <span className="hidden font-mono text-meta font-normal text-ink-400 2xl:inline">
-              {user.name.split(' ')[0]} · {ROLE_HINT[r]}
-            </span>
+            <Icon name={ROLE_ICON[r]} className="h-3.5 w-3.5" />
+            {user.label}
+            {signal && <StatusDot tone={signal.tone} pulse={!active} />}
           </button>
         );
       })}
@@ -56,6 +76,7 @@ export function Header({ workspace }: { workspace?: Workspace }) {
   const inspectorOpen = useUi((s) => s.inspectorOpen);
   const reset = useReset();
   const cron = useCron();
+  const events = useTelemetry(false).data?.events.length;
 
   const toggleInspector = () => {
     const ui = useUi.getState();
@@ -65,52 +86,50 @@ export function Header({ workspace }: { workspace?: Workspace }) {
   };
 
   return (
-    <header className="glass relative z-20 grid h-14 shrink-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4 border-x-0 border-t-0 px-4 shadow-card">
-      <div className="flex min-w-0 items-center gap-4">
+    <header className="glass relative z-30 grid min-h-16 shrink-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-6 border-x-0 border-t-0 border-b-line px-5 shadow-card">
+      <div className="flex min-w-0 items-center gap-3">
+        <BrandMark />
         <div className="flex shrink-0 items-center gap-2">
-          <span className="grid h-8 w-8 place-items-center rounded-tag bg-accent-500 text-white" aria-hidden="true">
-            <svg viewBox="0 0 32 32" className="h-5 w-5">
-              <path d="M10 22V10l7 6-7 6Z" fill="currentColor" />
-              <path d="M19 10l5 6-5 6" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </span>
-          <p className="text-body font-semibold text-ink-900">
-            Avito Start <span className="font-normal text-ink-400">AI-Buddy</span>
-          </p>
+          <span className="whitespace-nowrap text-body font-extrabold tracking-tight text-ink-900">Avito Start</span>
+          <Badge tone="ai" mono className="whitespace-nowrap">
+            AI-Buddy
+          </Badge>
         </div>
         {workspace && (
-          <Badge className="hidden min-w-0 xl:inline-flex" title={`${workspace.intern.name} · ${workspace.intern.program}`}>
-            <span className="truncate" aria-label="Контекст стажёра">
+          <Badge className="hidden min-w-0 max-w-full xl:inline-flex" title={`${workspace.intern.name} · ${workspace.intern.program}`}>
+            <span className="truncate whitespace-nowrap" aria-label="Контекст стажёра">
               {internContext(workspace.intern)}
             </span>
           </Badge>
         )}
       </div>
 
-      <RoleSwitcher />
+      <RoleSwitcher workspace={workspace} />
 
       <div className="flex min-w-0 items-center justify-end gap-2">
         {workspace && (
           <Badge
             mono
             tone={workspace.engine.mode === 'llm' ? 'ok' : 'neutral'}
-            className="hidden lg:inline-flex"
+            className="hidden whitespace-nowrap 2xl:inline-flex"
             title={`Хранилище: ${workspace.storage.store} · кэш: ${workspace.storage.cache}`}
           >
+            <StatusDot tone="ok" />
             {workspace.engine.mode === 'llm' ? `LLM · ${workspace.engine.model}` : 'Smart Engine'}
           </Badge>
         )}
         {workspace?.permissions.cron && (
           <Button
             variant="ai"
-            size="sm"
+            size="compact"
             onClick={() => cron.mutate()}
             loading={cron.isPending}
             aria-label="Симулировать ИИ-крон"
             title="Проверить застрявшие задачи стажёра и собрать наставнику бриф к 1:1"
           >
             {!cron.isPending && <Icon name="bolt" />}
-            <span className="hidden 2xl:inline">Симулировать</span> ИИ-крон
+            <span className="hidden 2xl:inline">Симулировать</span>
+            <span>ИИ-крон</span>
           </Button>
         )}
         <button
@@ -120,20 +139,21 @@ export function Header({ workspace }: { workspace?: Workspace }) {
           aria-label="Инспектор MCP & RBAC"
           title="Под капотом: MCP · RBAC · Clickstream"
           className={cn(
-            'inline-flex h-8 shrink-0 items-center gap-2 rounded-tag border border-line bg-white px-2 text-meta font-medium text-ink-900 transition-colors hover:bg-canvas',
+            'inline-flex h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-card border px-3 text-meta font-semibold transition-all',
             FOCUS,
+            inspectorOpen ? 'border-ink-900 bg-ink-900 text-white shadow-card' : 'border-line bg-white text-ink-900 hover:border-ink-400/60 hover:shadow-card',
           )}
         >
-          <Icon name="sliders" className="text-ink-500" />
+          <StatusDot tone={inspectorOpen ? 'ok' : 'neutral'} pulse={inspectorOpen} />
           Инспектор
-          <span className={cn('relative h-4 w-7 rounded-full transition-colors', inspectorOpen ? 'bg-accent-500' : 'bg-ink-400/50')} aria-hidden="true">
-            <span className={cn('absolute top-0.5 h-3 w-3 rounded-full bg-white transition-[left]', inspectorOpen ? 'left-3.5' : 'left-0.5')} />
-          </span>
+          {events !== undefined && (
+            <span className={cn('rounded-tag px-1 font-mono', inspectorOpen ? 'bg-white/15 text-white' : 'bg-ink-900/5 text-ink-500')}>{events}</span>
+          )}
         </button>
         <Button
           variant="ghost"
-          size="sm"
-          className="w-8 px-0"
+          size="icon"
+          className="shrink-0"
           onClick={() => reset.mutate()}
           loading={reset.isPending}
           aria-label="Сбросить демо"

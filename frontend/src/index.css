@@ -24,16 +24,72 @@
   /* Фон приложения: тёплый серый с едва заметным холодным бликом, чтобы стеклу было что размывать. */
   .app-canvas {
     background:
-      radial-gradient(960px 320px at 16% -8%, rgba(0, 170, 255, 0.06), transparent 70%),
-      radial-gradient(800px 320px at 92% -16%, rgba(139, 92, 246, 0.04), transparent 70%),
+      radial-gradient(960px 360px at 14% -10%, rgba(0, 170, 255, 0.09), transparent 70%),
+      radial-gradient(820px 360px at 94% -14%, rgba(139, 92, 246, 0.07), transparent 70%),
       #f5f5f7;
   }
-  /* Плавающие панели: шапка, инспектор, поле ввода. */
+  /* Плавающие панели: шапка, инспектор. */
   .glass {
-    background: rgba(255, 255, 255, 0.78);
-    -webkit-backdrop-filter: blur(16px);
-    backdrop-filter: blur(16px);
+    background: rgba(255, 255, 255, 0.85);
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.6);
+  }
+  /* Тёмная hero-плита: графит с мягким голубым свечением из угла. */
+  .hero-surface {
+    background:
+      radial-gradient(ellipse at top right, rgba(0, 170, 255, 0.22), transparent 60%),
+      radial-gradient(ellipse at bottom left, rgba(139, 92, 246, 0.16), transparent 55%),
+      #141414;
+  }
+  /* Пастельные плитки Bento. */
+  .tile-blue {
+    background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 72%);
+    border-color: rgba(0, 170, 255, 0.2);
+  }
+  .tile-violet {
+    background: linear-gradient(135deg, #f5f3ff 0%, #ffffff 72%);
+    border-color: rgba(139, 92, 246, 0.2);
+  }
+  .tile-green {
+    background: linear-gradient(135deg, #e8f9ef 0%, #ffffff 72%);
+    border-color: rgba(0, 194, 87, 0.22);
+  }
+  .tile-amber {
+    background: linear-gradient(135deg, #fff5e5 0%, #ffffff 72%);
+    border-color: rgba(255, 149, 0, 0.24);
+  }
+  .tile-red {
+    background: linear-gradient(135deg, #ffecea 0%, #ffffff 72%);
+    border-color: rgba(255, 59, 48, 0.22);
+  }
+  /* Лента чата: холодная подложка с тонкой точечной сеткой. */
+  .chat-surface {
+    background-color: #f8fafc;
+    background-image: radial-gradient(rgba(15, 23, 42, 0.07) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+  /* Затухание ленты под плавающим полем ввода. */
+  .composer-fade {
+    background: linear-gradient(to top, #f8fafc 82%, rgba(248, 250, 252, 0));
+  }
+  /* Плитки и мини-капсулы сами переходят в одну колонку, когда панель узкая (открыт инспектор). */
+  .tile-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+  .capsule-grid {
+    display: grid;
+    gap: 0.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+  }
+  /* Свечение сегментов прогресса на тёмном фоне. */
+  .glow-green {
+    box-shadow: 0 0 12px rgba(0, 194, 87, 0.55);
+  }
+  .glow-amber {
+    box-shadow: 0 0 12px rgba(255, 149, 0, 0.55);
   }
   .skeleton {
     @apply animate-shimmer rounded-tag;

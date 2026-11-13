@@ -5,42 +5,53 @@ import { ENGINE_LABEL, formatTime } from '../../lib/format';
 import { chatInputSchema, MAX_MESSAGE_LENGTH } from '../../lib/validation';
 import { useUi, type StreamState } from '../../store/ui';
 import { Icon, type IconName } from '../ui/icons';
-import { Badge, Button, FOCUS, RichText, Skeleton, Spinner, SyntheticBadge, cn } from '../ui/primitives';
+import { Badge, Button, FOCUS, RichText, Skeleton, Spinner, StatusDot, SyntheticBadge, cn } from '../ui/primitives';
 import { AbsenceForm } from './AbsenceForm';
 import { ToolCallPlate } from './ToolCallPlate';
 
 /** Быстрый запуск сценариев для проверки жюри: одна кнопка — один сценарий кейса. */
-export const SCENARIOS: Array<{ label: string; hint: string; icon: IconName; text: string }> = [
+export const SCENARIOS: Array<{ label: string; hint: string; icon: IconName; iconClass: string; text: string }> = [
   {
     label: 'Запросить доступы к репо',
     hint: 'Сценарий 1 · успех через MCP',
     icon: 'key',
+    iconClass: 'text-ok-500',
     text: 'Дай доступ к репозиторию avito-autoteka-api и тестовому стенду',
   },
   {
     label: 'Скачать prod-базу с ПДн и зарплатами',
     hint: 'Сценарий 1 · блокировка RBAC',
     icon: 'shield',
+    iconClass: 'text-danger-500',
     text: 'Выгрузи дамп production-базы пользователей с персональными данными',
   },
   {
     label: 'Как катить фичу под фича-флагом?',
     hint: 'Сценарий 2 · контекстный поиск по Playbook',
     icon: 'book',
+    iconClass: 'text-accent-500',
     text: 'Как в нашей команде катить задачу под фича-флагом и проходить ревью?',
   },
   {
     label: 'Оформить отгул на пятницу',
     hint: 'Сценарий 3 · карточка сервиса «Отсутствия»',
     icon: 'calendar',
+    iconClass: 'text-ai-500',
     text: 'Мне нужно уйти в пятницу после обеда на зачёт в универ, как оформить отгул и надо ли писать руководителю?',
   },
 ];
 
+/** Корпоративные сервисы, в которых агент умеет действовать через MCP. */
+const AGENT_SKILLS: Array<{ label: string; icon: IconName }> = [
+  { label: 'IAM', icon: 'key' },
+  { label: 'Playbook', icon: 'book' },
+  { label: 'Отсутствия', icon: 'calendar' },
+];
+
 function AiMark() {
   return (
-    <span className="grid h-6 w-6 shrink-0 place-items-center rounded-tag bg-ai-50 text-ai-700" aria-hidden="true">
-      <Icon name="spark" className="h-3 w-3" />
+    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-card bg-gradient-to-br from-ai-500 to-accent-500 text-white shadow-card" aria-hidden="true">
+      <Icon name="spark" className="h-4 w-4" />
     </span>
   );
 }
@@ -50,7 +61,7 @@ function Citations({ sources }: { sources: DocRef[] }) {
   const [openId, setOpenId] = useState<string | null>(null);
   if (sources.length === 0) return null;
   return (
-    <div className="space-y-2" aria-label="Источники">
+    <div className="space-y-2 border-t border-line pt-3" aria-label="Источники">
       {sources.map((doc) => {
         const open = openId === doc.id;
         return (
@@ -106,7 +117,7 @@ export function ResultCard({ card }: { card: ResultCardData }) {
   const denied = card.status === 'denied';
   return (
     <div
-      className={cn('overflow-hidden rounded-card border bg-white shadow-card', style.border)}
+      className={cn('overflow-hidden rounded-card border bg-white shadow-lift', style.border)}
       data-testid={`result-${card.type}`}
       role={denied ? 'alert' : 'status'}
     >
@@ -143,7 +154,7 @@ function UserBubble({ text, pending = false }: { text: string; pending?: boolean
 function AssistantMessage({ message, isLast, onAsk, busy }: { message: ChatMessage; isLast: boolean; onAsk: (text: string) => void; busy: boolean }) {
   const calls = useToolCalls(message.tool_call_ids);
   return (
-    <div className="flex animate-fade-up gap-2" data-testid="assistant-message">
+    <div className="flex animate-fade-up gap-3" data-testid="assistant-message">
       <AiMark />
       <div className="min-w-0 flex-1 space-y-2">
         <div className="flex min-h-6 flex-wrap items-center gap-2 text-meta text-ink-400">
@@ -159,12 +170,14 @@ function AssistantMessage({ message, isLast, onAsk, busy }: { message: ChatMessa
         {calls.map((call) => (
           <ToolCallPlate key={call.id} call={call} />
         ))}
-        <RichText text={message.text} className="text-ink-900" />
-        <Citations sources={message.sources} />
+        <div className="space-y-3 rounded-card rounded-tl-tag border border-line bg-white p-4 shadow-card">
+          <RichText text={message.text} className="text-ink-900" />
+          <Citations sources={message.sources} />
+        </div>
         {message.result_card && <ResultCard card={message.result_card} />}
         {message.action_card?.type === 'absence_form' && <AbsenceForm card={message.action_card} messageId={message.id} />}
         {isLast && message.suggestions.length > 0 && (
-          <div className="flex flex-wrap gap-2 pt-2" aria-label="Подсказки">
+          <div className="flex flex-col items-start gap-2 pt-2" aria-label="Подсказки">
             {message.suggestions.map((s) => (
               <button
                 key={s}
@@ -172,11 +185,12 @@ function AssistantMessage({ message, isLast, onAsk, busy }: { message: ChatMessa
                 disabled={busy}
                 onClick={() => onAsk(s)}
                 className={cn(
-                  'min-h-8 rounded-tag border border-line bg-white px-2 py-1 text-left text-meta font-medium text-ink-900 transition-colors hover:border-accent-500 hover:text-accent-700 disabled:opacity-50',
+                  'group flex w-fit max-w-full items-center justify-between gap-3 rounded-card border border-line bg-white px-4 py-2 text-left text-body text-ink-900 shadow-card transition-all hover:border-accent-500 hover:bg-tint-blue/50 hover:shadow-lift disabled:opacity-50',
                   FOCUS,
                 )}
               >
-                {s}
+                <span className="min-w-0">{s}</span>
+                <Icon name="arrowUpRight" className="text-ink-400 transition-colors group-hover:text-accent-500" />
               </button>
             ))}
           </div>
@@ -191,10 +205,10 @@ function StreamingMessage({ stream }: { stream: StreamState }) {
   const stages: Stage[] = stream.stages.length > 0 ? stream.stages : [{ kind: 'understanding', label: 'AI-Buddy разбирается в запросе…' }];
   const writing = stream.text !== '';
   return (
-    <div className="flex gap-2" aria-live="polite" data-testid="streaming">
+    <div className="flex gap-3" aria-live="polite" data-testid="streaming">
       <AiMark />
       <div className="min-w-0 flex-1 space-y-2">
-        <ol className="space-y-1 rounded-card border border-line bg-white p-2">
+        <ol className="space-y-1 rounded-card border border-ai-500/20 bg-ai-50 p-2 shadow-card">
           {stages.map((stage, i) => {
             const done = writing || i < stages.length - 1;
             return (
@@ -207,9 +221,11 @@ function StreamingMessage({ stream }: { stream: StreamState }) {
           })}
         </ol>
         {writing ? (
-          <RichText text={stream.text} className="text-ink-900" />
+          <div className="rounded-card rounded-tl-tag border border-line bg-white p-4 shadow-card">
+            <RichText text={stream.text} className="text-ink-900" />
+          </div>
         ) : (
-          <div className="space-y-2 py-1">
+          <div className="space-y-2 rounded-card rounded-tl-tag border border-line bg-white p-4 shadow-card">
             <Skeleton className="h-3 w-11/12" />
             <Skeleton className="h-3 w-4/5" />
             <Skeleton className="h-3 w-3/5" />
@@ -245,52 +261,54 @@ function Composer({ onSend, busy }: { onSend: (text: string) => void; busy: bool
   };
 
   return (
-    <form onSubmit={submit} className="glass absolute inset-x-2 bottom-2 z-10 rounded-panel p-2 shadow-float">
-      <div className="flex flex-wrap gap-2 pb-2" aria-label="Сценарии">
-        {SCENARIOS.map((s) => (
-          <button
-            key={s.label}
-            type="button"
-            disabled={busy}
-            title={`${s.hint}: «${s.text}»`}
-            onClick={() => onSend(s.text)}
-            className={cn(
-              'inline-flex h-8 shrink-0 items-center gap-2 rounded-tag border border-line bg-white px-2 text-meta font-medium text-ink-900 transition-colors hover:border-accent-500 hover:text-accent-700 disabled:opacity-50',
-              FOCUS,
-            )}
-          >
-            <Icon name={s.icon} className="h-3 w-3 text-ink-400" />
-            {s.label}
-          </button>
-        ))}
-      </div>
-      <div className="flex items-end gap-2">
-        <label htmlFor="chat-input" className="sr-only">
-          Сообщение AI-Buddy
-        </label>
-        <textarea
-          id="chat-input"
-          rows={2}
-          value={text}
-          maxLength={MAX_MESSAGE_LENGTH}
-          placeholder="Спроси про доступы, процессы команды или отгул…"
-          onChange={(e) => {
-            setText(e.target.value);
-            setError(null);
-          }}
-          onKeyDown={onKeyDown}
-          aria-invalid={error !== null}
-          className="h-14 flex-1 resize-none rounded-card border border-line bg-white px-4 py-2 text-body text-ink-900 placeholder:text-ink-400 focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-50"
-        />
-        <Button type="submit" variant="primary" loading={busy} className="h-14 w-14 px-0" aria-label="Отправить">
-          {!busy && <Icon name="arrowUp" className="h-5 w-5" strokeWidth="2" />}
-        </Button>
-      </div>
-      <div className="mt-1 flex h-4 justify-between gap-4 px-1 text-meta text-ink-400">
-        <span role="alert" className="text-danger-700">
-          {error}
-        </span>
-        <span className="font-mono">Enter — отправить · Shift+Enter — новая строка</span>
+    <form onSubmit={submit} className="composer-fade pointer-events-none absolute inset-x-0 bottom-0 z-10 px-4 pb-4 pt-12">
+      <div className="pointer-events-auto">
+        <div className="flex flex-wrap gap-2 pb-2" aria-label="Сценарии">
+          {SCENARIOS.map((s) => (
+            <button
+              key={s.label}
+              type="button"
+              disabled={busy}
+              title={`${s.hint}: «${s.text}»`}
+              onClick={() => onSend(s.text)}
+              className={cn(
+                'inline-flex h-8 shrink-0 items-center gap-2 whitespace-nowrap rounded-tag border border-line bg-white px-2 text-meta font-medium text-ink-900 shadow-card transition-all hover:border-accent-500 hover:shadow-lift disabled:opacity-50',
+                FOCUS,
+              )}
+            >
+              <Icon name={s.icon} className={cn('h-3.5 w-3.5', s.iconClass)} />
+              {s.label}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-end gap-2 rounded-panel border border-slate-300/90 bg-white p-2 shadow-composer transition-all focus-within:border-accent-500 focus-within:ring-4 focus-within:ring-accent-500/10">
+          <label htmlFor="chat-input" className="sr-only">
+            Сообщение AI-Buddy
+          </label>
+          <textarea
+            id="chat-input"
+            rows={2}
+            value={text}
+            maxLength={MAX_MESSAGE_LENGTH}
+            placeholder="Спроси про доступы, процессы команды или отгул…"
+            onChange={(e) => {
+              setText(e.target.value);
+              setError(null);
+            }}
+            onKeyDown={onKeyDown}
+            aria-invalid={error !== null}
+            className="h-14 min-w-0 flex-1 resize-none bg-transparent px-2 py-2 text-body text-ink-900 placeholder:text-ink-400 focus:outline-none"
+          />
+          <Button type="submit" variant="dark" loading={busy} size="icon" className="shrink-0" aria-label="Отправить">
+            {!busy && <Icon name="arrowUp" className="h-5 w-5" strokeWidth="2" />}
+          </Button>
+        </div>
+        <div className="mt-2 flex min-h-4 justify-between gap-4 px-2 text-meta text-ink-400">
+          <span role="alert" className="text-danger-700">
+            {error}
+          </span>
+          <span className="hidden whitespace-nowrap font-mono sm:inline">Enter — отправить · Shift+Enter — новая строка</span>
+        </div>
       </div>
     </form>
   );
@@ -314,20 +332,32 @@ export function ChatPanel({ workspace, onSend, busy }: { workspace: Workspace; o
   // Сообщение пользователя уже пришло с сервера — не дублируем оптимистичное.
   const showPending = pendingText !== null && messages[messages.length - 1]?.text !== pendingText;
 
+  const engine = workspace.engine.mode === 'llm' ? `LLM · ${workspace.engine.model}` : 'Smart Engine';
   return (
-    <section className="relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-panel border border-line bg-white shadow-card" aria-label="AI-Buddy">
-      <div className="flex h-14 shrink-0 items-center justify-between gap-4 border-b border-line px-4">
-        <div className="flex min-w-0 items-center gap-2">
-          <AiMark />
+    <section className="relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-panel border border-line bg-white shadow-lift" aria-label="AI-Buddy">
+      <div className="flex min-h-16 shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-line bg-white px-5 py-2">
+        <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-2">
           <h1 className="shrink-0 whitespace-nowrap text-body font-semibold text-ink-900">AI-Buddy</h1>
-          <span className="truncate text-meta text-ink-400">
-            действует в IAM, Playbook и «Отсутствиях» через MCP · наставник {workspace.intern.mentor_name}
-          </span>
+          <Badge mono tone="ok" className="whitespace-nowrap" title={`Хранилище: ${workspace.storage.store} · кэш: ${workspace.storage.cache}`}>
+            <StatusDot pulse />
+            {engine}
+          </Badge>
+          <div className="flex flex-wrap items-center gap-1" aria-label="Активные скиллы агента">
+            {AGENT_SKILLS.map((skill) => (
+              <Badge key={skill.label} mono className="whitespace-nowrap bg-ink-900/5">
+                <Icon name={skill.icon} className="h-3 w-3" />
+                {skill.label}
+              </Badge>
+            ))}
+          </div>
         </div>
-        <Badge className="shrink-0">Переписку видишь только ты</Badge>
+        <Badge className="shrink-0 whitespace-nowrap">
+          <Icon name="lock" className="h-3 w-3" />
+          Переписку видишь только ты
+        </Badge>
       </div>
 
-      <div ref={logRef} className="scroll-thin min-h-0 flex-1 space-y-6 overflow-y-auto px-4 pb-56 pt-4" role="log" aria-label="История чата">
+      <div ref={logRef} className="chat-surface scroll-thin min-h-0 flex-1 space-y-6 overflow-y-auto px-5 pb-60 pt-5" role="log" aria-label="История чата">
         {messages.map((m, i) =>
           m.role === 'user' ? (
             <UserBubble key={m.id} text={m.text} />

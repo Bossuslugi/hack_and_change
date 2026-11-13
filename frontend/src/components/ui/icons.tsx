@@ -23,6 +23,9 @@ const PATHS = {
   doc: 'M6 2.5h5.5L15 6v11.5H6v-15ZM11 2.5V6.5h4M8 10h5M8 13h5',
   spark: 'M10 2.5c.6 4.2 3.3 6.9 7.5 7.5-4.2.6-6.9 3.3-7.5 7.5-.6-4.2-3.3-6.9-7.5-7.5 4.2-.6 6.9-3.3 7.5-7.5Z',
   info: 'M10 17a7 7 0 1 0 0-14 7 7 0 0 0 0 14ZM10 9v4.5M10 6.5v.1',
+  lock: 'M5.5 9V6.5a4.5 4.5 0 0 1 9 0V9M4.5 9h11v8h-11V9ZM10 12v2',
+  arrowUpRight: 'M6 14 14 6M7.5 6H14v6.5',
+  activity: 'M2.5 10h3l2-5.5 3.5 11 2.5-5.5h4',
 } as const;
 
 export type IconName = keyof typeof PATHS;

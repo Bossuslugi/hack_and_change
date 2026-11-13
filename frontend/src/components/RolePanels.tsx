@@ -1,50 +1,68 @@
 import type { ReactNode } from 'react';
 import type { Brief, Notification, Workspace } from '../api/schemas';
 import { useCron, useSetFlag } from '../hooks/useBuddy';
-import { ABSENCE_STATUS_LABEL, formatDate, formatDateTime, formatMinutes, plural } from '../lib/format';
-import { Icon } from './ui/icons';
-import { Badge, Button, Card, CardTitle, EmptyState, Eyebrow, FOCUS, cn, type Tone } from './ui/primitives';
+import { ABSENCE_STATUS_LABEL, formatDate, formatDateTime, formatMinutes, initials, plural } from '../lib/format';
+import { Icon, type IconName } from './ui/icons';
+import { Badge, Button, Card, EmptyState, Eyebrow, FOCUS, IconTile, SectionTitle, cn, type Tone } from './ui/primitives';
 
-/** Плитка метрики: подпись, крупное значение, пояснение. */
-function Metric({ label, value, note, tone = 'neutral', children }: { label: string; value: string; note: string; tone?: Tone; children?: ReactNode }) {
-  const color: Record<Tone, string> = {
-    neutral: 'text-ink-900',
-    accent: 'text-accent-700',
-    ok: 'text-ok-700',
-    ai: 'text-ai-700',
-    warn: 'text-warn-700',
-    danger: 'text-danger-700',
-  };
+const METRIC_TILE: Record<Tone, string> = {
+  neutral: 'border-line bg-white',
+  accent: 'tile-blue',
+  ok: 'tile-green',
+  ai: 'tile-violet',
+  warn: 'tile-amber',
+  danger: 'tile-red',
+};
+const METRIC_VALUE: Record<Tone, string> = {
+  neutral: 'text-ink-900',
+  accent: 'text-accent-700',
+  ok: 'text-ok-700',
+  ai: 'text-ai-700',
+  warn: 'text-warn-700',
+  danger: 'text-danger-700',
+};
+
+/** Плитка метрики: подпись, крупное значение, пояснение; тон задаёт пастельную подложку. */
+function Metric({ label, value, note, tone = 'neutral', icon, children }: { label: string; value: string; note: string; tone?: Tone; icon: IconName; children?: ReactNode }) {
   return (
-    <Card className="flex flex-col p-4">
-      <Eyebrow>{label}</Eyebrow>
-      <p className={cn('mt-2 text-title font-semibold', color[tone])}>{value}</p>
+    <section className={cn('flex flex-col rounded-panel border p-4 shadow-lift', METRIC_TILE[tone])}>
+      <div className="flex items-center gap-2">
+        <IconTile name={icon} tone={tone} />
+        <Eyebrow className="truncate">{label}</Eyebrow>
+      </div>
+      <p className={cn('mt-3 text-display font-extrabold', METRIC_VALUE[tone])}>{value}</p>
       {children}
-      <p className="mt-auto pt-2 text-meta text-ink-500">{note}</p>
-    </Card>
+      <p className="mt-auto pt-3 text-meta text-ink-500">{note}</p>
+    </section>
   );
 }
 
+/** Сэкономленное время: тёмная hero-плита с полосой доли от часов наставника. */
 function SavedTime({ workspace }: { workspace: Workspace }) {
   const m = workspace.metrics;
   const share = Math.min(100, (m.mentor_minutes_saved / (m.mentor_hours_baseline_max * 60)) * 100);
   return (
-    <Metric
-      label="Сэкономлено наставнику"
-      value={formatMinutes(m.mentor_minutes_saved)}
-      tone="ok"
-      note={`≈${m.saving_percent}% от ${m.mentor_hours_baseline_min}–${m.mentor_hours_baseline_max} ч наставника за программу. Оценка по весам из спецификации.`}
-    >
-      <div className="mt-2 h-2 overflow-hidden rounded-full bg-ink-900/10" aria-hidden="true">
-        <div className="h-full rounded-full bg-ok-500" style={{ width: `${share}%` }} />
+    <section className="hero-surface relative flex flex-col overflow-hidden rounded-panel p-4 text-white shadow-hero">
+      <div className="flex items-center gap-2">
+        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-tag bg-white/10 text-white" aria-hidden="true">
+          <Icon name="clock" />
+        </span>
+        <p className="truncate font-mono text-meta uppercase tracking-wider text-white/50">Сэкономлено наставнику</p>
       </div>
-    </Metric>
+      <p className="mt-3 text-display font-extrabold text-white">{formatMinutes(m.mentor_minutes_saved)}</p>
+      <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/15" aria-hidden="true">
+        <div className="glow-green h-full rounded-full bg-ok-500" style={{ width: `${Math.max(share, 2)}%` }} />
+      </div>
+      <p className="mt-auto pt-3 text-meta text-white/60">
+        ≈{m.saving_percent}% от {m.mentor_hours_baseline_min}–{m.mentor_hours_baseline_max} ч наставника за программу. Оценка по весам из спецификации.
+      </p>
+    </section>
   );
 }
 
 function BriefCard({ brief }: { brief: Brief }) {
   return (
-    <article className="rounded-card border border-line p-4" data-testid="brief">
+    <article className="rounded-card border border-line border-l-4 border-l-ai-500 bg-white p-4 shadow-card" data-testid="brief">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-body font-semibold text-ink-900">
           {brief.intern_name} · <span className="font-mono text-meta font-normal text-ink-500">{brief.task_key}</span>
@@ -93,7 +111,9 @@ function Briefs({ workspace }: { workspace: Workspace }) {
   const cron = useCron();
   return (
     <Card className="p-4">
-      <CardTitle aside={<Badge tone="ai">{workspace.briefs.length}</Badge>}>Structured 1:1 Brief</CardTitle>
+      <SectionTitle icon="spark" tone="ai" aside={<Badge tone="ai">{workspace.briefs.length}</Badge>}>
+        Structured 1:1 Brief
+      </SectionTitle>
       <p className="mt-1 text-meta text-ink-500">
         Бриф готовит ИИ-крон: что стажёр уже изучил сам и один вопрос, требующий сеньора. Переписка стажёра наставнику не раскрывается.
       </p>
@@ -119,13 +139,15 @@ function Briefs({ workspace }: { workspace: Workspace }) {
 function Notifications({ items }: { items: Notification[] }) {
   return (
     <Card className="p-4">
-      <CardTitle aside={<Badge>{items.length}</Badge>}>Уведомления</CardTitle>
+      <SectionTitle icon="info" tone="accent" aside={<Badge>{items.length}</Badge>}>
+        Уведомления
+      </SectionTitle>
       <div className="mt-4 space-y-2">
         {items.length === 0 ? (
           <EmptyState title="Новых уведомлений нет" />
         ) : (
           items.map((n) => (
-            <div key={n.id} className="rounded-card bg-canvas px-4 py-2" data-testid="notification">
+            <div key={n.id} className="rounded-card border border-line border-l-4 border-l-accent-500 bg-white px-4 py-2 shadow-card" data-testid="notification">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="text-body font-medium text-ink-900">{n.title}</p>
                 <span className="font-mono text-meta text-ink-400">{formatDateTime(n.created_at)}</span>
@@ -142,7 +164,9 @@ function Notifications({ items }: { items: Notification[] }) {
 function Absences({ workspace }: { workspace: Workspace }) {
   return (
     <Card className="p-4">
-      <CardTitle aside={<Badge>{workspace.absences.length}</Badge>}>Заявки на отсутствие</CardTitle>
+      <SectionTitle icon="calendar" tone="warn" aside={<Badge>{workspace.absences.length}</Badge>}>
+        Заявки на отсутствие
+      </SectionTitle>
       <div className="mt-4">
         {workspace.absences.length === 0 ? (
           <EmptyState title="Заявок нет" hint="Стажёр оформляет отгул в чате AI-Buddy через сервис «Отсутствия»." />
@@ -160,7 +184,7 @@ function Absences({ workspace }: { workspace: Workspace }) {
               </thead>
               <tbody className="divide-y divide-line">
                 {workspace.absences.map((a) => (
-                  <tr key={a.id}>
+                  <tr key={a.id} className="transition-colors hover:bg-canvas">
                     <td className="py-2 pr-4 font-mono text-meta font-medium text-ink-900">{a.number}</td>
                     <td className="py-2 pr-4 text-ink-900">{a.intern_name}</td>
                     <td className="py-2 pr-4 text-ink-500">
@@ -185,13 +209,19 @@ function Absences({ workspace }: { workspace: Workspace }) {
 function Incidents({ workspace }: { workspace: Workspace }) {
   return (
     <Card className="p-4">
-      <CardTitle aside={<Badge tone={workspace.incidents.length > 0 ? 'danger' : 'ok'}>{workspace.incidents.length}</Badge>}>Инциденты безопасности</CardTitle>
+      <SectionTitle
+        icon="shield"
+        tone={workspace.incidents.length > 0 ? 'danger' : 'ok'}
+        aside={<Badge tone={workspace.incidents.length > 0 ? 'danger' : 'ok'}>{workspace.incidents.length}</Badge>}
+      >
+        Инциденты безопасности
+      </SectionTitle>
       <div className="mt-4 space-y-2">
         {workspace.incidents.length === 0 ? (
           <EmptyState title="Инцидентов нет" hint="Сюда попадают попытки операций, запрещённых политикой RBAC (например, выгрузка прод-ПДн)." />
         ) : (
           workspace.incidents.map((e) => (
-            <div key={e.id} className="rounded-card border border-danger-500/30 bg-danger-50 px-4 py-2" data-testid="incident">
+            <div key={e.id} className="rounded-card border border-danger-500/30 border-l-4 border-l-danger-500 bg-danger-50 px-4 py-2" data-testid="incident">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="font-mono text-meta font-medium text-danger-700">{String(e.payload.operation ?? e.name)}</p>
                 <span className="font-mono text-meta text-ink-400">{formatDateTime(e.created_at)}</span>
@@ -213,7 +243,7 @@ function Flags({ workspace }: { workspace: Workspace }) {
   const canWrite = workspace.permissions.flags_write === true;
   return (
     <Card className="p-4">
-      <CardTitle>Feature flags</CardTitle>
+      <SectionTitle icon="sliders" tone="ai">Feature flags</SectionTitle>
       <p className="mt-1 text-meta text-ink-500">Runtime-флаги хранятся в Redis и применяются без перезапуска. Compile-time задаются при сборке.</p>
       <ul className="mt-2 divide-y divide-line">
         {workspace.feature_flags.map((f) => {
@@ -253,11 +283,16 @@ function Flags({ workspace }: { workspace: Workspace }) {
 
 function PanelHeader({ title, workspace, note }: { title: string; workspace: Workspace; note: string }) {
   return (
-    <div className="px-2">
-      <h1 className="text-title font-semibold text-ink-900">
-        {title} · {workspace.viewer.name}
-      </h1>
-      <p className="mt-1 text-body text-ink-500">{note}</p>
+    <div className="flex items-center gap-4 px-2">
+      <span className="shrink-0 rounded-full bg-gradient-to-br from-ai-500 to-accent-500 p-0.5" aria-hidden="true">
+        <span className="grid h-12 w-12 place-items-center rounded-full bg-white font-mono text-body font-semibold text-ai-700">{initials(workspace.viewer.name)}</span>
+      </span>
+      <div className="min-w-0">
+        <h1 className="text-body font-extrabold tracking-tight text-ink-900">
+          {title} · {workspace.viewer.name}
+        </h1>
+        <p className="mt-1 text-body text-ink-500">{note}</p>
+      </div>
     </div>
   );
 }
@@ -281,11 +316,13 @@ export function MentorPanel({ workspace }: { workspace: Workspace }) {
       <div className="grid grid-cols-3 gap-2">
         <SavedTime workspace={workspace} />
         <Metric
+          icon="check"
+          tone="ok"
           label="Закрыто без вас"
           value={String(m.questions_answered)}
           note={`Вопросы стажёра, на которые ответил AI-Buddy. Действий в сервисах: ${m.actions_automated}.`}
         />
-        <Metric label="Инструкций изучено" value={`${m.docs_read} / ${m.docs_total}`} note="Темы, которые не придётся объяснять на 1:1." tone="ai" />
+        <Metric icon="book" label="Инструкций изучено" value={`${m.docs_read} / ${m.docs_total}`} note="Темы, которые не придётся объяснять на 1:1." tone="ai" />
       </div>
       <Briefs workspace={workspace} />
       <Notifications items={workspace.notifications} />
@@ -305,6 +342,7 @@ export function LeadPanel({ workspace }: { workspace: Workspace }) {
       <div className="grid grid-cols-3 gap-2">
         <SavedTime workspace={workspace} />
         <Metric
+          icon="activity"
           label="Deflection Rate"
           value={deflection === null ? '—' : `${deflection}%`}
           tone="accent"
@@ -315,14 +353,15 @@ export function LeadPanel({ workspace }: { workspace: Workspace }) {
           }
         />
         <Metric
+          icon="clock"
           label="Time-to-First-PR"
           value={task.commits > 0 ? `${task.days_in_progress} дн.` : '—'}
           tone={task.commits > 0 ? 'ok' : 'warn'}
           note={`${task.key}: в работе ${task.days_in_progress} ${plural(task.days_in_progress, ['день', 'дня', 'дней'])}, коммитов ${task.commits}. События PR трекер не отдаёт.`}
         />
-        <Metric label="Блокировок RBAC" value={String(m.rbac_blocks)} tone={m.rbac_blocks > 0 ? 'danger' : 'neutral'} note="Запросы, остановленные политикой до обработчика." />
-        <Metric label="Действий через MCP" value={String(m.actions_automated)} note={`Всего вызовов инструментов: ${m.tool_calls}.`} tone="ai" />
-        <Metric label="Чек-лист" value={`${m.checklist_percent}%`} note={`Средний ответ агента: ${Math.round(m.avg_response_ms)} мс.`} />
+        <Metric icon="shield" label="Блокировок RBAC" value={String(m.rbac_blocks)} tone={m.rbac_blocks > 0 ? 'danger' : 'neutral'} note="Запросы, остановленные политикой до обработчика." />
+        <Metric icon="bolt" label="Действий через MCP" value={String(m.actions_automated)} note={`Всего вызовов инструментов: ${m.tool_calls}.`} tone="ai" />
+        <Metric icon="check" tone="accent" label="Чек-лист" value={`${m.checklist_percent}%`} note={`Средний ответ агента: ${Math.round(m.avg_response_ms)} мс.`} />
       </div>
       <div className="grid gap-4 2xl:grid-cols-2">
         <Absences workspace={workspace} />

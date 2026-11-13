@@ -15,14 +15,14 @@ export function ToolCallPlate({ call }: { call: ToolCall }) {
   const [open, setOpen] = useState(false);
   const allowed = call.rbac.allowed;
   return (
-    <div className="rounded-card border border-line bg-white" data-testid="mcp-plate">
+    <div className={cn('rounded-card border shadow-card', allowed ? 'border-ai-500/20 bg-ai-50' : 'border-danger-500/25 bg-danger-50')} data-testid="mcp-plate">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         className={cn('flex min-h-8 w-full items-center gap-2 rounded-card px-2 py-1 text-left font-mono text-meta text-ink-500', FOCUS)}
       >
-        <span className="grid h-5 w-5 shrink-0 place-items-center rounded-tag bg-ai-50 text-ai-700" aria-hidden="true">
+        <span className={cn('grid h-6 w-6 shrink-0 place-items-center rounded-tag text-white', allowed ? 'bg-ai-500' : 'bg-danger-500')} aria-hidden="true">
           <Icon name="bolt" className="h-3 w-3" />
         </span>
         <span className="min-w-0 flex-1 truncate">
@@ -35,7 +35,7 @@ export function ToolCallPlate({ call }: { call: ToolCall }) {
         <Icon name="chevron" className={cn('h-3 w-3 transition-transform', open && 'rotate-180')} />
       </button>
       {open && (
-        <div className="space-y-2 border-t border-line p-2">
+        <div className="space-y-2 border-t border-ai-500/15 bg-white/70 p-2">
           <p className="font-mono text-meta text-ink-500">
             policy: {call.rbac.policy_id}
             {call.rbac.constraint && ` · constraint: ${call.rbac.constraint}`}

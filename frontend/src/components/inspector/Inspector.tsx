@@ -4,7 +4,7 @@ import { errorText, useTelemetry, useWorkspace } from '../../hooks/useBuddy';
 import { formatMs, formatTime, TOOL_STATUS_LABEL } from '../../lib/format';
 import { useUi, type InspectorTab } from '../../store/ui';
 import { Icon } from '../ui/icons';
-import { Badge, Button, EmptyState, Eyebrow, FOCUS, JsonBlock, Skeleton, cn } from '../ui/primitives';
+import { Badge, Button, EmptyState, Eyebrow, FOCUS, IconTile, JsonBlock, Skeleton, StatusDot, cn } from '../ui/primitives';
 
 const TABS: Array<{ id: InspectorTab; label: string }> = [
   { id: 'mcp', label: 'MCP' },
@@ -23,13 +23,16 @@ const SPECS: Array<{ id: string; file: string; scope: string }> = [
 
 const STATUS_TONE = { success: 'ok', forbidden: 'danger', invalid: 'warn', error: 'danger' } as const;
 const SEVERITY_TONE = { info: 'neutral', warn: 'warn', security: 'danger' } as const;
+/** Цветная полоса слева у строки журнала: статус виден до раскрытия. */
+const STATUS_BAR = { success: 'border-l-ok-500', forbidden: 'border-l-danger-500', invalid: 'border-l-warn-500', error: 'border-l-danger-500' } as const;
+const SEVERITY_BAR = { info: 'border-l-ink-400', warn: 'border-l-warn-500', security: 'border-l-danger-500' } as const;
 
-const cardClass = 'rounded-card border border-line bg-white';
+const cardClass = 'rounded-card border border-line bg-white shadow-card';
 
 function ToolCallRow({ call }: { call: ToolCall }) {
   const [open, setOpen] = useState(false);
   return (
-    <li className={cardClass} data-testid="tool-call">
+    <li className={cn(cardClass, 'border-l-4', STATUS_BAR[call.status])} data-testid="tool-call">
       <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className={cn('w-full rounded-card p-2 text-left', FOCUS)}>
         <span className="flex items-center gap-2">
           <Badge tone={STATUS_TONE[call.status]}>{TOOL_STATUS_LABEL[call.status]}</Badge>
@@ -78,7 +81,7 @@ function EventRow({ event }: { event: TelemetryEvent }) {
     .map(([k, v]) => `${k}=${String(v)}`)
     .join(' · ');
   return (
-    <li className={cn(cardClass, 'p-2')} data-testid="event">
+    <li className={cn(cardClass, 'border-l-4 p-2', SEVERITY_BAR[event.severity])} data-testid="event">
       <div className="flex items-center gap-2">
         <Badge mono tone={SEVERITY_TONE[event.severity]}>
           {event.severity}
@@ -256,16 +259,22 @@ export function Inspector() {
 
   return (
     <aside role="dialog" aria-label="Инспектор телеметрии" className="glass flex min-h-0 w-[360px] shrink-0 flex-col overflow-hidden rounded-panel shadow-float">
-      <div className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-line px-4">
-        <div className="min-w-0">
-          <h2 className="text-body font-semibold text-ink-900">Под капотом</h2>
-          <p className="truncate font-mono text-meta text-ink-400">live · обновление каждые 4 с</p>
+      <div className="flex min-h-16 shrink-0 items-center justify-between gap-2 border-b border-line px-4 py-2">
+        <div className="flex min-w-0 items-center gap-3">
+          <IconTile name="activity" tone="ai" />
+          <div className="min-w-0">
+            <h2 className="text-body font-semibold text-ink-900">Под капотом</h2>
+            <p className="flex items-center gap-2 whitespace-nowrap font-mono text-meta text-ink-400">
+              <StatusDot pulse />
+              live · обновление каждые 4 с
+            </p>
+          </div>
         </div>
-        <Button variant="ghost" size="sm" className="w-8 px-0" onClick={close} aria-label="Закрыть инспектор">
+        <Button variant="ghost" size="iconSm" className="shrink-0" onClick={close} aria-label="Закрыть инспектор">
           <Icon name="close" />
         </Button>
       </div>
-      <div role="tablist" aria-label="Разделы инспектора" className="scroll-thin flex shrink-0 overflow-x-auto border-b border-line p-2">
+      <div role="tablist" aria-label="Разделы инспектора" className="flex shrink-0 flex-wrap gap-1 border-b border-line p-2">
         {TABS.map((t) => (
           <button
             key={t.id}
@@ -274,9 +283,9 @@ export function Inspector() {
             aria-selected={tab === t.id}
             onClick={() => setTab(t.id)}
             className={cn(
-              'inline-flex h-8 items-center gap-1 rounded-tag px-2 text-meta font-medium transition-colors',
+              'inline-flex h-8 items-center gap-1 whitespace-nowrap rounded-tag px-2 text-meta font-medium transition-all',
               FOCUS,
-              tab === t.id ? 'bg-ink-900 text-white' : 'text-ink-500 hover:bg-ink-900/5',
+              tab === t.id ? 'bg-ink-900 text-white shadow-card' : 'text-ink-500 hover:bg-ink-900/5 hover:text-ink-900',
             )}
           >
             {t.label}

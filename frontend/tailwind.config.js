@@ -1,6 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 // Дизайн-токены AI-Buddy. Шкалы скруглений и кеглей заданы целиком (не через extend),
-// чтобы на экране физически не могло появиться больше трёх размеров каждого.
+// чтобы на экране физически не могло появиться больше трёх размеров каждого:
+// скругления 6 / 12 / 16 px, кегли 12 / 14 / 32 px (32 — только для крупных цифр).
 export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
@@ -14,7 +15,7 @@ export default {
     fontSize: {
       meta: ['12px', { lineHeight: '16px' }],
       body: ['14px', { lineHeight: '20px' }],
-      title: ['20px', { lineHeight: '28px', letterSpacing: '-0.01em' }],
+      display: ['32px', { lineHeight: '36px', letterSpacing: '-0.02em' }],
     },
     extend: {
       fontFamily: {
@@ -23,18 +24,24 @@ export default {
       },
       colors: {
         canvas: '#F5F5F7',
+        // Пастельные подложки Bento-плиток и фон ленты чата.
+        tint: { blue: '#F0F9FF', violet: '#F5F3FF', slate: '#F8FAFC' },
         line: 'rgba(15, 23, 42, 0.07)',
         ink: { 900: '#141414', 500: '#6E6E73', 400: '#9E9EA9' },
         // Функциональные акценты: 500 — маркер, 50 — фон бейджа, 700 — текст на фоне бейджа.
         accent: { 50: '#E5F6FF', 500: '#00AAFF', 600: '#0095E0', 700: '#006FA8' },
         ok: { 50: '#E8F9EF', 500: '#00C257', 700: '#00813A' },
-        ai: { 50: '#F3EEFF', 500: '#8B5CF6', 700: '#6A3FD9' },
+        ai: { 50: '#F3EEFF', 100: '#E7DDFC', 500: '#8B5CF6', 700: '#6D28D9' },
         danger: { 50: '#FFECEB', 500: '#FF3B30', 700: '#C4281F' },
         warn: { 50: '#FFF5E5', 500: '#FF9500', 700: '#A85F00' },
       },
       boxShadow: {
         card: '0 2px 8px rgba(0, 0, 0, 0.03)',
         float: '0 8px 32px rgba(15, 23, 42, 0.08)',
+        // Приподнятая карточка: тонкая контактная тень плюс мягкая рассеянная.
+        lift: '0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px -8px rgba(15, 23, 42, 0.14)',
+        hero: '0 1px 0 rgba(255, 255, 255, 0.08) inset, 0 16px 32px -12px rgba(20, 20, 20, 0.5)',
+        composer: '0 8px 30px rgba(0, 0, 0, 0.06)',
       },
       keyframes: {
         'fade-up': { from: { opacity: '0', transform: 'translateY(4px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
