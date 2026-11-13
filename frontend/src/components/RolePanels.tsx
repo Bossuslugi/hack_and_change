@@ -1,35 +1,74 @@
+import type { ReactNode } from 'react';
 import type { Brief, Notification, Workspace } from '../api/schemas';
 import { useCron, useSetFlag } from '../hooks/useBuddy';
-import { ABSENCE_STATUS_LABEL, formatDate, formatDateTime } from '../lib/format';
-import { Badge, Button, Card, CardTitle, EmptyState, cn } from './ui/primitives';
+import { ABSENCE_STATUS_LABEL, formatDate, formatDateTime, formatMinutes, plural } from '../lib/format';
+import { Icon } from './ui/icons';
+import { Badge, Button, Card, CardTitle, EmptyState, Eyebrow, FOCUS, cn, type Tone } from './ui/primitives';
+
+/** Плитка метрики: подпись, крупное значение, пояснение. */
+function Metric({ label, value, note, tone = 'neutral', children }: { label: string; value: string; note: string; tone?: Tone; children?: ReactNode }) {
+  const color: Record<Tone, string> = {
+    neutral: 'text-ink-900',
+    accent: 'text-accent-700',
+    ok: 'text-ok-700',
+    ai: 'text-ai-700',
+    warn: 'text-warn-700',
+    danger: 'text-danger-700',
+  };
+  return (
+    <Card className="flex flex-col p-4">
+      <Eyebrow>{label}</Eyebrow>
+      <p className={cn('mt-2 text-title font-semibold', color[tone])}>{value}</p>
+      {children}
+      <p className="mt-auto pt-2 text-meta text-ink-500">{note}</p>
+    </Card>
+  );
+}
+
+function SavedTime({ workspace }: { workspace: Workspace }) {
+  const m = workspace.metrics;
+  const share = Math.min(100, (m.mentor_minutes_saved / (m.mentor_hours_baseline_max * 60)) * 100);
+  return (
+    <Metric
+      label="Сэкономлено наставнику"
+      value={formatMinutes(m.mentor_minutes_saved)}
+      tone="ok"
+      note={`≈${m.saving_percent}% от ${m.mentor_hours_baseline_min}–${m.mentor_hours_baseline_max} ч наставника за программу. Оценка по весам из спецификации.`}
+    >
+      <div className="mt-2 h-2 overflow-hidden rounded-full bg-ink-900/10" aria-hidden="true">
+        <div className="h-full rounded-full bg-ok-500" style={{ width: `${share}%` }} />
+      </div>
+    </Metric>
+  );
+}
 
 function BriefCard({ brief }: { brief: Brief }) {
   return (
-    <article className="rounded-xl border border-paper-200 p-4" data-testid="brief">
+    <article className="rounded-card border border-line p-4" data-testid="brief">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm font-semibold text-ink-900">
-          {brief.intern_name} · <span className="font-mono text-xs text-ink-500">{brief.task_key}</span>
+        <p className="text-body font-semibold text-ink-900">
+          {brief.intern_name} · <span className="font-mono text-meta font-normal text-ink-500">{brief.task_key}</span>
         </p>
-        <span className="text-[11px] text-ink-400">{formatDateTime(brief.created_at)}</span>
+        <span className="font-mono text-meta text-ink-400">{formatDateTime(brief.created_at)}</span>
       </div>
 
-      <h3 className="mt-3 text-xs font-semibold uppercase tracking-wide text-ink-400">Уже разобрал сам через AI-Buddy</h3>
-      <ul className="mt-1.5 space-y-1 text-sm text-ink-700">
+      <Eyebrow className="mt-4">Уже разобрал сам через AI-Buddy</Eyebrow>
+      <ul className="mt-2 space-y-1 text-body text-ink-900">
         {brief.learned_topics.map((topic) => (
           <li key={topic} className="flex gap-2">
-            <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-ok-500" aria-hidden="true" />
+            <Icon name="check" className="mt-0.5 text-ok-500" strokeWidth="2.2" />
             {topic}
           </li>
         ))}
       </ul>
 
-      <h3 className="mt-3 text-xs font-semibold uppercase tracking-wide text-brand-600">Вопрос, где нужен сеньор</h3>
-      <p className="mt-1.5 rounded-lg bg-brand-50 px-3 py-2 text-sm leading-relaxed text-ink-900">{brief.architecture_question}</p>
+      <Eyebrow className="mt-4 text-ai-700">Вопрос, где нужен сеньор</Eyebrow>
+      <p className="mt-2 rounded-card bg-ai-50 px-4 py-2 text-body text-ink-900">{brief.architecture_question}</p>
 
       {brief.signals.length > 0 && (
         <>
-          <h3 className="mt-3 text-xs font-semibold uppercase tracking-wide text-ink-400">Сигналы</h3>
-          <ul className="mt-1.5 list-disc space-y-1 pl-5 text-xs text-ink-700 marker:text-ink-300">
+          <Eyebrow className="mt-4">Сигналы</Eyebrow>
+          <ul className="mt-2 list-disc space-y-1 pl-4 text-meta text-ink-500 marker:text-ink-400">
             {brief.signals.map((s) => (
               <li key={s}>{s}</li>
             ))}
@@ -38,8 +77,8 @@ function BriefCard({ brief }: { brief: Brief }) {
       )}
       {brief.open_questions.length > 0 && (
         <>
-          <h3 className="mt-3 text-xs font-semibold uppercase tracking-wide text-ink-400">Вопросы без ответа в базе знаний</h3>
-          <ul className="mt-1.5 list-disc space-y-1 pl-5 text-xs text-ink-700 marker:text-ink-300">
+          <Eyebrow className="mt-4">Вопросы без ответа в базе знаний</Eyebrow>
+          <ul className="mt-2 list-disc space-y-1 pl-4 text-meta text-ink-500 marker:text-ink-400">
             {brief.open_questions.map((q) => (
               <li key={q}>{q}</li>
             ))}
@@ -54,18 +93,18 @@ function Briefs({ workspace }: { workspace: Workspace }) {
   const cron = useCron();
   return (
     <Card className="p-4">
-      <CardTitle aside={<Badge tone="brand">{workspace.briefs.length}</Badge>}>Structured 1:1 Brief</CardTitle>
-      <p className="mt-1 text-xs text-ink-500">
+      <CardTitle aside={<Badge tone="ai">{workspace.briefs.length}</Badge>}>Structured 1:1 Brief</CardTitle>
+      <p className="mt-1 text-meta text-ink-500">
         Бриф готовит ИИ-крон: что стажёр уже изучил сам и один вопрос, требующий сеньора. Переписка стажёра наставнику не раскрывается.
       </p>
-      <div className="mt-3 space-y-3">
+      <div className="mt-4 space-y-2">
         {workspace.briefs.length === 0 ? (
           <EmptyState
             title="Брифов пока нет"
             hint="Крон сформирует бриф, когда задача стажёра зависнет в работе без коммитов."
             action={
-              <Button variant="primary" onClick={() => cron.mutate()} loading={cron.isPending}>
-                Запустить ИИ-крон
+              <Button variant="ai" onClick={() => cron.mutate()} loading={cron.isPending}>
+                Симулировать ИИ-крон
               </Button>
             }
           />
@@ -81,17 +120,17 @@ function Notifications({ items }: { items: Notification[] }) {
   return (
     <Card className="p-4">
       <CardTitle aside={<Badge>{items.length}</Badge>}>Уведомления</CardTitle>
-      <div className="mt-3 space-y-2">
+      <div className="mt-4 space-y-2">
         {items.length === 0 ? (
           <EmptyState title="Новых уведомлений нет" />
         ) : (
           items.map((n) => (
-            <div key={n.id} className="rounded-xl bg-paper-50 px-3 py-2.5" data-testid="notification">
+            <div key={n.id} className="rounded-card bg-canvas px-4 py-2" data-testid="notification">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="text-sm font-medium text-ink-900">{n.title}</p>
-                <span className="text-[11px] text-ink-400">{formatDateTime(n.created_at)}</span>
+                <p className="text-body font-medium text-ink-900">{n.title}</p>
+                <span className="font-mono text-meta text-ink-400">{formatDateTime(n.created_at)}</span>
               </div>
-              <p className="mt-1 text-xs leading-relaxed text-ink-700">{n.body}</p>
+              <p className="mt-1 text-meta text-ink-500">{n.body}</p>
             </div>
           ))
         )}
@@ -104,31 +143,31 @@ function Absences({ workspace }: { workspace: Workspace }) {
   return (
     <Card className="p-4">
       <CardTitle aside={<Badge>{workspace.absences.length}</Badge>}>Заявки на отсутствие</CardTitle>
-      <div className="mt-3">
+      <div className="mt-4">
         {workspace.absences.length === 0 ? (
           <EmptyState title="Заявок нет" hint="Стажёр оформляет отгул в чате AI-Buddy через сервис «Отсутствия»." />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="text-[11px] uppercase tracking-wide text-ink-400">
+          <div className="scroll-thin overflow-x-auto">
+            <table className="w-full text-left text-body">
+              <thead className="font-mono text-meta uppercase tracking-wider text-ink-400">
                 <tr>
-                  <th className="py-1.5 pr-3 font-medium">Номер</th>
-                  <th className="py-1.5 pr-3 font-medium">Сотрудник</th>
-                  <th className="py-1.5 pr-3 font-medium">Когда</th>
-                  <th className="py-1.5 pr-3 font-medium">Причина</th>
-                  <th className="py-1.5 font-medium">Статус</th>
+                  <th className="py-2 pr-4 font-normal">Номер</th>
+                  <th className="py-2 pr-4 font-normal">Сотрудник</th>
+                  <th className="py-2 pr-4 font-normal">Когда</th>
+                  <th className="py-2 pr-4 font-normal">Причина</th>
+                  <th className="py-2 font-normal">Статус</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-paper-100">
+              <tbody className="divide-y divide-line">
                 {workspace.absences.map((a) => (
                   <tr key={a.id}>
-                    <td className="py-2 pr-3 font-mono text-xs font-medium text-ink-900">{a.number}</td>
-                    <td className="py-2 pr-3 text-ink-700">{a.intern_name}</td>
-                    <td className="py-2 pr-3 text-ink-700">
+                    <td className="py-2 pr-4 font-mono text-meta font-medium text-ink-900">{a.number}</td>
+                    <td className="py-2 pr-4 text-ink-900">{a.intern_name}</td>
+                    <td className="py-2 pr-4 text-ink-500">
                       {formatDate(a.date)}
                       {a.time_from && `, ${a.time_from}–${a.time_to}`}
                     </td>
-                    <td className="py-2 pr-3 text-ink-700">{a.reason}</td>
+                    <td className="py-2 pr-4 text-ink-500">{a.reason}</td>
                     <td className="py-2">
                       <Badge tone="warn">{ABSENCE_STATUS_LABEL[a.status] ?? a.status}</Badge>
                     </td>
@@ -147,20 +186,20 @@ function Incidents({ workspace }: { workspace: Workspace }) {
   return (
     <Card className="p-4">
       <CardTitle aside={<Badge tone={workspace.incidents.length > 0 ? 'danger' : 'ok'}>{workspace.incidents.length}</Badge>}>Инциденты безопасности</CardTitle>
-      <div className="mt-3 space-y-2">
+      <div className="mt-4 space-y-2">
         {workspace.incidents.length === 0 ? (
           <EmptyState title="Инцидентов нет" hint="Сюда попадают попытки операций, запрещённых политикой RBAC (например, выгрузка прод-ПДн)." />
         ) : (
           workspace.incidents.map((e) => (
-            <div key={e.id} className="rounded-xl border border-danger-500/20 bg-danger-50 px-3 py-2.5" data-testid="incident">
+            <div key={e.id} className="rounded-card border border-danger-500/30 bg-danger-50 px-4 py-2" data-testid="incident">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="font-mono text-xs font-semibold text-danger-700">{String(e.payload.operation ?? e.name)}</p>
-                <span className="text-[11px] text-ink-400">{formatDateTime(e.created_at)}</span>
+                <p className="font-mono text-meta font-medium text-danger-700">{String(e.payload.operation ?? e.name)}</p>
+                <span className="font-mono text-meta text-ink-400">{formatDateTime(e.created_at)}</span>
               </div>
-              <p className="mt-1 text-xs text-ink-700">
+              <p className="mt-1 text-meta text-ink-900">
                 {String(e.payload.actor ?? e.actor_id)} ({e.actor_role}) · политика {String(e.payload.policy_id ?? '—')}
               </p>
-              <p className="mt-0.5 text-xs text-ink-500">{String(e.payload.reason ?? '')}</p>
+              <p className="mt-1 text-meta text-ink-500">{String(e.payload.reason ?? '')}</p>
             </div>
           ))
         )}
@@ -175,18 +214,18 @@ function Flags({ workspace }: { workspace: Workspace }) {
   return (
     <Card className="p-4">
       <CardTitle>Feature flags</CardTitle>
-      <p className="mt-1 text-xs text-ink-500">Runtime-флаги хранятся в Redis и применяются без перезапуска. Compile-time задаются при сборке.</p>
-      <ul className="mt-3 divide-y divide-paper-100">
+      <p className="mt-1 text-meta text-ink-500">Runtime-флаги хранятся в Redis и применяются без перезапуска. Compile-time задаются при сборке.</p>
+      <ul className="mt-2 divide-y divide-line">
         {workspace.feature_flags.map((f) => {
           const locked = f.kind !== 'runtime' || !canWrite;
           return (
-            <li key={f.key} className="flex items-center justify-between gap-3 py-2.5">
+            <li key={f.key} className="flex items-center justify-between gap-4 py-2">
               <div className="min-w-0">
-                <p className="truncate font-mono text-xs font-medium text-ink-900">{f.key}</p>
-                <p className="text-xs text-ink-500">{f.description}</p>
+                <p className="truncate font-mono text-meta font-medium text-ink-900">{f.key}</p>
+                <p className="text-meta text-ink-500">{f.description}</p>
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                <Badge>{f.kind === 'runtime' ? 'runtime' : 'compile-time'}</Badge>
+                <Badge mono>{f.kind === 'runtime' ? 'runtime' : 'compile-time'}</Badge>
                 <button
                   type="button"
                   role="switch"
@@ -195,12 +234,13 @@ function Flags({ workspace }: { workspace: Workspace }) {
                   disabled={locked}
                   onClick={() => setFlag.mutate({ key: f.key, enabled: !f.enabled })}
                   className={cn(
-                    'relative h-6 w-10 rounded-full transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500',
-                    f.enabled ? 'bg-ok-500' : 'bg-ink-300',
+                    'relative h-6 w-10 rounded-full transition-colors',
+                    FOCUS,
+                    f.enabled ? 'bg-ok-500' : 'bg-ink-400/50',
                     locked && 'cursor-not-allowed opacity-50',
                   )}
                 >
-                  <span className={cn('absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-[left]', f.enabled ? 'left-[18px]' : 'left-0.5')} />
+                  <span className={cn('absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-card transition-[left]', f.enabled ? 'left-[18px]' : 'left-0.5')} />
                 </button>
               </div>
             </li>
@@ -213,23 +253,40 @@ function Flags({ workspace }: { workspace: Workspace }) {
 
 function PanelHeader({ title, workspace, note }: { title: string; workspace: Workspace; note: string }) {
   return (
-    <div>
-      <h1 className="text-lg font-semibold text-ink-900">
+    <div className="px-2">
+      <h1 className="text-title font-semibold text-ink-900">
         {title} · {workspace.viewer.name}
       </h1>
-      <p className="mt-0.5 text-sm text-ink-500">{note}</p>
+      <p className="mt-1 text-body text-ink-500">{note}</p>
     </div>
   );
 }
 
+/** Доля вопросов стажёра, закрытых без наставника; null — вопросов ещё не было. */
+function deflectionRate(workspace: Workspace): number | null {
+  const { questions_answered: answered, unanswered_questions: open } = workspace.metrics;
+  return answered + open === 0 ? null : Math.round((answered / (answered + open)) * 100);
+}
+
+/** Правая зона наставника: сэкономленное время и бриф к 1:1 вместо переписки стажёра. */
 export function MentorPanel({ workspace }: { workspace: Workspace }) {
+  const m = workspace.metrics;
   return (
-    <div className="space-y-4">
+    <div className="scroll-thin min-h-0 flex-1 space-y-4 overflow-y-auto">
       <PanelHeader
         title="Кабинет наставника"
         workspace={workspace}
         note={`Стажёр ${workspace.intern.name}: рутину закрывает AI-Buddy, вам остаются вопросы, где нужен опыт.`}
       />
+      <div className="grid grid-cols-3 gap-2">
+        <SavedTime workspace={workspace} />
+        <Metric
+          label="Закрыто без вас"
+          value={String(m.questions_answered)}
+          note={`Вопросы стажёра, на которые ответил AI-Buddy. Действий в сервисах: ${m.actions_automated}.`}
+        />
+        <Metric label="Инструкций изучено" value={`${m.docs_read} / ${m.docs_total}`} note="Темы, которые не придётся объяснять на 1:1." tone="ai" />
+      </div>
       <Briefs workspace={workspace} />
       <Notifications items={workspace.notifications} />
       <Absences workspace={workspace} />
@@ -237,11 +294,37 @@ export function MentorPanel({ workspace }: { workspace: Workspace }) {
   );
 }
 
+/** Правая зона руководителя: метрики онбординга, безопасность, отсутствия и флаги. */
 export function LeadPanel({ workspace }: { workspace: Workspace }) {
+  const m = workspace.metrics;
+  const task = workspace.sprint_task;
+  const deflection = deflectionRate(workspace);
   return (
-    <div className="space-y-4">
-      <PanelHeader title="Кабинет руководителя" workspace={workspace} note="Контроль важных шагов адаптации, отсутствий и безопасности." />
-      <div className="grid gap-4 xl:grid-cols-2">
+    <div className="scroll-thin min-h-0 flex-1 space-y-4 overflow-y-auto">
+      <PanelHeader title="Кабинет руководителя" workspace={workspace} note="Метрики онбординга, контроль отсутствий и безопасности." />
+      <div className="grid grid-cols-3 gap-2">
+        <SavedTime workspace={workspace} />
+        <Metric
+          label="Deflection Rate"
+          value={deflection === null ? '—' : `${deflection}%`}
+          tone="accent"
+          note={
+            deflection === null
+              ? 'Стажёр ещё не задавал вопросов.'
+              : `${m.questions_answered} из ${m.questions_answered + m.unanswered_questions} вопросов закрыто без наставника.`
+          }
+        />
+        <Metric
+          label="Time-to-First-PR"
+          value={task.commits > 0 ? `${task.days_in_progress} дн.` : '—'}
+          tone={task.commits > 0 ? 'ok' : 'warn'}
+          note={`${task.key}: в работе ${task.days_in_progress} ${plural(task.days_in_progress, ['день', 'дня', 'дней'])}, коммитов ${task.commits}. События PR трекер не отдаёт.`}
+        />
+        <Metric label="Блокировок RBAC" value={String(m.rbac_blocks)} tone={m.rbac_blocks > 0 ? 'danger' : 'neutral'} note="Запросы, остановленные политикой до обработчика." />
+        <Metric label="Действий через MCP" value={String(m.actions_automated)} note={`Всего вызовов инструментов: ${m.tool_calls}.`} tone="ai" />
+        <Metric label="Чек-лист" value={`${m.checklist_percent}%`} note={`Средний ответ агента: ${Math.round(m.avg_response_ms)} мс.`} />
+      </div>
+      <div className="grid gap-4 2xl:grid-cols-2">
         <Absences workspace={workspace} />
         <Incidents workspace={workspace} />
       </div>

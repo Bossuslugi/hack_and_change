@@ -1,29 +1,46 @@
 /** @type {import('tailwindcss').Config} */
+// Дизайн-токены AI-Buddy. Шкалы скруглений и кеглей заданы целиком (не через extend),
+// чтобы на экране физически не могло появиться больше трёх размеров каждого.
 export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
+    borderRadius: {
+      none: '0',
+      tag: '6px', // бейджи, теги, мелкие кнопки
+      card: '12px', // карточки, инпуты, кнопки
+      panel: '16px', // панели и контейнеры
+      full: '9999px', // точки статуса, аватары, тумблеры
+    },
+    fontSize: {
+      meta: ['12px', { lineHeight: '16px' }],
+      body: ['14px', { lineHeight: '20px' }],
+      title: ['20px', { lineHeight: '28px', letterSpacing: '-0.01em' }],
+    },
     extend: {
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
         mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace'],
       },
       colors: {
-        ink: { 900: '#141821', 700: '#2f3645', 500: '#5b6475', 400: '#8791a3', 300: '#b6bdca' },
-        paper: { 0: '#ffffff', 50: '#f7f8fa', 100: '#eff1f5', 200: '#e3e6ec' },
-        brand: { 50: '#eef4ff', 100: '#dbe7ff', 500: '#2f6bff', 600: '#1f55e0', 700: '#1843b5' },
-        ok: { 50: '#e9f8ef', 500: '#12a150', 700: '#0b7a3b' },
-        warn: { 50: '#fff6e0', 500: '#d98a00', 700: '#935c00' },
-        danger: { 50: '#ffecec', 500: '#e03131', 700: '#a61e1e' },
+        canvas: '#F5F5F7',
+        line: 'rgba(15, 23, 42, 0.07)',
+        ink: { 900: '#141414', 500: '#6E6E73', 400: '#9E9EA9' },
+        // Функциональные акценты: 500 — маркер, 50 — фон бейджа, 700 — текст на фоне бейджа.
+        accent: { 50: '#E5F6FF', 500: '#00AAFF', 600: '#0095E0', 700: '#006FA8' },
+        ok: { 50: '#E8F9EF', 500: '#00C257', 700: '#00813A' },
+        ai: { 50: '#F3EEFF', 500: '#8B5CF6', 700: '#6A3FD9' },
+        danger: { 50: '#FFECEB', 500: '#FF3B30', 700: '#C4281F' },
+        warn: { 50: '#FFF5E5', 500: '#FF9500', 700: '#A85F00' },
       },
       boxShadow: {
-        card: '0 1px 2px rgba(20,24,33,.06), 0 4px 16px rgba(20,24,33,.04)',
-        drawer: '-12px 0 40px rgba(20,24,33,.14)',
+        card: '0 2px 8px rgba(0, 0, 0, 0.03)',
+        float: '0 8px 32px rgba(15, 23, 42, 0.08)',
       },
       keyframes: {
-        'fade-up': { from: { opacity: '0', transform: 'translateY(6px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
-        blink: { '0%, 80%, 100%': { opacity: '.25' }, '40%': { opacity: '1' } },
+        'fade-up': { from: { opacity: '0', transform: 'translateY(4px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
+        shimmer: { from: { backgroundPosition: '100% 0' }, to: { backgroundPosition: '0 0' } },
       },
-      animation: { 'fade-up': 'fade-up .22s ease-out both', blink: 'blink 1.2s infinite both' },
+      animation: { 'fade-up': 'fade-up .18s ease-out both', shimmer: 'shimmer 1.4s ease-in-out infinite' },
     },
   },
   plugins: [],

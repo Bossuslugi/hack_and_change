@@ -1,44 +1,68 @@
 import { useEffect, useState } from 'react';
 import type { Telemetry, TelemetryEvent, ToolCall } from '../../api/schemas';
-import { errorText, useTelemetry } from '../../hooks/useBuddy';
-import { formatTime, TOOL_STATUS_LABEL } from '../../lib/format';
+import { errorText, useTelemetry, useWorkspace } from '../../hooks/useBuddy';
+import { formatMs, formatTime, TOOL_STATUS_LABEL } from '../../lib/format';
 import { useUi, type InspectorTab } from '../../store/ui';
-import { Badge, Button, EmptyState, JsonBlock, Spinner, cn } from '../ui/primitives';
+import { Icon } from '../ui/icons';
+import { Badge, Button, EmptyState, Eyebrow, FOCUS, JsonBlock, Skeleton, cn } from '../ui/primitives';
 
 const TABS: Array<{ id: InspectorTab; label: string }> = [
   { id: 'mcp', label: 'MCP' },
   { id: 'rbac', label: 'RBAC' },
   { id: 'clickstream', label: 'Clickstream' },
   { id: 'registry', label: 'Реестр' },
+  { id: 'sdd', label: 'SDD' },
+];
+
+/** Спецификации из /specs, по которым собраны агент, шлюз MCP и матрица прав. */
+const SPECS: Array<{ id: string; file: string; scope: string }> = [
+  { id: 'avito-start-ai-buddy', file: '01_agent_behavior.openspec.yaml', scope: 'Промпт, интенты, эффекты чек-листа' },
+  { id: 'avito-start-ai-buddy-mcp', file: '02_mcp_tools.openspec.yaml', scope: 'Контракты и JSON Schema инструментов' },
+  { id: 'avito-start-ai-buddy-rbac', file: '03_rbac_matrix.openspec.yaml', scope: 'Роли, политики, ограничения' },
 ];
 
 const STATUS_TONE = { success: 'ok', forbidden: 'danger', invalid: 'warn', error: 'danger' } as const;
 const SEVERITY_TONE = { info: 'neutral', warn: 'warn', security: 'danger' } as const;
 
+const cardClass = 'rounded-card border border-line bg-white';
+
 function ToolCallRow({ call }: { call: ToolCall }) {
   const [open, setOpen] = useState(false);
   return (
-    <li className="rounded-xl border border-paper-200 bg-white" data-testid="tool-call">
-      <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="flex w-full items-center gap-2 px-3 py-2.5 text-left">
-        <Badge tone={STATUS_TONE[call.status]}>{TOOL_STATUS_LABEL[call.status]}</Badge>
-        <span className="min-w-0 flex-1 truncate font-mono text-xs font-medium text-ink-900">{call.tool}</span>
-        <span className="shrink-0 text-[11px] text-ink-400">
-          {call.actor_role} · {call.duration_ms.toFixed(1)} мс · {formatTime(call.created_at)}
+    <li className={cardClass} data-testid="tool-call">
+      <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className={cn('w-full rounded-card p-2 text-left', FOCUS)}>
+        <span className="flex items-center gap-2">
+          <Badge tone={STATUS_TONE[call.status]}>{TOOL_STATUS_LABEL[call.status]}</Badge>
+          <span className="min-w-0 flex-1 truncate font-mono text-meta font-medium text-ink-900">{call.tool}</span>
+          <Icon name="chevron" className={cn('h-3 w-3 text-ink-400 transition-transform', open && 'rotate-180')} />
+        </span>
+        <span className="mt-1 block font-mono text-meta text-ink-400">
+          {call.actor_role} · {formatMs(call.duration_ms)} · {formatTime(call.created_at)}
         </span>
       </button>
       {open && (
-        <div className="space-y-2.5 border-t border-paper-100 px-3 py-3">
-          <p className="text-xs text-ink-700">
-            RBAC:{' '}
-            <span className={cn('font-semibold', call.rbac.allowed ? 'text-ok-700' : 'text-danger-700')}>
-              {call.rbac.code}
-              {!call.rbac.allowed && ` (${call.rbac.http_status})`}
-            </span>{' '}
-            · политика {call.rbac.policy_id}
-            {call.rbac.constraint && ` · ограничение ${call.rbac.constraint}`}
-          </p>
-          <p className="text-xs text-ink-500">{call.rbac.reason}</p>
-          {call.error && <p className="text-xs text-danger-700">{call.error_code}: {call.error}</p>}
+        <div className="space-y-2 border-t border-line p-2">
+          <div className="space-y-1 font-mono text-meta text-ink-500">
+            <p>user_role: {call.rbac.role}</p>
+            <p>requested_scope: {call.rbac.operation}</p>
+            <p>
+              verdict:{' '}
+              <span className={cn('font-medium', call.rbac.allowed ? 'text-ok-700' : 'text-danger-700')}>
+                {call.rbac.code}
+                {!call.rbac.allowed && ` (${call.rbac.http_status})`}
+              </span>
+            </p>
+            <p>
+              policy: {call.rbac.policy_id}
+              {call.rbac.constraint && ` · constraint: ${call.rbac.constraint}`}
+            </p>
+          </div>
+          <p className="text-meta text-ink-500">{call.rbac.reason}</p>
+          {call.error && (
+            <p className="text-meta text-danger-700">
+              {call.error_code}: {call.error}
+            </p>
+          )}
           <JsonBlock label="Аргументы" value={call.arguments} />
           {call.status === 'success' && <JsonBlock label="Результат" value={call.result} />}
         </div>
@@ -54,43 +78,47 @@ function EventRow({ event }: { event: TelemetryEvent }) {
     .map(([k, v]) => `${k}=${String(v)}`)
     .join(' · ');
   return (
-    <li className="rounded-xl border border-paper-200 bg-white px-3 py-2" data-testid="event">
+    <li className={cn(cardClass, 'p-2')} data-testid="event">
       <div className="flex items-center gap-2">
-        <Badge tone={SEVERITY_TONE[event.severity]}>{event.severity}</Badge>
-        <span className="min-w-0 flex-1 truncate font-mono text-xs font-medium text-ink-900">{event.name}</span>
-        <span className="shrink-0 text-[11px] text-ink-400">
-          {event.actor_role} · {formatTime(event.created_at)}
-        </span>
+        <Badge mono tone={SEVERITY_TONE[event.severity]}>
+          {event.severity}
+        </Badge>
+        <span className="min-w-0 flex-1 truncate font-mono text-meta font-medium text-ink-900">{event.name}</span>
+        <span className="shrink-0 font-mono text-meta text-ink-400">{formatTime(event.created_at)}</span>
       </div>
-      {summary && <p className="mt-1 break-words font-mono text-[11px] leading-relaxed text-ink-500">{summary}</p>}
+      {summary && <p className="mt-1 break-words font-mono text-meta text-ink-500">{summary}</p>}
     </li>
   );
 }
 
 function Matrix({ data }: { data: Telemetry }) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-paper-200 bg-white">
-      <table className="w-full text-left text-[11px]">
-        <thead className="bg-paper-50 text-ink-500">
+    <div className={cn(cardClass, 'scroll-thin overflow-x-auto')}>
+      <table className="w-full text-left text-meta">
+        <thead className="bg-canvas text-ink-500">
           <tr>
-            <th className="px-2.5 py-2 font-medium">Операция</th>
+            <th className="p-2 font-medium">Операция</th>
             {data.roles.map((r) => (
-              <th key={r.id} className="px-1.5 py-2 text-center font-medium" title={r.title}>
+              <th key={r.id} className="p-2 text-center font-mono font-normal" title={r.title}>
                 {r.id.replace('_backend', '').replace('system_', '')}
               </th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-paper-100">
+        <tbody className="divide-y divide-line">
           {data.matrix.map((row) => (
             <tr key={row.operation}>
-              <td className="px-2.5 py-1.5 font-mono text-ink-900">{row.operation}</td>
+              <td className="p-2 font-mono text-ink-900">{row.operation}</td>
               {data.roles.map((r) => (
-                <td key={r.id} className="px-1.5 py-1.5 text-center">
+                <td key={r.id} className="p-2 text-center">
                   {row.access[r.id] ? (
-                    <span className="font-semibold text-ok-700" aria-label="разрешено">✓</span>
+                    <span className="font-semibold text-ok-700" aria-label="разрешено">
+                      ✓
+                    </span>
                   ) : (
-                    <span className="text-ink-300" aria-label="запрещено">—</span>
+                    <span className="text-ink-400" aria-label="запрещено">
+                      —
+                    </span>
                   )}
                 </td>
               ))}
@@ -98,6 +126,38 @@ function Matrix({ data }: { data: Telemetry }) {
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+/** Спецификации и активные флаги: чем управляется поведение агента в эту минуту. */
+function SpecsAndFlags() {
+  const flags = useWorkspace().data?.feature_flags ?? [];
+  return (
+    <div className="space-y-4">
+      <div>
+        <Eyebrow className="mb-2">Применённые спецификации</Eyebrow>
+        <ul className="space-y-2">
+          {SPECS.map((spec) => (
+            <li key={spec.id} className={cn(cardClass, 'p-2')}>
+              <p className="font-mono text-meta font-medium text-ink-900">spec_id: {spec.id}</p>
+              <p className="mt-1 text-meta text-ink-500">{spec.scope}</p>
+              <p className="mt-1 font-mono text-meta text-ink-400">specs/{spec.file}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        <Eyebrow className="mb-2">Feature flags</Eyebrow>
+        <ul className={cn(cardClass, 'divide-y divide-line')}>
+          {flags.map((flag) => (
+            <li key={flag.key} className="flex items-center justify-between gap-2 p-2 font-mono text-meta" title={flag.description}>
+              <span className="min-w-0 truncate text-ink-900">{flag.key}</span>
+              <span className={cn('shrink-0 font-medium', flag.enabled ? 'text-ok-700' : 'text-ink-400')}>{String(flag.enabled)}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
@@ -119,7 +179,7 @@ function TabContent({ tab, data }: { tab: InspectorTab; data: Telemetry }) {
     return (
       <div className="space-y-4">
         <div>
-          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-400">Решения и инциденты</h3>
+          <Eyebrow className="mb-2">Решения и инциденты</Eyebrow>
           {decisions.length === 0 ? (
             <EmptyState title="Решений RBAC пока нет" />
           ) : (
@@ -131,7 +191,7 @@ function TabContent({ tab, data }: { tab: InspectorTab; data: Telemetry }) {
           )}
         </div>
         <div>
-          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-400">Матрица прав (default deny)</h3>
+          <h3 className="mb-2 font-mono text-meta uppercase tracking-wider text-ink-400">Матрица прав (default deny)</h3>
           <Matrix data={data} />
         </div>
       </div>
@@ -149,24 +209,25 @@ function TabContent({ tab, data }: { tab: InspectorTab; data: Telemetry }) {
       </ul>
     );
   }
+  if (tab === 'sdd') return <SpecsAndFlags />;
   return (
     <ul className="space-y-2">
       {data.tools.map((t) => (
-        <li key={t.name} className="rounded-xl border border-paper-200 bg-white px-3 py-2.5">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="font-mono text-xs font-medium text-ink-900">{t.name}</span>
+        <li key={t.name} className={cn(cardClass, 'p-2')}>
+          <p className="font-mono text-meta font-medium text-ink-900">{t.name}</p>
+          <div className="mt-1 flex flex-wrap items-center gap-1">
             <Badge tone={t.allowed_for_viewer ? 'ok' : 'danger'}>{t.allowed_for_viewer ? 'доступен роли' : 'запрещён роли'}</Badge>
-            {t.requires_confirmation && <Badge tone="brand">с подтверждением</Badge>}
-            <Badge>{t.side_effects}</Badge>
+            {t.requires_confirmation && <Badge tone="accent">с подтверждением</Badge>}
+            <Badge mono>{t.side_effects}</Badge>
           </div>
-          <p className="mt-1 text-xs leading-relaxed text-ink-500">{t.description}</p>
+          <p className="mt-1 text-meta text-ink-500">{t.description}</p>
         </li>
       ))}
     </ul>
   );
 }
 
-/** Выдвижной инспектор телеметрии: аудит MCP, решения RBAC, Clickstream и реестр инструментов. */
+/** Правый дровер «Под капотом»: аудит MCP, решения RBAC, Clickstream, реестр инструментов, спецификации и флаги. */
 export function Inspector() {
   const open = useUi((s) => s.inspectorOpen);
   const tab = useUi((s) => s.inspectorTab);
@@ -190,24 +251,21 @@ export function Inspector() {
     rbac: data?.events.filter((e) => e.kind === 'rbac').length,
     clickstream: data?.events.filter((e) => e.kind !== 'rbac' && e.kind !== 'mcp').length,
     registry: data?.tools.length,
+    sdd: undefined,
   };
 
   return (
-    <aside
-      role="dialog"
-      aria-label="Инспектор телеметрии"
-      className="fixed inset-y-0 right-0 z-30 flex w-full max-w-[520px] flex-col border-l border-paper-200 bg-paper-50 shadow-drawer"
-    >
-      <div className="flex items-center justify-between border-b border-paper-200 bg-white px-4 py-3">
-        <div>
-          <h2 className="text-sm font-semibold text-ink-900">Инспектор телеметрии</h2>
-          <p className="text-[11px] text-ink-500">MCP-вызовы · решения RBAC · Clickstream · обновляется автоматически</p>
+    <aside role="dialog" aria-label="Инспектор телеметрии" className="glass flex min-h-0 w-[360px] shrink-0 flex-col overflow-hidden rounded-panel shadow-float">
+      <div className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-line px-4">
+        <div className="min-w-0">
+          <h2 className="text-body font-semibold text-ink-900">Под капотом</h2>
+          <p className="truncate font-mono text-meta text-ink-400">live · обновление каждые 4 с</p>
         </div>
-        <Button variant="ghost" size="sm" onClick={close} aria-label="Закрыть инспектор">
-          Закрыть
+        <Button variant="ghost" size="sm" className="w-8 px-0" onClick={close} aria-label="Закрыть инспектор">
+          <Icon name="close" />
         </Button>
       </div>
-      <div role="tablist" aria-label="Разделы инспектора" className="flex gap-1 border-b border-paper-200 bg-white px-3 py-2">
+      <div role="tablist" aria-label="Разделы инспектора" className="scroll-thin flex shrink-0 overflow-x-auto border-b border-line p-2">
         {TABS.map((t) => (
           <button
             key={t.id}
@@ -216,23 +274,26 @@ export function Inspector() {
             aria-selected={tab === t.id}
             onClick={() => setTab(t.id)}
             className={cn(
-              'rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-500',
-              tab === t.id ? 'bg-brand-50 text-brand-700' : 'text-ink-500 hover:bg-paper-100',
+              'inline-flex h-8 items-center gap-1 rounded-tag px-2 text-meta font-medium transition-colors',
+              FOCUS,
+              tab === t.id ? 'bg-ink-900 text-white' : 'text-ink-500 hover:bg-ink-900/5',
             )}
           >
             {t.label}
-            {counts[t.id] !== undefined && <span className="ml-1 text-ink-400">{counts[t.id]}</span>}
+            {counts[t.id] !== undefined && <span className="font-mono font-normal opacity-60">{counts[t.id]}</span>}
           </button>
         ))}
       </div>
-      <div className="flex-1 overflow-y-auto p-3" role="tabpanel">
+      <div className="scroll-thin min-h-0 flex-1 overflow-y-auto p-2" role="tabpanel">
         {query.isLoading && (
-          <div className="flex items-center gap-2 p-4 text-sm text-ink-500">
-            <Spinner /> Загружаю телеметрию…
+          <div className="space-y-2" role="status" aria-label="Загружаю телеметрию">
+            <Skeleton className="h-14 w-full" />
+            <Skeleton className="h-14 w-full" />
+            <Skeleton className="h-14 w-full" />
           </div>
         )}
-        {query.isError && (
-          <div role="alert" className="rounded-xl bg-danger-50 p-3 text-sm text-danger-700">
+        {query.isError && !data && (
+          <div role="alert" className="rounded-card bg-danger-50 p-2 text-meta text-danger-700">
             Не удалось загрузить телеметрию: {errorText(query.error)}
             <Button size="sm" variant="danger" className="ml-2" onClick={() => void query.refetch()}>
               Повторить

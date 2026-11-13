@@ -8,7 +8,7 @@
     text-rendering: optimizeLegibility;
   }
   body {
-    @apply bg-paper-50;
+    @apply bg-canvas font-sans text-body text-ink-900;
   }
   @media (prefers-reduced-motion: reduce) {
     *,
@@ -17,5 +17,31 @@
       animation-duration: 0.01ms !important;
       transition-duration: 0.01ms !important;
     }
+  }
+}
+
+@layer components {
+  /* Фон приложения: тёплый серый с едва заметным холодным бликом, чтобы стеклу было что размывать. */
+  .app-canvas {
+    background:
+      radial-gradient(960px 320px at 16% -8%, rgba(0, 170, 255, 0.06), transparent 70%),
+      radial-gradient(800px 320px at 92% -16%, rgba(139, 92, 246, 0.04), transparent 70%),
+      #f5f5f7;
+  }
+  /* Плавающие панели: шапка, инспектор, поле ввода. */
+  .glass {
+    background: rgba(255, 255, 255, 0.78);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+  }
+  .skeleton {
+    @apply animate-shimmer rounded-tag;
+    background-image: linear-gradient(90deg, rgba(15, 23, 42, 0.05) 25%, rgba(15, 23, 42, 0.09) 37%, rgba(15, 23, 42, 0.05) 63%);
+    background-size: 400% 100%;
+  }
+  .scroll-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(15, 23, 42, 0.16) transparent;
   }
 }

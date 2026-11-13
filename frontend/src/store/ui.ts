@@ -3,9 +3,9 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { setApiRole, type DemoRole } from '../api/auth';
-import type { CronResult, Stage } from '../api/schemas';
+import type { CronResult, Stage, ToolCall } from '../api/schemas';
 
-export type InspectorTab = 'mcp' | 'rbac' | 'clickstream' | 'registry';
+export type InspectorTab = 'mcp' | 'rbac' | 'clickstream' | 'registry' | 'sdd';
 
 export interface ToastState {
   kind: 'info' | 'success' | 'error';
@@ -34,6 +34,8 @@ export interface UiState {
   chatError: ChatErrorState | null;
   toast: ToastState | null;
   cronResult: CronResult | null;
+  /** MCP-вызовы текущей сессии по id: плашка вызова в чате рисуется без ожидания телеметрии. */
+  toolCalls: Record<string, ToolCall>;
 
   setRole: (role: DemoRole) => void;
   openInspector: (tab?: InspectorTab) => void;
@@ -48,15 +50,17 @@ export interface UiState {
   showToast: (toast: ToastState) => void;
   hideToast: () => void;
   setCronResult: (result: CronResult | null) => void;
+  rememberToolCalls: (calls: ToolCall[]) => void;
   resetSession: () => void;
 }
 
-const sessionDefaults = {
+const sessionDefaults: Pick<UiState, 'pendingText' | 'stream' | 'chatError' | 'cronResult' | 'toolCalls'> = {
   pendingText: null,
   stream: null,
   chatError: null,
   cronResult: null,
-} satisfies Partial<UiState>;
+  toolCalls: {},
+};
 
 export const useUi = create<UiState>()(
   persist(
@@ -86,6 +90,8 @@ export const useUi = create<UiState>()(
       showToast: (toast) => set({ toast }),
       hideToast: () => set({ toast: null }),
       setCronResult: (cronResult) => set({ cronResult }),
+      rememberToolCalls: (calls) =>
+        set((s) => (calls.length === 0 ? {} : { toolCalls: { ...s.toolCalls, ...Object.fromEntries(calls.map((c) => [c.id, c])) } })),
       resetSession: () => set({ ...sessionDefaults }),
     }),
     {

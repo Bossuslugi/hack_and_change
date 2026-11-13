@@ -86,8 +86,11 @@ describe('рабочее пространство стажёра', () => {
     renderApp();
     expect(screen.getByText(/Загружаю рабочее пространство/)).toBeInTheDocument();
     expect(await screen.findByText('Чек-лист адаптации')).toBeInTheDocument();
-    expect(screen.getByText('Команда Autoteka')).toBeInTheDocument();
-    expect(screen.getByText('Week 1')).toBeInTheDocument();
+    expect(screen.getByText('Команда: Autoteka • Backend Go • Неделя 1 из 24')).toBeInTheDocument();
+    expect(screen.getByText('Этап 1')).toBeInTheDocument();
+    expect(screen.getByText('Доступы и окружение')).toBeInTheDocument();
+    expect(within(step('access_repo')).getByText('GitHub / IAM')).toBeInTheDocument();
+    expect(within(step('access_repo')).getByText('Ожидает')).toBeInTheDocument();
     expect(screen.getByText('Smart Engine', { selector: 'header *' })).toBeInTheDocument();
     expect(screen.getByText(/Синтетические данные: сотрудники/)).toBeInTheDocument();
     expect(step('access_repo')).toHaveAttribute('data-status', 'pending');
@@ -101,7 +104,7 @@ describe('рабочее пространство стажёра', () => {
     const { calls } = backend();
     const user = userEvent.setup();
     renderApp();
-    await user.click(await screen.findByRole('button', { name: '1А · Доступы' }));
+    await user.click(await screen.findByRole('button', { name: SCENARIOS[0]!.label }));
 
     const card = await screen.findByTestId('result-access_granted');
     expect(within(card).getByText('Доступ выдан')).toBeInTheDocument();
@@ -109,7 +112,11 @@ describe('рабочее пространство стажёра', () => {
     expect(within(card).getByText(/ALLOWED · POL-IAM-001/)).toBeInTheDocument();
     await waitFor(() => expect(step('access_repo')).toHaveAttribute('data-status', 'completed'));
     expect(within(step('team_processes')).getByText('Следующий шаг')).toBeInTheDocument();
-    expect(screen.getByText(SCENARIOS[0]!.text, { selector: '.bg-brand-500' })).toBeInTheDocument();
+    expect(screen.getAllByTestId('user-message')[0]).toHaveTextContent(SCENARIOS[0]!.text);
+    const plate = screen.getByTestId('mcp-plate');
+    expect(plate).toHaveTextContent(/Вызван MCP: iam_access\.request_repo_access • RBAC: INTERN_ALLOWED/);
+    await user.click(within(plate).getByRole('button'));
+    expect(within(plate).getByText('Ответ сервиса')).toBeInTheDocument();
     expect(calls.find((c) => c.path === '/api/v1/chat/stream')?.body).toEqual({ message: SCENARIOS[0]!.text });
     await waitFor(() => expect(screen.queryByTestId('streaming')).not.toBeInTheDocument());
   });
@@ -118,7 +125,7 @@ describe('рабочее пространство стажёра', () => {
     backend();
     const user = userEvent.setup();
     renderApp();
-    await user.click(await screen.findByRole('button', { name: '1Б · Запрос ПДн (RBAC)' }));
+    await user.click(await screen.findByRole('button', { name: SCENARIOS[1]!.label }));
 
     const card = await screen.findByTestId('result-rbac_denied');
     expect(card).toHaveAttribute('role', 'alert');
@@ -133,11 +140,13 @@ describe('рабочее пространство стажёра', () => {
     backend();
     const user = userEvent.setup();
     renderApp();
-    await user.click(await screen.findByRole('button', { name: '2 · Процессы команды' }));
+    await user.click(await screen.findByRole('button', { name: SCENARIOS[2]!.label }));
 
     const sources = await screen.findByLabelText('Источники');
     expect(within(sources).getAllByText('Тестовая инструкция (Синтетические данные)')).toHaveLength(2);
     expect(within(sources).getByText('Как катить задачу под фича-флагом')).toBeInTheDocument();
+    await user.click(within(sources).getByRole('button', { name: /Как катить задачу под фича-флагом/ }));
+    expect(within(sources).getByText(/github\.com\/avito-tech\/playbook/)).toBeInTheDocument();
     await waitFor(() => expect(step('team_processes')).toHaveAttribute('data-status', 'completed'));
   });
 
@@ -145,7 +154,7 @@ describe('рабочее пространство стажёра', () => {
     const { calls } = backend();
     const user = userEvent.setup();
     renderApp();
-    await user.click(await screen.findByRole('button', { name: '3 · Отгул' }));
+    await user.click(await screen.findByRole('button', { name: SCENARIOS[3]!.label }));
 
     const form = await screen.findByRole('form', { name: 'Заявка на отгул' });
     expect(within(form).getByText('Ждёт подтверждения')).toBeInTheDocument();
@@ -181,7 +190,7 @@ describe('рабочее пространство стажёра', () => {
     backend(({ path }) => (path === '/api/v1/mcp/execute' ? json(fixtures.executeForbidden, 403) : undefined));
     const user = userEvent.setup();
     renderApp();
-    await user.click(await screen.findByRole('button', { name: '3 · Отгул' }));
+    await user.click(await screen.findByRole('button', { name: SCENARIOS[3]!.label }));
     const form = await screen.findByRole('form', { name: 'Заявка на отгул' });
     await user.click(within(form).getByRole('button', { name: 'Оформить отгул' }));
     expect(await within(form).findByRole('alert')).toHaveTextContent(/default deny.*политика DEFAULT-DENY/);
@@ -207,11 +216,12 @@ describe('рабочее пространство стажёра', () => {
     await waitFor(() => expect(calls.filter((c) => c.path === '/api/v1/chat/stream')).toHaveLength(2));
   });
 
-  it('кнопка «Спросить AI-Buddy» у следующего шага запускает сценарий', async () => {
+  it('кнопка «Запустить с AI-Buddy» у шага чек-листа запускает сценарий', async () => {
     const { calls } = backend();
     const user = userEvent.setup();
     renderApp();
-    await user.click(await screen.findByRole('button', { name: 'Спросить AI-Buddy' }));
+    await screen.findByText('Чек-лист адаптации');
+    await user.click(within(step('access_repo')).getByRole('button', { name: 'Запустить с AI-Buddy' }));
     await screen.findByTestId('result-access_granted');
     expect(calls.find((c) => c.path === '/api/v1/chat/stream')?.body).toEqual({ message: SCENARIOS[0]!.text });
   });
@@ -224,7 +234,7 @@ describe('рабочее пространство стажёра', () => {
     });
     const user = userEvent.setup();
     renderApp();
-    await user.click(await screen.findByRole('button', { name: '1А · Доступы' }));
+    await user.click(await screen.findByRole('button', { name: SCENARIOS[0]!.label }));
     const alert = await screen.findByText(/Не удалось получить ответ: Внутренняя ошибка сервера/);
     expect(alert).toBeInTheDocument();
 
@@ -238,7 +248,7 @@ describe('рабочее пространство стажёра', () => {
     backend(({ path }) => (path === '/api/v1/chat/stream' ? json({ error: { code: 'INTERNAL', message: 'сбой' } }, 500) : undefined));
     const user = userEvent.setup();
     renderApp();
-    await user.click(await screen.findByRole('button', { name: '1А · Доступы' }));
+    await user.click(await screen.findByRole('button', { name: SCENARIOS[0]!.label }));
     await user.click(await screen.findByRole('button', { name: 'Скрыть' }));
     expect(screen.queryByText(/Не удалось получить ответ/)).not.toBeInTheDocument();
   });
@@ -247,7 +257,7 @@ describe('рабочее пространство стажёра', () => {
     const { calls } = backend();
     const user = userEvent.setup();
     renderApp();
-    await user.click(await screen.findByRole('button', { name: 'Запустить ИИ-крон' }));
+    await user.click(await screen.findByRole('button', { name: 'Симулировать ИИ-крон' }));
     const statuses = await screen.findAllByText(/стажёру отправлено проактивное сообщение/);
     expect(statuses.length).toBeGreaterThanOrEqual(1);
     await user.click(screen.getByRole('button', { name: 'Скрыть уведомление' }));
@@ -285,7 +295,7 @@ describe('роли наставника и руководителя', () => {
     expect(screen.getAllByTestId('notification').length).toBeGreaterThanOrEqual(2);
     expect(screen.getByText('#ABS-2026-84', { selector: 'td' })).toBeInTheDocument();
     expect(screen.queryByLabelText('Сообщение AI-Buddy')).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Спросить AI-Buddy' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Запустить с AI-Buddy' })).not.toBeInTheDocument();
     expect(screen.getByRole('radio', { name: 'Наставник' })).toBeChecked();
     expect(calls.some((c) => c.path === '/api/v1/workspace' && c.token === 'demo-mentor-token')).toBe(true);
     expect(calls.find((c) => c.path === '/api/v1/events')?.body).toEqual({ name: 'ui.role_switched', payload: { role: 'mentor' } });
@@ -301,7 +311,7 @@ describe('роли наставника и руководителя', () => {
     expect(screen.getByText('Новых уведомлений нет')).toBeInTheDocument();
     expect(screen.getByText('Заявок нет')).toBeInTheDocument();
     const main = screen.getByText('Брифов пока нет').closest('section')!;
-    await user.click(within(main).getByRole('button', { name: 'Запустить ИИ-крон' }));
+    await user.click(within(main).getByRole('button', { name: 'Симулировать ИИ-крон' }));
     await waitFor(() => expect(calls.some((c) => c.path === '/api/v1/cron/trigger')).toBe(true));
   });
 
@@ -371,6 +381,10 @@ describe('инспектор телеметрии', () => {
     await user.click(within(drawer).getByRole('tab', { name: /Реестр/ }));
     expect(within(drawer).getAllByText('запрещён роли').length).toBeGreaterThanOrEqual(1);
     expect(within(drawer).getByText('с подтверждением')).toBeInTheDocument();
+
+    await user.click(within(drawer).getByRole('tab', { name: /SDD/ }));
+    expect(within(drawer).getByText('spec_id: avito-start-ai-buddy-rbac')).toBeInTheDocument();
+    expect(within(drawer).getByText('ai_buddy.proactive_cron')).toBeInTheDocument();
 
     await user.keyboard('{Escape}');
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
