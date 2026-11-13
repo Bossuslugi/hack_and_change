@@ -245,6 +245,7 @@ type WorkspaceView struct {
 	Progress      domain.Progress         `json:"progress"`
 	NextStep      *domain.ChecklistItem   `json:"next_step"`
 	SprintTask    domain.SprintTask       `json:"sprint_task"`
+	Skills        []domain.AgentSkill     `json:"skills"`
 	FeatureFlags  []domain.FeatureFlag    `json:"feature_flags"`
 	Metrics       domain.MetricsSummary   `json:"metrics"`
 	Messages      []domain.ChatMessage    `json:"messages"`
@@ -324,6 +325,24 @@ func (s *Service) metrics(ctx context.Context, progress domain.Progress) (domain
 	}), nil
 }
 
+// PrometheusMetrics возвращает агрегированные метрики для экспорта в Prometheus / Grafana.
+func (s *Service) PrometheusMetrics(ctx context.Context) (domain.MetricsSummary, float64, error) {
+	checklist, err := domain.LoadChecklist(ctx, s.Store, s.internID)
+	if err != nil {
+		return domain.MetricsSummary{}, 0, err
+	}
+	progress := domain.ComputeProgress(checklist)
+	m, err := s.metrics(ctx, progress)
+	if err != nil {
+		return domain.MetricsSummary{}, 0, err
+	}
+	ratio := 0.0
+	if progress.Total > 0 {
+		ratio = float64(progress.Completed) / float64(progress.Total)
+	}
+	return m, ratio, nil
+}
+
 // Workspace возвращает состояние с учётом прав роли: переписку видит только стажёр,
 // брифы — наставник и руководитель, инциденты безопасности — руководитель.
 func (s *Service) Workspace(ctx context.Context, p domain.Principal, targetInternID ...string) (WorkspaceView, error) {
@@ -358,12 +377,19 @@ func (s *Service) Workspace(ctx context.Context, p domain.Principal, targetInter
 		return v, err
 	}
 
+	skills := make([]domain.AgentSkill, 0, len(s.Spec.Agent.Skills))
+	for _, sk := range s.Spec.Agent.Skills {
+		skills = append(skills, domain.AgentSkill{
+			ID: sk.ID, Name: sk.Name, Description: sk.Description, Active: sk.Active,
+		})
+	}
+
 	mode, model := s.Agent.Mode(ctx)
 	v = WorkspaceView{
 		Viewer:    ViewerInfo{ID: p.ID, Name: p.Name, Role: p.Role, RoleTitle: s.RBAC.RoleTitle(p.Role), Team: p.Team},
 		Intern:    intern,
 		Checklist: checklist, Progress: progress, NextStep: domain.NextStep(checklist),
-		SprintTask: task, FeatureFlags: s.Services.Flags.List(ctx), Metrics: metrics,
+		SprintTask: task, Skills: skills, FeatureFlags: s.Services.Flags.List(ctx), Metrics: metrics,
 		Messages: []domain.ChatMessage{}, Notifications: reverse(notifications),
 		Briefs: []domain.MentorBrief{}, Absences: []domain.AbsenceRequest{},
 		AccessGrants: []domain.AccessGrant{}, Incidents: []domain.TelemetryEvent{},

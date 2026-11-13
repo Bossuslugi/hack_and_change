@@ -66,6 +66,14 @@ type Scenario struct {
 	Then  []string `yaml:"then"`
 }
 
+// AgentSkill — подключённый модульный скилл агента.
+type AgentSkill struct {
+	ID          string `yaml:"id" json:"id"`
+	Name        string `yaml:"name" json:"name"`
+	Description string `yaml:"description" json:"description"`
+	Active      bool   `yaml:"active" json:"active"`
+}
+
 // AgentSpec — спецификация поведения агента (01_agent_behavior).
 type AgentSpec struct {
 	OpenSpec string   `yaml:"openspec"`
@@ -91,6 +99,7 @@ type AgentSpec struct {
 			} `yaml:"llm"`
 		} `yaml:"engine"`
 	} `yaml:"agent"`
+	Skills           []AgentSkill      `yaml:"skills"`
 	Intents          []Intent          `yaml:"intents"`
 	FallbackIntent   Intent            `yaml:"fallback_intent"`
 	ChecklistEffects []ChecklistEffect `yaml:"checklist_effects"`
@@ -267,6 +276,11 @@ func (b *Bundle) Validate() error {
 	}
 	if strings.TrimSpace(b.Agent.Agent.SyntheticData.Disclaimer) == "" {
 		add("agent.synthetic_data.disclaimer пуст")
+	}
+	for _, sk := range b.Agent.Skills {
+		if sk.ID == "" || sk.Name == "" {
+			add("skill с пустым id или name")
+		}
 	}
 
 	servers := map[string]bool{}

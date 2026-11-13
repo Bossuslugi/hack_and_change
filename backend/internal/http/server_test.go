@@ -601,3 +601,31 @@ func TestPanicRecovery(t *testing.T) {
 		t.Fatalf("panic: %d %v", resp.StatusCode, body)
 	}
 }
+
+func TestMetricsEndpoint(t *testing.T) {
+	a := newAPI(t, config.Config{})
+	res, err := http.Get(a.srv.URL + "/metrics")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer res.Body.Close()
+	if res.StatusCode != 200 {
+		t.Fatalf("status %d, want 200", res.StatusCode)
+	}
+	contentType := res.Header.Get("Content-Type")
+	if !strings.Contains(contentType, "text/plain") {
+		t.Errorf("content-type %q, want text/plain", contentType)
+	}
+	body, _ := io.ReadAll(res.Body)
+	text := string(body)
+	for _, metric := range []string{
+		"aibuddy_mentor_minutes_saved_total",
+		"aibuddy_mcp_calls_total",
+		"aibuddy_rbac_denials_total",
+		"aibuddy_checklist_completed_ratio",
+	} {
+		if !strings.Contains(text, metric) {
+			t.Errorf("метрика %s не найдена в выводе /metrics", metric)
+		}
+	}
+}

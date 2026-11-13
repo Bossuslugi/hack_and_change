@@ -525,6 +525,14 @@ const (
 	EventKindCron        = "cron"
 )
 
+// AgentSkill — подключённый модульный скилл агента.
+type AgentSkill struct {
+	ID          string `json:"id" yaml:"id"`
+	Name        string `json:"name" yaml:"name"`
+	Description string `json:"description" yaml:"description"`
+	Active      bool   `json:"active" yaml:"active"`
+}
+
 // FeatureFlag — флаг функциональности.
 type FeatureFlag struct {
 	Key         string `json:"key"`

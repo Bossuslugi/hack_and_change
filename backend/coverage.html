@@ -2183,6 +2183,14 @@ const (
         EventKindCron        = "cron"
 )
 
+// AgentSkill — подключённый модульный скилл агента.
+type AgentSkill struct {
+        ID          string `json:"id" yaml:"id"`
+        Name        string `json:"name" yaml:"name"`
+        Description string `json:"description" yaml:"description"`
+        Active      bool   `json:"active" yaml:"active"`
+}
+
 // FeatureFlag — флаг функциональности.
 type FeatureFlag struct {
         Key         string `json:"key"`
@@ -2231,59 +2239,59 @@ type MetricsInput struct {
         BaselineHoursMin int
         BaselineHoursMax int
         Progress         Progress
-        DocsRead         int
+        <span class="cov8" title="1">DocsRead         int
         DocsTotal        int
         OpenQuestions    int
 }
 
 // ComputeMetrics считает метрики по событиям телеметрии.
-// Событие учитывается в экономии, если в payload есть saving_key из спецификации.
-func ComputeMetrics(in MetricsInput) MetricsSummary {
-        <span class="cov8" title="1">m := MetricsSummary{
-                DocsRead: in.DocsRead, DocsTotal: in.DocsTotal,
-                ChecklistPercent:       in.Progress.Percent,
-                MentorHoursBaselineMin: in.BaselineHoursMin,
-                MentorHoursBaselineMax: in.BaselineHoursMax,
-                UnansweredQuestions:    in.OpenQuestions,
+</span>// Событие учитывается в экономии, если в payload есть saving_key из спецификации.
+f<span class="cov8" title="1">unc ComputeMetrics(in MetricsInput) MetricsSummary {
+        m := MetricsSummary{
+                DocsRead: in.DocsRead, Docs</span>Total: in.DocsTotal,
+                <span class="cov8" title="1">ChecklistPercent:       in</span>.Progress.Percent,
+                M<span class="cov8" title="1">entorHoursBaselineMin: in.BaselineHoursMin,
+</span>                MentorHoursBaselineMax: in.BaselineHoursMax,
+                <span class="cov8" title="1">UnansweredQuestions:    in.OpenQuestions,
 </span>        }
-        <span class="cov8" title="1">var latencySum float64
-        var latencyN int
-        for _, e := range in.Events </span>{
-                <span class="cov8" title="1">if e.Kind == EventKindMCP </span>{
-                        <span class="cov8" title="1">m.ToolCalls++
-</span>                }
-                <span class="cov8" title="1">if v, ok := e.Payload["latency_ms"].(float64); ok &amp;&amp; e.Kind == EventKindAgent </span>{
-                        <span class="cov8" title="1">latencySum += v
+        var latencySum float64
+</span>        var latencyN int
+        f<span class="cov8" title="1">or _, e := range in.Events {
+                if e.Kind == </span>EventKindMCP {
+                        <span class="cov8" title="1">m.ToolCa</span>lls++
+                }
+                <span class="cov8" title="1">if v, ok := e.Payload["latency_ms"].(float64); ok &amp;&amp; e.Kind == EventKindAgent {
+                        latencySum</span> += v
                         latencyN++
-</span>                }
-                <span class="cov8" title="1">key, _ := e.Payload["saving_key"].(string)
-                if key == "" </span>{
-                        <span class="cov8" title="1">continue</span>
-                }
-                <span class="cov8" title="1">m.MentorMinutesSaved += in.MinutesSaved[key]
-                switch key </span>{
-                case SavingQuestion:
-                        <span class="cov8" title="1">m.QuestionsAnswered++</span>
-                case SavingAccess, SavingAbsence:
-                        <span class="cov8" title="1">m.ActionsAutomated++</span>
-                case SavingBrief:
-                        <span class="cov8" title="1">m.BriefsPrepared++</span>
-                case SavingBlocked:
-                        <span class="cov8" title="1">m.RBACBlocks++</span>
-                }
+                }<span class="cov8" title="1">
+</span>                key, _ := e.Payload["saving_key"].(string)
+                i<span class="cov8" title="1">f key == "" {
+</span>                        continue
+                }<span class="cov8" title="1">
+</span>                m.MentorMinutesSaved += in.MinutesSaved[key]
+                s<span class="cov8" title="1">witch key {
+</span>                case SavingQuestion:
+                        m.QuestionsAnswered++
+        <span class="cov8" title="1">        case SavingAcce</span>ss, SavingAbsence:
+                <span class="cov8" title="1">        m.ActionsAutomated++
+</span>                case SavingBrief:
+        <span class="cov8" title="1">                m.BriefsPrepared++
+</span>                <span class="cov8" title="1">case SavingBlocked:
+</span>                        m.RBACBlocks++
+        <span class="cov8" title="1">        }
+</span>        }
+        if latencyN &gt; 0 {
+                m.AvgResponseMS = round1(latencySum / float64(latencyN))
+        <span class="cov8" title="1">}
+</span>        if avg := float64(in.BaselineHoursMin+in.BaselineHoursMax) / 2 * 60; avg &gt; 0 {
+                m.SavingPercent = round1(float64(m.MentorMinutesSaved) / avg * 100)
         }
-        <span class="cov8" title="1">if latencyN &gt; 0 </span>{
-                <span class="cov8" title="1">m.AvgResponseMS = round1(latencySum / float64(latencyN))
-</span>        }
-        <span class="cov8" title="1">if avg := float64(in.BaselineHoursMin+in.BaselineHoursMax) / 2 * 60; avg &gt; 0 </span>{
-                <span class="cov8" title="1">m.SavingPercent = round1(float64(m.MentorMinutesSaved) / avg * 100)
-</span>        }
-        <span class="cov8" title="1">return m</span>
+        return m
 }
 
 func round1(v float64) float64 {
-        <span class="cov8" title="1">return float64(int(v*10+0.5)) / 10
-</span>}
+        return float64(int(v*10+0.5)) / 10
+}
 </pre>
 		
 		<pre class="file" id="file8" style="display: none">package domain
@@ -2699,6 +2707,7 @@ func New(o Options) http.Handler {
         <span class="cov8" title="1">s := &amp;Server{svc: o.Service, log: o.Logger, origins: o.CORSOrigins, chunkDelay: o.StreamChunkDelay, mux: http.NewServeMux()}
 </span>
         <span class="cov8" title="1">s.mux.HandleFunc("GET /healthz", s.health)
+        s.mux.HandleFunc("GET /metrics", s.metrics)
         s.mux.Handle("GET /api/v1/workspace", s.auth(s.workspace))
         s.mux.Handle("POST /api/v1/chat", s.auth(s.chat))
         s.mux.Handle("POST /api/v1/chat/stream", s.auth(s.chatStream))
@@ -2710,10 +2719,10 @@ func New(o Options) http.Handler {
         s.mux.Handle("PUT /api/v1/feature-flags/{key}", s.auth(s.setFlag))
         s.mux.Handle("POST /api/v1/events", s.auth(s.trackEvent))
         s.mux.Handle("POST /mcp", s.auth(s.mcpRPC))
-        s.mux.HandleFunc("/", func(w http.ResponseWriter, _ *http.Request) </span>{
-                <span class="cov8" title="1">writeError(w, http.StatusNotFound, "NOT_FOUND", "Маршрут не найден", nil)
-</span>        })
-        <span class="cov8" title="1">return s.middleware(s.mux)</span>
+</span>        s<span class="cov8" title="1">.mux.HandleFunc("/", func(w http.ResponseWriter, _ *http.Request) {
+</span>                writeError(w, http.StatusNotFound, "NOT_FOUND", "Маршрут не найден", nil)
+        <span class="cov8" title="1">})
+</span>        return s.middleware(s.mux)
 }
 
 // statusRecorder запоминает код ответа для журнала.
@@ -2722,71 +2731,71 @@ type statusRecorder struct {
         status int
 }
 
-func (r *statusRecorder) WriteHeader(code int) {
-        <span class="cov8" title="1">r.status = code
-        r.ResponseWriter.WriteHeader(code)
-</span>}
-
-// Flush пробрасывает сброс буфера (нужно для SSE).
-func (r *statusRecorder) Flush() {
-        <span class="cov8" title="1">if f, ok := r.ResponseWriter.(http.Flusher); ok </span>{
-                <span class="cov8" title="1">f.Flush()
-</span>        }
+f<span class="cov8" title="1">unc (r *statusRecorder) WriteHeader(code int) {
+        r.status = code
+</span>        r.ResponseWriter.WriteHeader(code)
 }
 
-func (s *Server) allowOrigin(origin string) string {
-        <span class="cov8" title="1">for _, o := range s.origins </span>{
-                <span class="cov8" title="1">if o == "*" </span>{
-                        <span class="cov8" title="1">return "*"
-</span>                }
-                <span class="cov8" title="1">if origin != "" &amp;&amp; strings.EqualFold(o, origin) </span>{
-                        <span class="cov8" title="1">return origin
-</span>                }
+// Flush пробрасывает сброс буфера (нужно для SSE).
+f<span class="cov8" title="1">unc (r *statusRecorder) Flush() {
+</span>        i<span class="cov8" title="1">f f, ok := r.ResponseWriter.(http.Flusher); ok {
+</span>                f.Flush()
         }
-        <span class="cov8" title="1">return ""</span>
+}
+
+f<span class="cov8" title="1">unc (s *Server) allowOrigin(</span>origin string) string {
+        f<span class="cov8" title="1">or _, o := r</span>ange s.origins {
+                i<span class="cov8" title="1">f o == "*" {
+</span>                        return "*"
+                <span class="cov8" title="1">}
+</span>                i<span class="cov8" title="1">f origin != "" &amp;&amp; strings.EqualFold(o, origin) {
+</span>                        return origin
+                }
+        <span class="cov8" title="1">}
+</span>        return ""
 }
 
 // middleware: восстановление после паники, CORS, лимит тела, журнал и время ответа.
-func (s *Server) middleware(next http.Handler) http.Handler {
-        <span class="cov8" title="1">return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) </span>{
-                <span class="cov8" title="1">started := time.Now()
-                rec := &amp;statusRecorder{ResponseWriter: w, status: http.StatusOK}
-                defer func() </span>{
-                        <span class="cov8" title="1">if p := recover(); p != nil </span>{
-                                <span class="cov8" title="1">s.log.Error("panic", "path", r.URL.Path, "panic", fmt.Sprint(p))
-                                writeError(rec, http.StatusInternalServerError, "INTERNAL", "Внутренняя ошибка сервера", nil)
-</span>                        }
-                        <span class="cov8" title="1">s.log.Info("http", "method", r.Method, "path", r.URL.Path, "status", rec.status,
-                                "ms", float64(time.Since(started).Microseconds())/1000)</span>
+f<span class="cov8" title="1">unc (s *Server) middleware(next http.Handler) http.Handler {
+</span>        r<span class="cov8" title="1">eturn http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+                started := time.Now()
+                rec := &amp;statu</span>sRecorder{ResponseWriter: w, status: http.StatusOK}
+                d<span class="cov8" title="1">efer func() {
+</span>                        i<span class="cov8" title="1">f p := recover(); p != nil {
+                                s.log.Error("panic", "path", r.URL.Path, "panic", fmt.Sprint(p))
+</span>                                writeError(rec, http.StatusInternalServerError, "INTERNAL", "Внутренняя ошибка сервера", nil)
+                        <span class="cov8" title="1">}
+                        s.log.Info("http", "method", r.Method, "path", r.URL.Pat</span>h, "status", rec.status,
+                                "ms", float64(time.Since(started).Microseconds())/1000)
                 }()
 
-                <span class="cov8" title="1">if allowed := s.allowOrigin(r.Header.Get("Origin")); allowed != "" </span>{
-                        <span class="cov8" title="1">rec.Header().Set("Access-Control-Allow-Origin", allowed)
+</span>                i<span class="cov8" title="1">f allowed := s.allowOrigin(r.Header.Get("Origin")); allowed != "" {
+                        rec.Header().Set("Access-Control-Allow-Origin", allowed)
                         rec.Header().Set("Vary", "Origin")
                         rec.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
                         rec.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS")
-                        rec.Header().Set("Access-Control-Max-Age", "600")
-</span>                }
-                <span class="cov8" title="1">rec.Header().Set("X-Content-Type-Options", "nosniff")
-                if r.Method == http.MethodOptions </span>{
-                        <span class="cov8" title="1">rec.WriteHeader(http.StatusNoContent)
-                        return
-</span>                }
-                <span class="cov8" title="1">r.Body = http.MaxBytesReader(rec, r.Body, maxBodyBytes)
-                next.ServeHTTP(rec, r)</span>
+</span>                        rec.Header().Set("Access-Control-Max-Age", "600")
+                <span class="cov8" title="1">}
+                rec.Header().Set("X-Content-Type-O</span>ptions", "nosniff")
+                i<span class="cov8" title="1">f r.Method == http.MethodOptions {
+                        rec.WriteHeader(http.StatusNoContent)
+</span>                        return
+                <span class="cov8" title="1">}
+                r.Body = http.MaxBytes</span>Reader(rec, r.Body, maxBodyBytes)
+                next.ServeHTTP(rec, r)
         })
 }
 
 // auth — имитация корпоративной авторизации: демо-токен → сотрудник → роль.
-func (s *Server) auth(next func(http.ResponseWriter, *http.Request, domain.Principal)) http.Handler {
-        <span class="cov8" title="1">return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) </span>{
-                <span class="cov8" title="1">token := strings.TrimSpace(strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer "))
-                p, err := s.svc.Authenticate(token)
-                if err != nil </span>{
-                        <span class="cov8" title="1">s.fail(w, r, err)
-                        return
-</span>                }
-                <span class="cov8" title="1">next(w, r.WithContext(context.WithValue(r.Context(), ctxKey{}, p)), p)</span>
+f<span class="cov8" title="1">unc (s *Server) auth(next func(http.ResponseWriter, *http.Request, do</span>main.Principal)) http.Handler {
+        r<span class="cov8" title="1">eturn http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+                token := strings.TrimSpace(strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer "))
+                p, err := s.sv</span>c.Authenticate(token)
+                i<span class="cov8" title="1">f err != nil {
+                        s.fail(w, r, err)
+</span>                        return
+                <span class="cov8" title="1">}
+</span>                next(w, r.WithContext(context.WithValue(r.Context(), ctxKey{}, p)), p)
         })
 }
 
@@ -2801,315 +2810,339 @@ type errorEnvelope struct {
         Result any       `json:"result,omitempty"`
 }
 
-func writeJSON(w http.ResponseWriter, status int, v any) {
-        <span class="cov8" title="1">w.Header().Set("Content-Type", "application/json; charset=utf-8")
+f<span class="cov8" title="1">unc writeJSON(w http.ResponseWriter, status int, v any) {
+        w.Header().Set("Content-Type", "application/json; charset=utf-8")
         w.WriteHeader(status)
-        _ = json.NewEncoder(w).Encode(v)
-</span>}
+</span>        _ = json.NewEncoder(w).Encode(v)
+}
 
-func writeError(w http.ResponseWriter, status int, code, message string, verdict *domain.RBACVerdict) {
-        <span class="cov8" title="1">writeJSON(w, status, errorEnvelope{Error: errorBody{Code: code, Message: message, RBAC: verdict}})
-</span>}
+f<span class="cov8" title="1">unc writeError(w http.ResponseWriter, status int, code, message string, verdict *domain.RBACVerdict) {
+</span>        writeJSON(w, status, errorEnvelope{Error: errorBody{Code: code, Message: message, RBAC: verdict}})
+}
 
 // classify сопоставляет ошибку прикладного слоя HTTP-статусу и коду.
-func classify(err error) (int, errorBody) {
-        <span class="cov8" title="1">var forbidden *usecase.ForbiddenError
-        var tooLarge *http.MaxBytesError
-        switch </span>{
-        case errors.Is(err, usecase.ErrUnauthorized):
-                <span class="cov8" title="1">return http.StatusUnauthorized, errorBody{Code: "UNAUTHORIZED", Message: err.Error()}</span>
-        case errors.As(err, &amp;forbidden):
-                <span class="cov8" title="1">v := forbidden.Verdict
-                return http.StatusForbidden, errorBody{Code: "FORBIDDEN", Message: v.Reason, RBAC: &amp;v}</span>
-        case errors.Is(err, domain.ErrValidation):
-                <span class="cov8" title="1">return http.StatusUnprocessableEntity, errorBody{Code: "VALIDATION_ERROR", Message: err.Error()}</span>
-        case errors.Is(err, domain.ErrNotFound):
-                <span class="cov8" title="1">return http.StatusNotFound, errorBody{Code: "NOT_FOUND", Message: err.Error()}</span>
-        case errors.As(err, &amp;tooLarge):
-                <span class="cov8" title="1">return http.StatusRequestEntityTooLarge, errorBody{Code: "PAYLOAD_TOO_LARGE", Message: "Слишком большой запрос"}</span>
-        default:
-                <span class="cov8" title="1">return http.StatusInternalServerError, errorBody{Code: "INTERNAL", Message: "Внутренняя ошибка сервера. Попробуйте ещё раз."}</span>
+f<span class="cov8" title="1">unc classify(err error) (int, errorBody) {
+        var forbidden *usecase.ForbiddenError
+        var too</span>Large *http.MaxBytesError
+        switch {
+        c<span class="cov8" title="1">ase errors.Is(err, usecase.ErrUnauthorized):
+</span>                return http.StatusUnauthorized, errorBody{Code: "UNAUTHORIZED", Message: err.Error()}
+        c<span class="cov8" title="1">ase errors.As(err, &amp;forbidden):
+                v := forbidden.Verdict
+</span>                return http.StatusForbidden, errorBody{Code: "FORBIDDEN", Message: v.Reason, RBAC: &amp;v}
+        c<span class="cov8" title="1">ase errors.Is(err, domain.ErrValidation):
+</span>                return http.StatusUnprocessableEntity, errorBody{Code: "VALIDATION_ERROR", Message: err.Error()}
+        c<span class="cov8" title="1">ase errors.Is(err, domain.ErrNotFound):
+</span>                return http.StatusNotFound, errorBody{Code: "NOT_FOUND", Message: err.Error()}
+        c<span class="cov8" title="1">ase errors.As(err, &amp;tooLarge):
+</span>                return http.StatusRequestEntityTooLarge, errorBody{Code: "PAYLOAD_TOO_LARGE", Message: "Слишком большой запрос"}
+        d<span class="cov8" title="1">efault:
+</span>                return http.StatusInternalServerError, errorBody{Code: "INTERNAL", Message: "Внутренняя ошибка сервера. Попробуйте ещё раз."}
         }
 }
 
-func (s *Server) fail(w http.ResponseWriter, r *http.Request, err error) {
-        <span class="cov8" title="1">status, body := classify(err)
-        if status &gt;= 500 </span>{
-                <span class="cov8" title="1">s.log.Error("request failed", "path", r.URL.Path, "error", err.Error())
-</span>        }
-        <span class="cov8" title="1">writeJSON(w, status, errorEnvelope{Error: body})</span>
+f<span class="cov8" title="1">unc (s *Server) fail(w http.ResponseWriter, r *http.Request, err error) {
+        status, body := c</span>lassify(err)
+        i<span class="cov8" title="1">f status &gt;= 500 {
+</span>                s.log.Error("request failed", "path", r.URL.Path, "error", err.Error())
+        <span class="cov8" title="1">}
+</span>        writeJSON(w, status, errorEnvelope{Error: body})
 }
 
 // decode читает JSON-тело запроса в структуру.
-func decode(r *http.Request, dst any) error {
-        <span class="cov8" title="1">dec := json.NewDecoder(r.Body)
-        if err := dec.Decode(dst); err != nil </span>{
-                <span class="cov8" title="1">var tooLarge *http.MaxBytesError
-                if errors.As(err, &amp;tooLarge) </span>{
-                        <span class="cov8" title="1">return err
-</span>                }
-                <span class="cov8" title="1">return fmt.Errorf("%w: некорректный JSON в теле запроса", domain.ErrValidation)</span>
-        }
-        <span class="cov8" title="1">return nil</span>
+f<span class="cov8" title="1">unc decode(r *http.Request, dst any) error {
+        dec := json.NewDecoder(r.Body)
+</span>        i<span class="cov8" title="1">f err := dec.Decode(dst); err != nil {
+                var tooLarge *http.MaxBytesEr</span>ror
+                i<span class="cov8" title="1">f errors.As(err, &amp;tooLarge) {
+</span>                        return err
+                <span class="cov8" title="1">}
+</span>                return fmt.Errorf("%w: некорректный JSON в теле запроса", domain.ErrValidation)
+        <span class="cov8" title="1">}
+</span>        return nil
 }
 
-func (s *Server) health(w http.ResponseWriter, r *http.Request) {
-        <span class="cov8" title="1">info, err := s.svc.Health(r.Context())
-        status, state := http.StatusOK, "ok"
-        if err != nil </span>{
-                <span class="cov8" title="1">status, state = http.StatusServiceUnavailable, "degraded"
-</span>        }
-        <span class="cov8" title="1">writeJSON(w, status, map[string]any{"status": state, "store": info.Store, "cache": info.Cache})</span>
+f<span class="cov8" title="1">unc (s *Server) health(w http.ResponseWriter, r *http.Request) {
+        info, err := s.svc.Health(r.Context())
+        status, state </span>:= http.StatusOK, "ok"
+        i<span class="cov8" title="1">f err != nil {
+</span>                status, state = http.StatusServiceUnavailable, "degraded"
+        <span class="cov8" title="1">}
+</span>        writeJSON(w, status, map[string]any{"status": state, "store": info.Store, "cache": info.Cache})
+}
+
+f<span class="cov8" title="1">unc (s *Server) metrics(w ht</span>tp.ResponseWriter, r *http.Request) {
+        m<span class="cov8" title="1">, ratio, err := s.svc.PrometheusMetrics</span>(r.Context())
+        if<span class="cov0" title="0"> err != nil {
+</span>                writeError(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Не удалось собрать метрики", nil)
+                return
+        <span class="cov8" title="1">}
+</span>        w<span class="cov0" title="0">.Header().Set("Content-Type", "text/plain; version=0.0.4; charset=utf-8")
+</span>        fmt.Fprintf(w, "# HELP aibuddy_mentor_minutes_saved_total Total mentor minutes saved by AI-Buddy.\n")
+        <span class="cov8" title="1">fmt.Fprintf(w, "# TYPE aibuddy_mentor_minutes_saved_total counter\</span>n")
+        f<span class="cov0" title="0">mt.Fprintf(w, "aibuddy_mentor_minutes_saved_total %d\n\n", m.MentorMinutesSaved)
+</span>
+        <span class="cov8" title="1">fmt.Fprin</span>tf(w, "# HELP aibuddy_mcp_calls_total Total MCP tool executions.\n")
+        fmt.Fprintf(w, "# TYPE aibuddy_mcp_calls_total counter\n")
+        fmt.Fprintf(w, "aibuddy_mcp_calls_total %d\n\n", m.ToolCalls)
+
+        <span class="cov8" title="1">fmt.Fprintf(w, "# HELP aibuddy_rbac_denials_total Total security denials enforced by RBAC gateway.\n")
+        fmt.Fprintf(w, "# TYPE aibuddy_rbac_denials_total counter\n")
+        fmt.Fprintf(w,</span> "aibuddy_rbac_denials_total %d\n\n", m.RBACBlocks)
+
+        fmt.Fprintf(w, "# HELP aibuddy_checklist_completed_ratio Ratio of completed checklist items (0.0 to 1.0).\n")
+</span>        fmt.Fprintf(w, "# TYPE aibuddy_checklist_completed_ratio gauge\n")
+        <span class="cov8" title="1">fmt.Fprintf(w, "aibuddy_checklist</span>_completed_ratio %.2f\n", ratio)
 }
 
 func getInternID(r *http.Request, explicit ...string) string {
-        <span class="cov8" title="1">for _, id := range explicit </span>{
-                <span class="cov8" title="1">if s := strings.TrimSpace(id); s != "" </span>{
-                        <span class="cov0" title="0">return s
-</span>                }
+        for _, id := range explicit {
+                if s := strings.TrimSpace(id); s != "" {
+                        return s
+                }
         }
-        <span class="cov8" title="1">if id := strings.TrimSpace(r.URL.Query().Get("intern_id")); id != "" </span>{
-                <span class="cov0" title="0">return id
-</span>        }
-        <span class="cov8" title="1">if id := strings.TrimSpace(r.Header.Get("X-Intern-ID")); id != "" </span>{
-                <span class="cov0" title="0">return id
-</span>        }
-        <span class="cov8" title="1">return ""</span>
+        <span class="cov8" title="1">if id := strings.TrimSpace(r.URL.Query().Get("intern_id")); id != "" {
+                return id
+</span>        }<span class="cov8" title="1">
+        if id := strings.TrimSpace(r.Header.Get("X-Intern-ID")); id != "" {
+</span>                return id
+        <span class="cov8" title="1">}
+        return ""
 }
-
+</span>
 func (s *Server) workspace(w http.ResponseWriter, r *http.Request, p domain.Principal) {
-        <span class="cov8" title="1">internID := getInternID(r)
-        view, err := s.svc.Workspace(r.Context(), p, internID)
-        if err != nil </span>{
-                <span class="cov8" title="1">s.fail(w, r, err)
+</span>        internID := getInternID(r)
+        <span class="cov8" title="1">view, err := s.svc.Workspace(r.C</span>ontext(), p, internID)
+        if err != nil {
+                s.fail(w, r, err)
                 return
-</span>        }
-        <span class="cov8" title="1">writeJSON(w, http.StatusOK, view)</span>
+        <span class="cov8" title="1">}
+        writeJSON(w, http.StatusOK, view)
 }
-
+</span>
 type chatRequest struct {
         Message  string `json:"message"`
         InternID string `json:"intern_id,omitempty"`
-}
+}<span class="cov8" title="1">
 
 func (s *Server) chat(w http.ResponseWriter, r *http.Request, p domain.Principal) {
-        <span class="cov8" title="1">var req chatRequest
-        if err := decode(r, &amp;req); err != nil </span>{
-                <span class="cov8" title="1">s.fail(w, r, err)
+        var req chatRequest
+</span>        i<span class="cov8" title="1">f err := decode(r, &amp;req); err != nil {
+                s.fail(w, r, err)
                 return
 </span>        }
-        <span class="cov8" title="1">internID := getInternID(r, req.InternID)
+        internID := getInternID(r, req.InternID)
         res, err := s.svc.Chat(r.Context(), p, req.Message, nil, internID)
-        if err != nil </span>{
-                <span class="cov8" title="1">s.fail(w, r, err)
-                return
-</span>        }
-        <span class="cov8" title="1">writeJSON(w, http.StatusOK, res)</span>
-}
-
+</span>        if err != nil {
+                s.fail(w, r, err)
+        <span class="cov8" title="1">        return
+</span>        }<span class="cov8" title="1">
+</span>        writeJSON(w, http.StatusOK, res)
+}<span class="cov8" title="1">
+</span>
 func sseEvent(w http.ResponseWriter, f http.Flusher, event string, data any) {
-        <span class="cov8" title="1">raw, _ := json.Marshal(data)
+        raw, _ := json.Marshal(data)
         fmt.Fprintf(w, "event: %s\ndata: %s\n\n", event, raw)
         f.Flush()
-</span>}
+}<span class="cov8" title="1">
 
-// chunks делит текст на фрагменты по границам слов для потоковой отдачи.
+</span>//<span class="cov8" title="1"> chunks делит текст на фрагменты по границам слов для потоковой отдачи.
 func chunks(text string, size int) []string {
-        <span class="cov8" title="1">var out []string
-        var b strings.Builder
+</span>        var out []string
+        <span class="cov8" title="1">var b strings.Builder
         n := 0
-        for _, part := range strings.SplitAfter(text, " ") </span>{
-                <span class="cov8" title="1">b.WriteString(part)
-                n += len([]rune(part))
-                if n &gt;= size </span>{
-                        <span class="cov8" title="1">out = append(out, b.String())
+</span>        f<span class="cov0" title="0">or _, part := range strings.SplitAfter(text, " ") {
+                b.WriteString(part)
+</span>                n += len([]rune(part))
+        <span class="cov8" title="1">        if n &gt;= size {
+                        out = append(out, b.String())
                         b.Reset()
                         n = 0
-</span>                }
-        }
-        <span class="cov8" title="1">if b.Len() &gt; 0 </span>{
-                <span class="cov8" title="1">out = append(out, b.String())
+                }
 </span>        }
-        <span class="cov8" title="1">return out</span>
+        <span class="cov8" title="1">if b.Len() &gt; 0 {
+                out = append(out, b.String())
+</span></span>        <span class="cov8" title="1">}
+</span>        r<span class="cov8" title="1">eturn out
 }
-
-// chatStream — потоковый вариант чата (SSE): этапы обработки (stage), фрагменты ответа (delta)
-// и итог (done). Интерфейс не блокируется и показывает статус ожидания.
-func (s *Server) chatStream(w http.ResponseWriter, r *http.Request, p domain.Principal) {
-        <span class="cov8" title="1">var req chatRequest
-        if err := decode(r, &amp;req); err != nil </span>{
-                <span class="cov8" title="1">s.fail(w, r, err)
-                return
+</span>
+</span>// chatStream — потоковый вариант чата (SSE): этапы обработки (stage), фрагменты ответа (delta)
+//<span class="cov8" title="1"> и итог (done). Интерфейс не блокируется и показывает статус ожидания.
+func (s </span>*Server) chatStream(w http.ResponseWriter, r *http.Request, p domain.Principal) {
+        var req chatRequest
+        <span class="cov8" title="1">if err := decode(r, &amp;req); err != nil {
+</span>                <span class="cov8" title="1">s.fail(w, r, err)
+</span>                r<span class="cov0" title="0">eturn
 </span>        }
-        <span class="cov8" title="1">flusher, ok := w.(http.Flusher)
-        if !ok </span>{
-                <span class="cov0" title="0">s.fail(w, r, errors.New("потоковая передача не поддерживается"))
-                return
-</span>        }
-        <span class="cov8" title="1">w.Header().Set("Content-Type", "text/event-stream; charset=utf-8")
+        f<span class="cov8" title="1">lusher, ok := w.(http.Flusher)
+        if !ok {
+</span>                s<span class="cov8" title="1">.fail(w, r, errors.New("потоковая передача не поддерживается"))
+</span>                return
+        }
+        <span class="cov8" title="1">w.Header().Set("Content-Type", "t</span>ext/event-stream; charset=utf-8")
         w.Header().Set("Cache-Control", "no-cache")
         w.Header().Set("X-Accel-Buffering", "no")
         w.WriteHeader(http.StatusOK)
         flusher.Flush()
+
+        internID := getInternID(r, req.InternID)
+        res, err := s.svc.Chat(r.Context(), p, req.Message, func(st agent.Stage) { sseEvent(w, flusher, "stage", st) }, internID)
+        if err != nil {
+                status, body := classify(err)
+                if status &gt;= 500 {
+                        s.log.Error("chat stream failed", "error", err.Error())
+        <span class="cov8" title="1">        }
+                sseEvent(w, flusher, "error", map[str</span>ing]any{"status": status, "error": body})
+                <span class="cov8" title="1">return
+        }
+</span>        for _, part := range chunks(res.Message.Text, 24) {
+        <span class="cov8" title="1">        if r.Context().Err() != nil {
+                        return
+                }
+</span>                <span class="cov8" title="1">sseEvent(w, flusher, "delta", map[string]string{"text": part})
+                if s.chunkDelay &gt; 0 {
+</span>                        time.Sleep(s.chunkDelay)
+        <span class="cov8" title="1">        }
+        }
+</span>        s<span class="cov8" title="1">seEvent(w, flusher, "done", res)
+}
 </span>
-        <span class="cov8" title="1">internID := getInternID(r, req.InternID)
-        res, err := s.svc.Chat(r.Context(), p, req.Message, func(st agent.Stage) </span>{ <span class="cov8" title="1">sseEvent(w, flusher, "stage", st) }</span>, internID)
-        <span class="cov8" title="1">if err != nil </span>{
-                <span class="cov8" title="1">status, body := classify(err)
-                if status &gt;= 500 </span>{
-                        <span class="cov8" title="1">s.log.Error("chat stream failed", "error", err.Error())
-</span>                }
-                <span class="cov8" title="1">sseEvent(w, flusher, "error", map[string]any{"status": status, "error": body})
-                return</span>
-        }
-        <span class="cov8" title="1">for _, part := range chunks(res.Message.Text, 24) </span>{
-                <span class="cov8" title="1">if r.Context().Err() != nil </span>{
-                        <span class="cov0" title="0">return
-</span>                }
-                <span class="cov8" title="1">sseEvent(w, flusher, "delta", map[string]string{"text": part})
-                if s.chunkDelay &gt; 0 </span>{
-                        <span class="cov8" title="1">time.Sleep(s.chunkDelay)
-</span>                }
-        }
-        <span class="cov8" title="1">sseEvent(w, flusher, "done", res)</span>
-}
-
-type executeRequest struct {
-        Tool      string         `json:"tool"`
+t<span class="cov8" title="1">ype executeRequest struct {
+        Tool   </span>   string         `json:"tool"`
         Arguments map[string]any `json:"arguments"`
-        MessageID string         `json:"message_id"`
-        InternID  string         `json:"intern_id,omitempty"`
+        M<span class="cov8" title="1">essageID string         `json:"message_id"`
+</span>        InternID  string         `json:"intern_id,omitempty"`
 }
-
-// execute — прямое подтверждение интерактивной карточки: вызов MCP-инструмента через RBAC-шлюз.
+</span>
+//<span class="cov8" title="1"> execute — прямое п</span>одтверждение интерактивной карточки: вызов MCP-инструмента через RBAC-шлюз.
 func (s *Server) execute(w http.ResponseWriter, r *http.Request, p domain.Principal) {
-        <span class="cov8" title="1">var req executeRequest
-        if err := decode(r, &amp;req); err != nil </span>{
-                <span class="cov8" title="1">s.fail(w, r, err)
-                return
-</span>        }
-        <span class="cov8" title="1">internID := getInternID(r, req.InternID)
-        res, err := s.svc.Execute(r.Context(), p, req.Tool, req.Arguments, req.MessageID, internID)
-        if err != nil </span>{
-                <span class="cov8" title="1">s.fail(w, r, err)
-                return
-</span>        }
-        <span class="cov8" title="1">call := res.ToolCalls[0]
-        if call.OK() </span>{
-                <span class="cov8" title="1">writeJSON(w, http.StatusOK, res)
-                return
-</span>        }
-        <span class="cov8" title="1">status, body := http.StatusBadGateway, errorBody{Code: call.ErrorCode, Message: call.Error}
-        switch </span>{
-        case call.Status == domain.ToolForbidden:
-                <span class="cov8" title="1">status, body.RBAC = http.StatusForbidden, res.RBAC</span>
-        case call.Status == domain.ToolInvalid:
-                <span class="cov8" title="1">status = http.StatusUnprocessableEntity</span>
-        case call.ErrorCode == mcp.CodeDuplicate:
-                <span class="cov8" title="1">status = http.StatusConflict</span>
-        case call.ErrorCode == mcp.CodeUnknownTool:
-                <span class="cov8" title="1">status = http.StatusNotFound</span>
+        v<span class="cov8" title="1">ar req executeRequest
+</span>        if err := decode(r, &amp;req); err != nil {
+        <span class="cov8" title="1">        s.fail(w, r, err)
+</span>                return
         }
-        <span class="cov8" title="1">writeJSON(w, status, errorEnvelope{Error: body, Result: res})</span>
+        internID := getInternID(r, req.InternID)
+        res, err := s.svc.Execute(r.Context(), p, req.Tool, req.Arguments, req.MessageID, internID)
+        if err != nil {
+                s.fail(w, r, err)
+                return
+        }
+        call := res.ToolCalls[0]
+        <span class="cov8" title="1">if call.OK() {
+                writeJSON(w, http.StatusOK, res)
+</span>                <span class="cov0" title="0">return
+        }
+</span>        status, body := http.StatusBadGateway, errorBody{Code: call.ErrorCode, Message: call.Error}
+        <span class="cov8" title="1">switch {
+        case call.Stat</span>us == domain.ToolForbidden:
+                <span class="cov8" title="1">status, body.RBAC = http.StatusForbidden, res.RBAC
+        case call.Status == domain.ToolInvalid:
+</span>                status = http.StatusUnprocessableEntity
+        <span class="cov8" title="1">case call.ErrorCode == mcp.CodeDupli</span>cate:
+                status = http.StatusConflict
+        case call.ErrorCode == mcp.CodeUnknownTool:
+                status = http.StatusNotFound
+        <span class="cov8" title="1">}
+        writeJSON(w, s</span>tatus, errorEnvelope{Error: body, Result: res})
 }
 
-type reviewAbsenceRequest struct {
-        ID       string `json:"id"`
-        Decision string `json:"decision"`
+</span>type reviewAbsenceRequest struct {
+        <span class="cov8" title="1">ID       string `json:"id"`
+</span>        Decision string `json:"decision"`
         Comment  string `json:"comment"`
 }
 
-func (s *Server) reviewAbsence(w http.ResponseWriter, r *http.Request, p domain.Principal) {
-        <span class="cov8" title="1">var req reviewAbsenceRequest
-        if err := decode(r, &amp;req); err != nil </span>{
-                <span class="cov0" title="0">s.fail(w, r, err)
+func (s *Server</span>) reviewAbsence(w http.ResponseWriter, r *http.Request, p domain.Principal) {
+        v<span class="cov8" title="1">ar req reviewAbsenceRequest
+        if err := decode(r, &amp;req); err != nil {
+</span>                s.fail(w, r, err)
+        <span class="cov8" title="1">        return
+</span>        }
+        updated, err := s.svc.ReviewAbsence(r.Context(), p, req.ID, req.Decision, req.Comment)
+        if err != nil {
+        <span class="cov8" title="1">        s.fail(w, r, err)
+                return
+</span>        }<span class="cov8" title="1">
+        writeJSON(w, http.StatusOK, updated)
+</span>}
+
+</span>func (s *Server) cron(w http.ResponseWriter, r *http.Request, p domain.Principal) {
+        res, err := s.svc.CronTrigger(r.Context(), p)
+        if err != nil {
+        <span class="cov8" title="1">        s.fail(w, r, err)
                 return
 </span>        }
-        <span class="cov8" title="1">updated, err := s.svc.ReviewAbsence(r.Context(), p, req.ID, req.Decision, req.Comment)
-        if err != nil </span>{
-                <span class="cov8" title="1">s.fail(w, r, err)
-                return
-</span>        }
-        <span class="cov8" title="1">writeJSON(w, http.StatusOK, updated)</span>
+        <span class="cov8" title="1">writeJSON(w, http.StatusOK, res)
+</span>}
+
+</span>func (s *Server) reset(w http.ResponseWriter, r *http.Request, p domain.Principal) {
+        <span class="cov8" title="1">view, err := s.svc.Res</span>et(r.Context(), p)
+        i<span class="cov8" title="1">f err != nil {
+                s.fail(w, r, err)
+</span>                return
+        <span class="cov8" title="1">}
+        writeJSON(w, h</span>ttp.StatusOK, view)
 }
 
-func (s *Server) cron(w http.ResponseWriter, r *http.Request, p domain.Principal) {
-        <span class="cov8" title="1">res, err := s.svc.CronTrigger(r.Context(), p)
-        if err != nil </span>{
-                <span class="cov8" title="1">s.fail(w, r, err)
+</span>func (s *Server) telemetry(w http.ResponseWriter, r *http.Request, p domain.Principal) {
+        <span class="cov8" title="1">view, err := s.svc.Telemetry(r.Co</span>ntext(), p)
+        if err != nil {
+                s.fail(w, r, err)
                 return
-</span>        }
-        <span class="cov8" title="1">writeJSON(w, http.StatusOK, res)</span>
+        <span class="cov8" title="1">}
+        writeJSON(w, http.StatusOK, view)
 }
-
-func (s *Server) reset(w http.ResponseWriter, r *http.Request, p domain.Principal) {
-        <span class="cov8" title="1">view, err := s.svc.Reset(r.Context(), p)
-        if err != nil </span>{
-                <span class="cov8" title="1">s.fail(w, r, err)
-                return
-</span>        }
-        <span class="cov8" title="1">writeJSON(w, http.StatusOK, view)</span>
-}
-
-func (s *Server) telemetry(w http.ResponseWriter, r *http.Request, p domain.Principal) {
-        <span class="cov8" title="1">view, err := s.svc.Telemetry(r.Context(), p)
-        if err != nil </span>{
-                <span class="cov8" title="1">s.fail(w, r, err)
-                return
-</span>        }
-        <span class="cov8" title="1">writeJSON(w, http.StatusOK, view)</span>
-}
-
-func (s *Server) setFlag(w http.ResponseWriter, r *http.Request, p domain.Principal) {
-        <span class="cov8" title="1">var req struct {
+</span>
+f<span class="cov8" title="1">unc (s *Server) setFlag(w http.Respons</span>eWriter, r *http.Request, p domain.Principal) {
+        v<span class="cov8" title="1">ar req struct {
                 Enabled *bool `json:"enabled"`
 </span>        }
-        <span class="cov8" title="1">if err := decode(r, &amp;req); err != nil </span>{
-                <span class="cov8" title="1">s.fail(w, r, err)
+        <span class="cov8" title="1">if err := decode(r, &amp;req); err != nil {
+                s.fail(w, r, </span>err)
+                <span class="cov8" title="1">return
+        }
+</span>        if req.Enabled == nil {
+        <span class="cov8" title="1">        s.fail(w, r, fmt.Errorf("%w: поле enabled обязатель</span>но", domain.ErrValidation))
                 return
-</span>        }
-        <span class="cov8" title="1">if req.Enabled == nil </span>{
-                <span class="cov8" title="1">s.fail(w, r, fmt.Errorf("%w: поле enabled обязательно", domain.ErrValidation))
+        }
+        flag, err := s.svc.SetFlag(r.Context(), p, r.PathValue("key"), *req.Enabled)
+        if err != nil {
+        <span class="cov8" title="1">        s.fail(w, r, err)
                 return
-</span>        }
-        <span class="cov8" title="1">flag, err := s.svc.SetFlag(r.Context(), p, r.PathValue("key"), *req.Enabled)
-        if err != nil </span>{
-                <span class="cov8" title="1">s.fail(w, r, err)
-                return
-</span>        }
-        <span class="cov8" title="1">writeJSON(w, http.StatusOK, flag)</span>
-}
+</span>        }<span class="cov8" title="1">
+        writeJSON(w, http.StatusOK, flag)
+</span>}
 
-func (s *Server) trackEvent(w http.ResponseWriter, r *http.Request, p domain.Principal) {
-        <span class="cov8" title="1">var req struct {
+func (s *Server)</span> trackEvent(w http.ResponseWriter, r *http.Request, p domain.Principal) {
+        v<span class="cov8" title="1">ar req struct {
                 Name    string         `json:"name"`
-                Payload map[string]any `json:"payload"`
-</span>        }
-        <span class="cov8" title="1">if err := decode(r, &amp;req); err != nil </span>{
-                <span class="cov8" title="1">s.fail(w, r, err)
+</span>                Payload map[string]any `json:"payload"`
+        <span class="cov8" title="1">}
+</span>        if err := decode(r, &amp;req); err != nil {
+                s.fail(w, r, err)
                 return
-</span>        }
-        <span class="cov8" title="1">ev, err := s.svc.TrackUI(r.Context(), p, req.Name, req.Payload)
-        if err != nil </span>{
-                <span class="cov8" title="1">s.fail(w, r, err)
+        }
+        ev, err := s.svc.TrackUI(r.Context(), p, req.Name, req.Payload)
+        if err != nil {
+                s.fail(w, r, err)
                 return
-</span>        }
-        <span class="cov8" title="1">writeJSON(w, http.StatusAccepted, map[string]string{"id": ev.ID})</span>
+        }
+        writeJSON(w, http.StatusAccepted, map[string]string{"id": ev.ID})
 }
 
 // mcpRPC — endpoint протокола MCP (JSON-RPC 2.0): initialize, tools/list, tools/call.
 func (s *Server) mcpRPC(w http.ResponseWriter, r *http.Request, p domain.Principal) {
-        <span class="cov8" title="1">raw, err := io.ReadAll(r.Body)
-        if err != nil </span>{
-                <span class="cov8" title="1">s.fail(w, r, err)
+        raw, err := io.ReadAll(r.Body)
+        if err != nil {
+                s.fail(w, r, err)
                 return
-</span>        }
-        <span class="cov8" title="1">resp := s.svc.HandleMCP(r.Context(), p, raw)
-        if resp == nil </span>{
-                <span class="cov8" title="1">w.WriteHeader(http.StatusAccepted)
+        }
+        resp := s.svc.HandleMCP(r.Context(), p, raw)
+        if resp == nil {
+                w.WriteHeader(http.StatusAccepted)
                 return
-</span>        }
-        <span class="cov8" title="1">writeJSON(w, http.StatusOK, resp)</span>
+        }
+        writeJSON(w, http.StatusOK, resp)
 }
 </pre>
 		
@@ -4324,29 +4357,34 @@ func (f *Flags) Set(ctx context.Context, key string, enabled bool) (domain.Featu
                 <span class="cov8" title="1">if err := f.cache.Set(ctx, flagCachePrefix+key, value, 0); err != nil </span>{
                         <span class="cov8" title="1">return flag, err
 </span>                }
-                <span class="cov8" title="1">flag.Enabled = enabled
-                return flag, nil</span>
+                <span class="cov8" title="1">if key == "ai_buddy.proactive_cron" {
+                        _ = f.cache.Set</span>(ctx, flagCachePrefix+"proactive_ai_cron", value, 0)
+                } else if key == "proactive_ai_cron" {
+        <span class="cov8" title="1">                _ = f.cache.Set(ctx, flagCachePrefix+"ai_buddy.proactive_cron", value, 0)
+</span>                }
+                flag.Enabled = enabled
+                return flag, nil
         }
-        <span class="cov8" title="1">return domain.FeatureFlag{}, fmt.Errorf("%w: флаг %s", domain.ErrNotFound, key)</span>
+        <span class="cov8" title="1">return domain.FeatureFlag{}, fmt.Errorf("%w: флаг %s", domain.ErrNotFound, key)
+}
+</span>
+</span>// Reset сбрасывает runtime-переопределения.
+f<span class="cov8" title="1">unc (f *Flags) Reset(ctx context</span>.Context) error {
+        keys := make([]string, 0, len(f.defaults))
+        for _, flag := range f.defaults {
+                keys = append(keys, flagCachePrefix+flag.Key)
+        }
+        <span class="cov8" title="1">return f.cache.Del(ctx, keys...)
 }
 
-// Reset сбрасывает runtime-переопределения.
-func (f *Flags) Reset(ctx context.Context) error {
-        <span class="cov8" title="1">keys := make([]string, 0, len(f.defaults))
-        for _, flag := range f.defaults </span>{
-                <span class="cov8" title="1">keys = append(keys, flagCachePrefix+flag.Key)
-</span>        }
-        <span class="cov8" title="1">return f.cache.Del(ctx, keys...)</span>
-}
-
-// ListTool — обработчик feature_flags.list.
-func (f *Flags) ListTool(ctx context.Context, _ Call) (map[string]any, error) {
+</span>//<span class="cov8" title="1"> ListTool — обработчик feature_flags.list.
+</span>func (f *Flags) ListTool(ctx context.Context, _ Call) (map[string]any, error) {
         <span class="cov8" title="1">flags := f.List(ctx)
-        list := make([]any, 0, len(flags))
-        for _, flag := range flags </span>{
-                <span class="cov8" title="1">list = append(list, toMap(flag))
-</span>        }
-        <span class="cov8" title="1">return map[string]any{"flags": list}, nil</span>
+</span>        list := make([]any, 0, len(flags))
+        for _, flag := range flags {
+                list = append(list, toMap(flag))
+        }
+        return map[string]any{"flags": list}, nil
 }
 </pre>
 		
@@ -4704,11 +4742,19 @@ func Data() domain.SeedData {
                         "avito-messenger-gateway": "Messenger",
                 },
                 Flags: []domain.FeatureFlag{
-                        {Key: "ai_buddy.proactive_cron", Enabled: true, Kind: domain.FlagRuntime, Description: "ИИ-крон: проактивные сообщения стажёру и бриф наставнику"},
+                        // Runtime Flags (переключаемые на лету: слайды 10–11)
+                        {Key: "proactive_ai_cron", Enabled: true, Kind: domain.FlagRuntime, Description: "ИИ-крон: проактивные сообщения стажёру и бриф наставнику"},
+                        {Key: "strict_rbac_guard", Enabled: true, Kind: domain.FlagRuntime, Description: "Строгая RBAC-защита: немедленная блокировка выгрузки ПДн (POL-SEC-001)"},
+                        {Key: "mentor_auto_brief", Enabled: true, Kind: domain.FlagRuntime, Description: "Автогенерация Structured 1:1 Brief наставнику при пробуксовке стажёра"},
+                        {Key: "ai_buddy.proactive_cron", Enabled: true, Kind: domain.FlagRuntime, Description: "ИИ-крон: фоновый запуск проверок (системный алиас)"},
                         {Key: "ai_buddy.absence_action_card", Enabled: true, Kind: domain.FlagRuntime, Description: "Интерактивная карточка оформления отгула в чате"},
                         {Key: "ai_buddy.llm_answers", Enabled: true, Kind: domain.FlagRuntime, Description: "Формулировка ответов внешней LLM (если задан LLM_API_KEY)"},
-                        {Key: "ai_buddy.mcp_jsonrpc", Enabled: true, Kind: domain.FlagCompileTime, Description: "MCP JSON-RPC endpoint POST /mcp"},
-                        {Key: "ai_buddy.synthetic_data_only", Enabled: true, Kind: domain.FlagCompileTime, Description: "Только синтетические данные и имитации сервисов"},
+
+                        // Compile-Time Flags (зафиксированные при сборке бинарника через embed/ldflags)
+                        {Key: "sdd_spec_enforcement", Enabled: true, Kind: domain.FlagCompileTime, Description: "Валидация контрактов OpenSpec в runtime через embed.FS"},
+                        {Key: "synthetic_data_watermark", Enabled: true, Kind: domain.FlagCompileTime, Description: "Водяные знаки синтетических данных и маскирование токенов"},
+                        {Key: "mcp_jsonrpc_v2", Enabled: true, Kind: domain.FlagCompileTime, Description: "Поддержка протокола MCP JSON-RPC 2.0"},
+                        {Key: "ai_buddy.mcp_jsonrpc", Enabled: true, Kind: domain.FlagCompileTime, Description: "MCP JSON-RPC endpoint POST /mcp (системный алиас)"},
                 },
                 Docs: []domain.KnowledgeDoc{
                         doc("pb-feature-flags", "Как катить задачу под фича-флагом",
@@ -4806,7 +4852,7 @@ func Data() domain.SeedData {
                                 Team2,
                                 []string{"feature_flags", "ml_pipeline", "code_review"},
                                 []string{"a/b", "ab", "тест", "эксперимент", "модел", "фича", "флаг", "катить", "раскат", "деплой"},
-                                []string{
+</span>                                []string{
                                         "Заведи runtime-флаг в сервисе Feature Flags: например moderation.model_v2_enabled, по умолчанию выключен.",
                                         "Оберни вызов инференса новой модели в проверку флага, старый классификатор остаётся fallback-путем.",
                                         "Запусти shadow deployment на 24 часа для проверки latency инференса и 99-го перцентиля нагрузки.",
@@ -4814,7 +4860,7 @@ func Data() domain.SeedData {
                                         "После статистически значимого выигрыша включи флаг на 100% и запланируй удаление старого веса.",
                                 }),
                 },
-</span>        }
+        }
 }
 </pre>
 		
@@ -4886,6 +4932,14 @@ type Scenario struct {
         Then  []string `yaml:"then"`
 }
 
+// AgentSkill — подключённый модульный скилл агента.
+type AgentSkill struct {
+        ID          string `yaml:"id" json:"id"`
+        Name        string `yaml:"name" json:"name"`
+        Description string `yaml:"description" json:"description"`
+        Active      bool   `yaml:"active" json:"active"`
+}
+
 // AgentSpec — спецификация поведения агента (01_agent_behavior).
 type AgentSpec struct {
         OpenSpec string   `yaml:"openspec"`
@@ -4911,34 +4965,35 @@ type AgentSpec struct {
                         } `yaml:"llm"`
                 } `yaml:"engine"`
         } `yaml:"agent"`
+        Skills           []AgentSkill      `yaml:"skills"`
         Intents          []Intent          `yaml:"intents"`
-        FallbackIntent   Intent            `yaml:"fallback_intent"`
-        ChecklistEffects []ChecklistEffect `yaml:"checklist_effects"`
-        Responses        map[string]string `yaml:"responses"`
-        Metrics          MetricsSpec       `yaml:"metrics"`
-        Scenarios        []Scenario        `yaml:"scenarios"`
+        <span class="cov8" title="1">FallbackIntent   Intent            `yaml:"fallback_intent"`
+        ChecklistEffects []Chec</span>klistEffect `yaml:"checklist_effects"`
+        R<span class="cov8" title="1">esponses        map[string]string `yaml:"responses"`
+</span>        Metrics          MetricsSpec       `yaml:"metrics"`
+        <span class="cov8" title="1">Scenarios  </span>      []Scenario        `yaml:"scenarios"`
 }
 
 // Response возвращает шаблон ответа с подстановкой {ключ} → значение.
 func (a *AgentSpec) Response(key string, vars map[string]string) string {
-        <span class="cov8" title="1">text := strings.TrimSpace(a.Responses[key])
-        for k, v := range vars </span>{
-                <span class="cov8" title="1">text = strings.ReplaceAll(text, "{"+k+"}", v)
+        <span class="cov8" title="1">text := strings.TrimSpace(a.R</span>esponses[key])
+        f<span class="cov8" title="1">or k, v := rang</span>e vars {
+                t<span class="cov8" title="1">ext = strings.ReplaceAll(text, "{"+k+"}", v)
 </span>        }
-        <span class="cov8" title="1">return text</span>
-}
-
-// IntentByID ищет интент по идентификатору (включая fallback).
-func (a *AgentSpec) IntentByID(id string) (Intent, bool) {
-        <span class="cov8" title="1">for _, in := range a.Intents </span>{
-                <span class="cov8" title="1">if in.ID == id </span>{
-                        <span class="cov8" title="1">return in, true
-</span>                }
+        return text
+}<span class="cov8" title="1">
+</span>
+</span>// IntentByID ищет интент по идентификатору (включая fallback).
+f<span class="cov8" title="1">unc (a *AgentSpec) Int</span>entByID(id string) (Intent, bool) {
+        for _, in := range a.Intents {
+                if in.ID == id {
+                        return in, true
+                }
         }
-        <span class="cov8" title="1">if a.FallbackIntent.ID == id </span>{
-                <span class="cov8" title="1">return a.FallbackIntent, true
-</span>        }
-        <span class="cov8" title="1">return Intent{}, false</span>
+        if a.FallbackIntent.ID == id {
+                return a.FallbackIntent, true
+        }
+        return Intent{}, false
 }
 
 // Server — описание MCP-сервера (имитации корпоративного сервиса).
@@ -4969,21 +5024,21 @@ type Tool struct {
 
 // ToolsSpec — спецификация MCP-инструментов (02_mcp_tools).
 type ToolsSpec struct {
-        OpenSpec string   `yaml:"openspec"`
-        Kind     string   `yaml:"kind"`
-        Metadata Metadata `yaml:"metadata"`
-        Servers  []Server `yaml:"servers"`
+        <span class="cov8" title="1">OpenSpec string   `yaml:"open</span>spec"`
+        K<span class="cov8" title="1">ind     string   `yam</span>l:"kind"`
+        Me<span class="cov8" title="1">tadata Metadata `yaml:"metadata"`
+</span>        Servers  []Server `yaml:"servers"`
         Tools    []Tool   `yaml:"tools"`
-}
-
+}<span class="cov8" title="1">
+</span>
 // ToolByName ищет инструмент по имени.
 func (t *ToolsSpec) ToolByName(name string) (Tool, bool) {
-        <span class="cov8" title="1">for _, tool := range t.Tools </span>{
-                <span class="cov8" title="1">if tool.Name == name </span>{
-                        <span class="cov8" title="1">return tool, true
-</span>                }
+        for _, tool := range t.Tools {
+                if tool.Name == name {
+                        return tool, true
+                }
         }
-        <span class="cov8" title="1">return Tool{}, false</span>
+        return Tool{}, false
 }
 
 // Role — роль RBAC.
@@ -5023,168 +5078,173 @@ type RBACSpec struct {
         Policies      []Policy     `yaml:"policies"`
 }
 
-// Bundle — все три спецификации.
-type Bundle struct {
+/<span class="cov8" title="1">/ Bundle — все три спецификации.
+</span>type Bundle struct {
         Agent AgentSpec
         Tools ToolsSpec
         RBAC  RBACSpec
-}
+}<span class="cov8" title="1">
 
-// Load читает спецификации, встроенные в бинарник.
+</span>//<span class="cov0" title="0"> Load чи</span>тает спецификации, встроенные в бинарник.
 func Load() (*Bundle, error) {
-        <span class="cov8" title="1">return LoadFS(specs.FS)
-</span>}
+        <span class="cov8" title="1">return L</span>oadFS(specs.FS)
+}
 
 // MustLoad — Load с паникой при ошибке (спеки вкомпилированы, ошибка = баг сборки).
 func MustLoad() *Bundle {
         <span class="cov8" title="1">b, err := Load()
-        if err != nil </span>{
-                <span class="cov0" title="0">panic(err)</span>
+        if err != nil {
+                panic(err)
         }
-        <span class="cov8" title="1">return b</span>
+        return b
 }
 
 // LoadFS читает и валидирует спецификации из произвольной файловой системы.
 func LoadFS(fsys fs.FS) (*Bundle, error) {
-        <span class="cov8" title="1">var b Bundle
-        files := []struct {
-                name string
+</span>        var b Bundle
+        <span class="cov8" title="1">files := []struct {
+</span>                <span class="cov8" title="1">name string
                 kind string
-                dst  any
-        }{
-                {specs.AgentBehaviorFile, "AgentBehavior", &amp;b.Agent},
-                {specs.MCPToolsFile, "McpTools", &amp;b.Tools},
-                {specs.RBACMatrixFile, "RbacMatrix", &amp;b.RBAC},
-</span>        }
-        <span class="cov8" title="1">for _, f := range files </span>{
-                <span class="cov8" title="1">raw, err := fs.ReadFile(fsys, f.name)
-                if err != nil </span>{
-                        <span class="cov8" title="1">return nil, fmt.Errorf("spec: чтение %s: %w", f.name, err)
-</span>                }
-                <span class="cov8" title="1">if err := yaml.Unmarshal(raw, f.dst); err != nil </span>{
-                        <span class="cov8" title="1">return nil, fmt.Errorf("spec: разбор %s: %w", f.name, err)
-</span>                }
+</span>                d<span class="cov8" title="1">st  any
+</span>        }{
+                <span class="cov8" title="1">{specs.AgentBehaviorFile, "AgentBehavior", &amp;b.Age</span>nt},
+                {<span class="cov8" title="1">specs.MCPToolsFile, "McpTools", &amp;b.Tools},
+</span>                {specs.RBACMatrixFile, "RbacMatrix", &amp;b.RBAC},
         }
-        <span class="cov8" title="1">if b.Agent.Kind != "AgentBehavior" || b.Tools.Kind != "McpTools" || b.RBAC.Kind != "RbacMatrix" </span>{
-                <span class="cov8" title="1">return nil, fmt.Errorf("spec: неверный kind (%q, %q, %q)", b.Agent.Kind, b.Tools.Kind, b.RBAC.Kind)
+        <span class="cov8" title="1">for _, f := range files {
+</span>                <span class="cov8" title="1">raw, err := fs.ReadFile(fsys, f.name)
+</span>                if err != nil {
+        <span class="cov8" title="1">                return nil, fmt.Errorf("spec: ч�</span>�ение %s: %w", f.name, err)
+                <span class="cov8" title="1">}
+</span>                if err := yaml.Unmarshal(raw, f.dst); err != nil {
+        <span class="cov8" title="1">                return nil, fmt.Errorf("spec: разбор %s: %w", </span>f.name, err)
+                <span class="cov8" title="1">}
 </span>        }
-        <span class="cov8" title="1">if err := b.Validate(); err != nil </span>{
-                <span class="cov8" title="1">return nil, err
-</span>        }
-        <span class="cov8" title="1">sort.SliceStable(b.Agent.Intents, func(i, j int) bool </span>{
-                <span class="cov8" title="1">return b.Agent.Intents[i].Priority &gt; b.Agent.Intents[j].Priority
-</span>        })
-        <span class="cov8" title="1">return &amp;b, nil</span>
-}
+        <span class="cov8" title="1">if b.Agent.Kin</span>d != "AgentBehavior" || b.Tools.Kind != "McpTools" || b.RBAC.Kind != "RbacMatrix" {
+                return nil, fmt.Errorf("spec: неверный kind (%q, %q, %q)", b.Agent.Kind, b.Tools.Kind, b.RBAC.Kind)
+        }
+        if err := b.Validate(); err != nil {
+                return nil, err
+        <span class="cov8" title="1">}
+        sort.SliceStable(b.Agent.Intents, func(i</span>, <span class="cov8" title="1">j int) bool {
+</span>                return b.Agent.Intents[i].Priority &gt; b.Agent.Intents[j].Priority
+        <span class="cov8" title="1">})
+</span>        r<span class="cov8" title="1">eturn &amp;b, nil
+</span>}
 
-// Validate проверяет целостность и перекрёстные ссылки между спецификациями.
-func (b *Bundle) Validate() error {
-        <span class="cov8" title="1">var problems []string
-        add := func(format string, args ...any) </span>{ <span class="cov8" title="1">problems = append(problems, fmt.Sprintf(format, args...)) }</span>
+</span>//<span class="cov8" title="1"> Validate проверяет целостность и перекрёстные ссылки между спецификациями.
+</span>func (b *Bundle) Validate() error {
+        var problems []string
+        <span class="cov8" title="1">add := func(format string, args ...any) { problems = append(problems, fmt.Sprintf(format, args...)) }
 
-        <span class="cov8" title="1">if strings.TrimSpace(b.Agent.Agent.SystemPrompt) == "" </span>{
-                <span class="cov8" title="1">add("agent.system_prompt пуст")
-</span>        }
-        <span class="cov8" title="1">if strings.TrimSpace(b.Agent.Agent.SyntheticData.Disclaimer) == "" </span>{
-                <span class="cov8" title="1">add("agent.synthetic_data.disclaimer пуст")
+</span>        i<span class="cov8" title="1">f strings.TrimSpace(b.Agent.Agent.SystemPrompt) == "" {
+</span>                add("agent.system_prompt пуст")
+        <span class="cov8" title="1">}
+        if strings.TrimSpace(b.Agent.Age</span>nt.SyntheticData.Disclaimer) == "" {
+                <span class="cov8" title="1">add("agent.synthe</span>tic_data.disclaimer пуст")
+        }
+</span>        for _, sk := range b.Agent.Skills {
+                <span class="cov8" title="1">if sk.ID == "" || sk.Name == "" {
+                        add("skill с пус�</span>�ым id или name")
+                }<span class="cov8" title="1">
 </span>        }
 
-        <span class="cov8" title="1">servers := map[string]bool{}
-        for _, s := range b.Tools.Servers </span>{
+</span>        se<span class="cov8" title="1">rvers := map[string]bool{}
+</span>        for _, s := range b.Tools.Servers {
                 <span class="cov8" title="1">servers[s.ID] = true
 </span>        }
-        <span class="cov8" title="1">tools := map[string]bool{}
-        for _, t := range b.Tools.Tools </span>{
-                <span class="cov8" title="1">if tools[t.Name] </span>{
-                        <span class="cov8" title="1">add("инструмент %s объявлен дважды", t.Name)
+</span>        tools := map[string]bool{}
+        for _, t := range b.Tools.Tools {
+        <span class="cov8" title="1">        if tools[t.Name] {</span>
+                <span class="cov8" title="1">        add("инструмент %s объявлен дважды", t.Name)
 </span>                }
-                <span class="cov8" title="1">tools[t.Name] = true
-                if !servers[t.Server] </span>{
-                        <span class="cov8" title="1">add("инструмент %s ссылается на неизвестный сервер %q", t.Name, t.Server)
-</span>                }
-                <span class="cov8" title="1">if !strings.HasPrefix(t.Name, t.Server+".") </span>{
-                        <span class="cov8" title="1">add("имя инструмента %s должно начинаться с %s.", t.Name, t.Server)
-</span>                }
-                <span class="cov8" title="1">if t.InputSchema == nil || t.InputSchema["type"] != "object" </span>{
+                tools[t.Name] = true
+        <span class="cov8" title="1">        if !servers[t.Server] {
+                        add("инструмент %s ссылается на неизвестный сервер</span> %q", t.Name, t.Server)
+                <span class="cov8" title="1">}
+</span>                i<span class="cov8" title="1">f !strings.HasPrefix(t.Name, t.Server+".") {
+                        add("и�</span>�я инструмента %s должно начинаться с %s.", t.Name, t.Server)
+                }
+                <span class="cov8" title="1">if t.InputSchema =</span>= nil || t.InputSchema["type"] != "object" {
                         <span class="cov8" title="1">add("инструмент %s: input_schema.type должен быть object", t.Name)
 </span>                }
+        }<span class="cov8" title="1">
+        if len(tools) == 0 {
+</span>                a<span class="cov8" title="1">dd("не объявлено </span>ни одного MCP-инструмента")
         }
-        <span class="cov8" title="1">if len(tools) == 0 </span>{
-                <span class="cov8" title="1">add("не объявлено ни одного MCP-инструмента")
-</span>        }
+</span>
+        intents := map[string]bool{}
+        for _, in := range append(append([]Intent{}, b.Agent.Intents...), b.Agent.FallbackIntent) {
+        <span class="cov8" title="1">        if in.ID == "" {
+</span>                <span class="cov8" title="1">        add("интент без id")
+</span>                        <span class="cov8" title="1">continue
+</span>                }
+                <span class="cov8" title="1">if intents[in.ID] {
+</span>                        <span class="cov8" title="1">add("интент %s объявлен дважды", in.ID)
+</span>                }
+                intents[in.ID] = true
+                for _, ref := range []string{in.Tool, in.ConfirmTool} {
+        <span class="cov8" title="1">                if ref != "" &amp;&amp; !tools[ref] {
+                                add("интент %s ссы�</span>�ается на неизвестный инструмент %q", in.ID, ref)
+                <span class="cov8" title="1">        }
+</span>                }
+        <span class="cov8" title="1">}
+        for _, e := range b.Agent.ChecklistEf</span>fects {
+                <span class="cov8" title="1">if e.Tool != "" &amp;&amp; !tools[e.Tool] {
+</span>                        add("checklist_effects: неизвестный инструмент %q", e.Tool)
+        <span class="cov8" title="1">        }
+</span>                <span class="cov8" title="1">if e.Item == "" || e.Status == "" {
+</span>                        add("checklist_effects: пустые item/status")
+        <span class="cov8" title="1">        }
+        }
 
-        <span class="cov8" title="1">intents := map[string]bool{}
-        for _, in := range append(append([]Intent{}, b.Agent.Intents...), b.Agent.FallbackIntent) </span>{
-                <span class="cov8" title="1">if in.ID == "" </span>{
-                        <span class="cov8" title="1">add("интент без id")
-                        continue</span>
+</span>        r<span class="cov8" title="1">oles := map[string]bool{}
+</span>        fo<span class="cov8" title="1">r _, r := range b.RBAC.Roles {
+</span>                roles[r.ID] = true
+        }<span class="cov8" title="1">
+        constraints := map[string]bool{}
+</span>        fo<span class="cov8" title="1">r _, c := range b.RBAC.Constraints {
+</span>                constraints[c.ID] = true
+        }<span class="cov8" title="1">
+</span>        if<span class="cov8" title="1"> b.RBAC.DefaultEffect != </span>"deny" {
+                ad<span class="cov8" title="1">d("rbac.default_effect должен быть deny")
+</span>        }
+        covered := map[string]bool{}
+        i<span class="cov8" title="1">ds := map[string]bool{}
+</span>        fo<span class="cov8" title="1">r _, p := range b.R</span>BAC.Policies {
+                if<span class="cov8" title="1"> p.ID == "" || ids[p.ID] {
+</span>                        add("rbac: политика с пустым или повторным id %q", p.ID)
                 }
-                <span class="cov8" title="1">if intents[in.ID] </span>{
-                        <span class="cov8" title="1">add("интент %s объявлен дважды", in.ID)
-</span>                }
-                <span class="cov8" title="1">intents[in.ID] = true
-                for _, ref := range []string{in.Tool, in.ConfirmTool} </span>{
-                        <span class="cov8" title="1">if ref != "" &amp;&amp; !tools[ref] </span>{
-                                <span class="cov8" title="1">add("интент %s ссылается на неизвестный инструмент %q", in.ID, ref)
-</span>                        }
-                }
-        }
-        <span class="cov8" title="1">for _, e := range b.Agent.ChecklistEffects </span>{
-                <span class="cov8" title="1">if e.Tool != "" &amp;&amp; !tools[e.Tool] </span>{
-                        <span class="cov8" title="1">add("checklist_effects: неизвестный инструмент %q", e.Tool)
-</span>                }
-                <span class="cov8" title="1">if e.Item == "" || e.Status == "" </span>{
-                        <span class="cov8" title="1">add("checklist_effects: пустые item/status")
-</span>                }
-        }
-
-        <span class="cov8" title="1">roles := map[string]bool{}
-        for _, r := range b.RBAC.Roles </span>{
-                <span class="cov8" title="1">roles[r.ID] = true
-</span>        }
-        <span class="cov8" title="1">constraints := map[string]bool{}
-        for _, c := range b.RBAC.Constraints </span>{
-                <span class="cov8" title="1">constraints[c.ID] = true
-</span>        }
-        <span class="cov8" title="1">if b.RBAC.DefaultEffect != "deny" </span>{
-                <span class="cov8" title="1">add("rbac.default_effect должен быть deny")
-</span>        }
-        <span class="cov8" title="1">covered := map[string]bool{}
-        ids := map[string]bool{}
-        for _, p := range b.RBAC.Policies </span>{
-                <span class="cov8" title="1">if p.ID == "" || ids[p.ID] </span>{
-                        <span class="cov8" title="1">add("rbac: политика с пустым или повторным id %q", p.ID)
-</span>                }
                 <span class="cov8" title="1">ids[p.ID] = true
-                if p.Effect != "allow" &amp;&amp; p.Effect != "deny" </span>{
-                        <span class="cov8" title="1">add("rbac: политика %s: effect %q", p.ID, p.Effect)
+</span>                i<span class="cov8" title="1">f p.Effect != "allow" &amp;&amp; p.Effect != "deny" {
+</span>                        add("rbac: политика %s: effect %q", p.ID, p.Effect)
+                <span class="cov8" title="1">}
+</span>                for _, r := range p.Roles {
+        <span class="cov8" title="1">                if r != "*" &amp;&amp; !roles[</span>r] {
+                <span class="cov8" title="1">                add("rbac: по�</span>�итика %s: неизвестная роль %q", p.ID, r)
+                        <span class="cov8" title="1">}
 </span>                }
-                <span class="cov8" title="1">for _, r := range p.Roles </span>{
-                        <span class="cov8" title="1">if r != "*" &amp;&amp; !roles[r] </span>{
-                                <span class="cov8" title="1">add("rbac: политика %s: неизвестная роль %q", p.ID, r)
-</span>                        }
+                for _, c := range p.Constraints {
+                        if !constraints[c] {
+        <span class="cov8" title="1">                        add("rbac: пол�</span>�тика %s: неизвестное ограничение %q", p.ID, c)
+                <span class="cov8" title="1">        }
                 }
-                <span class="cov8" title="1">for _, c := range p.Constraints </span>{
-                        <span class="cov8" title="1">if !constraints[c] </span>{
-                                <span class="cov8" title="1">add("rbac: политика %s: неизвестное ограничение %q", p.ID, c)
-</span>                        }
+</span>                if !strings.HasPrefix(p.Operation, "api.") &amp;&amp; !tools[p.Operation] {
+        <span class="cov8" title="1">                add("rba</span>c: политика %s: неизвестная операция %q", p.ID, p.Operation)
                 }
-                <span class="cov8" title="1">if !strings.HasPrefix(p.Operation, "api.") &amp;&amp; !tools[p.Operation] </span>{
-                        <span class="cov8" title="1">add("rbac: политика %s: неизвестная операция %q", p.ID, p.Operation)
-</span>                }
-                <span class="cov8" title="1">covered[p.Operation] = true</span>
+                covered[p.Operation] = true
         }
-        <span class="cov8" title="1">for name := range tools </span>{
-                <span class="cov8" title="1">if !covered[name] </span>{
-                        <span class="cov8" title="1">add("rbac: для инструмента %s нет ни одной политики", name)
-</span>                }
+        for name := range tools {
+                if !covered[name] {
+                        add("rbac: для инструмента %s нет ни одной политики", name)
+                }
         }
 
-        <span class="cov8" title="1">if len(problems) &gt; 0 </span>{
-                <span class="cov8" title="1">sort.Strings(problems)
+        if len(problems) &gt; 0 {
+                sort.Strings(problems)
                 return fmt.Errorf("spec: спецификации невалидны:\n- %s", strings.Join(problems, "\n- "))
-</span>        }
-        <span class="cov8" title="1">return nil</span>
+        }
+        return nil
 }
 </pre>
 		
@@ -6186,6 +6246,7 @@ type WorkspaceView struct {
         Progress      domain.Progress         `json:"progress"`
         NextStep      *domain.ChecklistItem   `json:"next_step"`
         SprintTask    domain.SprintTask       `json:"sprint_task"`
+        Skills        []domain.AgentSkill     `json:"skills"`
         FeatureFlags  []domain.FeatureFlag    `json:"feature_flags"`
         Metrics       domain.MetricsSummary   `json:"metrics"`
         Messages      []domain.ChatMessage    `json:"messages"`
@@ -6211,214 +6272,239 @@ type openQuestion struct {
         AskedAt time.Time `json:"asked_at"`
 }
 
-func (s *Service) docsRead(ctx context.Context) ([]string, error) {
-        <span class="cov8" title="1">return s.docsReadFor(ctx, s.internID)
-</span>}
-
-func (s *Service) docsReadFor(ctx context.Context, internID string) ([]string, error) {
-        <span class="cov8" title="1">if internID == "" </span>{
-                <span class="cov0" title="0">internID = s.internID
-</span>        }
-        <span class="cov8" title="1">reads, err := domain.Load[docRead](ctx, s.Store, domain.KindDocRead, internID)
-        if err != nil </span>{
-                <span class="cov8" title="1">return nil, err
-</span>        }
-        <span class="cov8" title="1">ids := make([]string, 0, len(reads))
-        for _, r := range reads </span>{
-                <span class="cov8" title="1">ids = append(ids, r.DocID)
-</span>        }
-        <span class="cov8" title="1">return ids, nil</span>
+f<span class="cov8" title="1">unc (s *Service) docsRead(ctx context.Context) ([]string, error) {
+</span>        return s.docsReadFor(ctx, s.internID)
 }
 
-func (s *Service) openQuestions(ctx context.Context) ([]string, error) {
-        <span class="cov8" title="1">qs, err := domain.Load[openQuestion](ctx, s.Store, domain.KindOpenQuestion, s.internID)
-        if err != nil </span>{
-                <span class="cov8" title="1">return nil, err
-</span>        }
-        <span class="cov8" title="1">out := make([]string, 0, len(qs))
-        for _, q := range qs </span>{
-                <span class="cov8" title="1">out = append(out, q.Text)
-</span>        }
-        <span class="cov8" title="1">return out, nil</span>
+f<span class="cov8" title="1">unc (s *Service) d</span>ocsReadFor(ctx context.Context, internID string) ([]string, error) {
+        i<span class="cov0" title="0">f internID == "" {
+</span>                internID = s.internID
+        <span class="cov8" title="1">}
+        reads, err := </span>domain.Load[docRead](ctx, s.Store, domain.KindDocRead, internID)
+        i<span class="cov8" title="1">f err != nil {
+</span>                return nil, err
+        <span class="cov8" title="1">}
+        ids := make([]string, 0,</span> len(reads))
+        f<span class="cov8" title="1">or _, r := range reads {
+</span>                ids = append(ids, r.DocID)
+        <span class="cov8" title="1">}
+</span>        return ids, nil
 }
 
-func (s *Service) metrics(ctx context.Context, progress domain.Progress) (domain.MetricsSummary, error) {
-        <span class="cov8" title="1">events, err := domain.Load[domain.TelemetryEvent](ctx, s.Store, domain.KindEvent, s.internID)
-        if err != nil </span>{
-                <span class="cov8" title="1">return domain.MetricsSummary{}, err
-</span>        }
-        <span class="cov8" title="1">read, err := s.docsRead(ctx)
-        if err != nil </span>{
-                <span class="cov8" title="1">return domain.MetricsSummary{}, err
-</span>        }
-        <span class="cov8" title="1">open, err := s.openQuestions(ctx)
-        if err != nil </span>{
-                <span class="cov8" title="1">return domain.MetricsSummary{}, err
-</span>        }
-        <span class="cov8" title="1">m := s.Spec.Agent.Metrics
+f<span class="cov8" title="1">unc (s *Service) openQuestions(ctx context.Context) ([]string, error) {
+        qs, err := dom</span>ain.Load[openQuestion](ctx, s.Store, domain.KindOpenQuestion, s.internID)
+        i<span class="cov8" title="1">f err != nil {
+</span>                return nil, err
+        <span class="cov8" title="1">}
+        out := make([]string,</span> 0, len(qs))
+        f<span class="cov8" title="1">or _, q := range qs {
+</span>                out = append(out, q.Text)
+        <span class="cov8" title="1">}
+</span>        return out, nil
+}
+
+f<span class="cov8" title="1">unc (s *Service) metrics(ctx context.Context, progress domain.Progress) (domain.MetricsSummary, error) {
+        events, err :=</span> domain.Load[domain.TelemetryEvent](ctx, s.Store, domain.KindEvent, s.internID)
+        i<span class="cov8" title="1">f err != nil {
+</span>                return domain.MetricsSummary{}, err
+        <span class="cov8" title="1">}
+        read, err := s</span>.docsRead(ctx)
+        i<span class="cov8" title="1">f err != nil {
+</span>                return domain.MetricsSummary{}, err
+        <span class="cov8" title="1">}
+        open, err := s</span>.openQuestions(ctx)
+        i<span class="cov8" title="1">f err != nil {
+</span>                return domain.MetricsSummary{}, err
+        <span class="cov8" title="1">}
+        m := s.Spec.Agent.Metrics
         return domain.ComputeMetrics(domain.MetricsInput{
                 Events: events, MinutesSaved: m.MinutesSaved,
                 BaselineHoursMin: m.MentorHoursBaselineMin, BaselineHoursMax: m.MentorHoursBaselineMax,
                 Progress: progress, DocsRead: len(read),
                 DocsTotal:     s.Services.Playbook.VisibleCount(s.Seed.Intern.Role, s.Seed.Intern.Team),
-                OpenQuestions: len(open),
-        }), nil</span>
+                OpenQu</span>estions: len(open),
+        }), nil
 }
 
-// Workspace возвращает состояние с учётом прав роли: переписку видит только стажёр,
-// брифы — наставник и руководитель, инциденты безопасности — руководитель.
-func (s *Service) Workspace(ctx context.Context, p domain.Principal, targetInternID ...string) (WorkspaceView, error) {
-        <span class="cov8" title="1">var v WorkspaceView
-        if err := s.authorize(ctx, p, OpWorkspaceRead); err != nil </span>{
-                <span class="cov8" title="1">return v, err
-</span>        }
-        <span class="cov8" title="1">internID := s.resolveInternID(p, targetInternID...)
-        intern, err := domain.LoadOne[domain.InternProfile](ctx, s.Store, domain.KindIntern, internID)
-        if err != nil </span>{
-                <span class="cov8" title="1">return v, err
-</span>        }
-        <span class="cov8" title="1">checklist, err := domain.LoadChecklist(ctx, s.Store, internID)
-        if err != nil </span>{
-                <span class="cov8" title="1">return v, err
-</span>        }
-        <span class="cov8" title="1">task, err := domain.LoadOne[domain.SprintTask](ctx, s.Store, domain.KindSprintTask, internID)
-        if err != nil </span>{
-                <span class="cov8" title="1">return v, err
+// PrometheusMetrics возвращает агрегированные метрики для экспорта в Prometheus / Grafana.
+func (s *Service) PrometheusMetrics(ctx context.Context) (domain.MetricsSummary, float64, error) {
+        <span class="cov8" title="1">checklist, err := domain.LoadChecklist(ctx, s.Store, s.internID)
+        if err != nil {
+</span>                <span class="cov8" title="1">return domain.MetricsSummary{}, 0, err
 </span>        }
         <span class="cov8" title="1">progress := domain.ComputeProgress(checklist)
+        m, err := s.metrics(ctx, progress)
+        if err != nil </span>{
+                <span class="cov8" title="1">return domain.MetricsSummary{}, 0, err
+</span>        }
+        <span class="cov8" title="1">ratio := 0.0
+        if progress.To</span>tal &gt; 0 {
+                <span class="cov8" title="1">ratio = float64(progress.Completed) / float64(progress.Total)
+</span>        }
+        <span class="cov8" title="1">return m, ratio, nil
+}
+</span>
+</span>// Workspace возвращает состояние с учётом прав роли: переписку видит только стажёр,
+/<span class="cov8" title="1">/ брифы — наставник и руководитель, инциденты безопасности — руководитель.
+func (s *Service) Workspace(ctx context.Context, p domain.Principal, targetInternID ...string) (WorkspaceView, error) {
+        var v Workspac</span>eView
+        i<span class="cov8" title="1">f err := s.authorize(ctx, p, OpWorkspaceRead); err != nil {
+</span>                return v, err
+        <span class="cov8" title="1">}
+        internID := s.</span>resolveInternID(p, targetInternID...)
+        i<span class="cov0" title="0">ntern, err := domain.LoadOne[domain.InternProfile](ctx, s.Store, domain.KindIntern, internID)
+</span>        if err != nil {
+        <span class="cov8" title="1">        return v, err
+        }
+</span>        c<span class="cov8" title="1">hecklist, err := domain.LoadChecklist(ctx, s.Store, internID)
+</span>        if err != nil {
+                return v, err
+        <span class="cov8" title="1">}
+        task, err := domain.LoadOne[domain.SprintTask](ctx, s.Store, domain.KindSprintTask, internID)
+        if err != nil {
+                return v, err
+        }
+        progress := domain.ComputeProgress(checklist)
         metrics, err := s.metrics(ctx, progress)
-        if err != nil </span>{
-                <span class="cov8" title="1">return v, err
-</span>        }
-        <span class="cov8" title="1">read, err := s.docsReadFor(ctx, internID)
-        if err != nil </span>{
-                <span class="cov0" title="0">return v, err
-</span>        }
-        <span class="cov8" title="1">notifications, err := domain.Load[domain.Notification](ctx, s.Store, domain.KindNotification, p.ID)
-        if err != nil </span>{
-                <span class="cov8" title="1">return v, err
+        if err != nil {
+                return v, err
+        }
+        read, err := s.docsReadFor(ctx, internID)
+        if err != nil {
+                return v, err
+        }
+        notifications, err := domain.Load[domain.Notification](ctx, s.Store, domain.KindNotification, p.ID)
+        if err != nil {
+                return v, err
+        }
+</span>
+        skills := make([]domain.AgentSkill, 0, len(s.Spec.Agent.Skills))
+        <span class="cov8" title="1">for _, sk := range s.Spec.Agent.Skills {
+                skills = append(skills, domain.AgentSkill</span>{
+                <span class="cov8" title="1">        ID: sk.ID, Name: sk.Name, Description: sk.Description, Active: sk.Active,
+</span>                }<span class="cov8" title="1">)
 </span>        }
 
         <span class="cov8" title="1">mode, model := s.Agent.Mode(ctx)
-        v = WorkspaceView{
-                Viewer:    ViewerInfo{ID: p.ID, Name: p.Name, Role: p.Role, RoleTitle: s.RBAC.RoleTitle(p.Role), Team: p.Team},
-                Intern:    intern,
-                Checklist: checklist, Progress: progress, NextStep: domain.NextStep(checklist),
-                SprintTask: task, FeatureFlags: s.Services.Flags.List(ctx), Metrics: metrics,
-                Messages: []domain.ChatMessage{}, Notifications: reverse(notifications),
-                Briefs: []domain.MentorBrief{}, Absences: []domain.AbsenceRequest{},
-                AccessGrants: []domain.AccessGrant{}, Incidents: []domain.TelemetryEvent{},
-                DocProgress: DocProgress{Read: read, Total: metrics.DocsTotal},
+</span>        v<span class="cov8" title="1"> = WorkspaceView{
+                Viewer:    Vie</span>werInfo{ID: p.ID, Name: p.Name, Role: p.Role, RoleTitle: s.RBAC.RoleTitle(p.Role), Team: p.Team},
+                I<span class="cov8" title="1">ntern:    intern,
+</span>                Checklist: checklist, Progress: progress, NextStep: domain.NextStep(checklist),
+                <span class="cov8" title="1">SprintTask: task, Skills: skills, FeatureFlags: s.Services.Flags.List(ctx), Metrics: metrics,
+                Messages: []do</span>main.ChatMessage{}, Notifications: reverse(notifications),
+                B<span class="cov8" title="1">riefs: []domain.MentorBrief{}, Absences: []domain.AbsenceRequest{},
+</span>                AccessGrants: []domain.AccessGrant{}, Incidents: []domain.TelemetryEvent{},
+                <span class="cov8" title="1">DocProgress: DocProgress{Read: read, Total: metrics.Do</span>csTotal},
                 Engine:      EngineInfo{Mode: mode, Model: model},
-                Storage:     StorageInfo{Store: s.Store.Name(), Cache: s.Cache.Name()},
-                Permissions: map[string]bool{
-                        "chat": s.can(p, OpChatSend), "cron": s.can(p, OpCronTrigger), "reset": s.can(p, OpReset),
-                        "telemetry": s.can(p, OpTelemetryRead), "flags_write": s.can(p, OpFlagsWrite),
-                        "briefs": s.can(p, OpBriefsRead), "incidents": s.can(p, OpIncidentsRead),
-                },
-                Disclaimer: s.Spec.Agent.Agent.SyntheticData.Disclaimer,
+        <span class="cov8" title="1">        Storage:     StorageInfo{</span>Store: s.Store.Name(), Cache: s.Cache.Name()},
+                <span class="cov8" title="1">Permissions: map[string]bool{
+                        "chat": s.can</span>(p, OpChatSend), "cron": s.can(p, OpCronTrigger), "reset": s.can(p, OpReset),
+                        <span class="cov8" title="1">"telemetry": s.can(p, OpTelemetryRead), "flags_write": s.can(p, OpFlagsWrite),
+</span>                        "briefs": s.can(p, OpBriefsRead), "incidents": s.can(p, OpIncidentsRead),
+                <span class="cov8" title="1">},
+</span>                Disclaimer: s.Spec.Agent.Agent.SyntheticData.Disclaimer,
+        <span class="cov8" title="1">}
+</span>
+        isOwner := p.ID</span> == internID
+        if<span class="cov0" title="0"> s.can(p, OpChatHistoryRead) &amp;&amp; isOwner {
+</span>                if v.Messages, err = domain.Load[domain.ChatMessage](ctx, s.Store, domain.KindMessage, internID); err != nil {
+                <span class="cov8" title="1">        return v, err
+</span>                }<span class="cov8" title="1">
 </span>        }
-
-        <span class="cov8" title="1">isOwner := p.ID == internID
-        if s.can(p, OpChatHistoryRead) &amp;&amp; isOwner </span>{
-                <span class="cov8" title="1">if v.Messages, err = domain.Load[domain.ChatMessage](ctx, s.Store, domain.KindMessage, internID); err != nil </span>{
-                        <span class="cov8" title="1">return v, err
-</span>                }
-        }
-        <span class="cov8" title="1">if isOwner || s.can(p, OpAbsencesTeam) </span>{
-                <span class="cov8" title="1">absences, err := domain.Load[domain.AbsenceRequest](ctx, s.Store, domain.KindAbsence, internID)
-                if err != nil </span>{
-                        <span class="cov8" title="1">return v, err
-</span>                }
-                <span class="cov8" title="1">grants, err := domain.Load[domain.AccessGrant](ctx, s.Store, domain.KindAccessGrant, internID)
-                if err != nil </span>{
-                        <span class="cov8" title="1">return v, err
-</span>                }
-                <span class="cov8" title="1">v.Absences, v.AccessGrants = reverse(absences), grants</span>
-        }
-        <span class="cov8" title="1">if s.can(p, OpBriefsRead) </span>{
-                <span class="cov8" title="1">briefs, err := domain.Load[domain.MentorBrief](ctx, s.Store, domain.KindBrief, internID)
-                if err != nil </span>{
-                        <span class="cov8" title="1">return v, err
-</span>                }
-                <span class="cov8" title="1">v.Briefs = reverse(briefs)</span>
-        }
-        <span class="cov8" title="1">if s.can(p, OpIncidentsRead) </span>{
-                <span class="cov8" title="1">events, err := domain.Load[domain.TelemetryEvent](ctx, s.Store, domain.KindEvent, internID)
-                if err != nil </span>{
-                        <span class="cov0" title="0">return v, err
-</span>                }
-                <span class="cov8" title="1">for i := len(events) - 1; i &gt;= 0; i-- </span>{
-                        <span class="cov8" title="1">if events[i].Name == "rbac.incident" </span>{
-                                <span class="cov8" title="1">v.Incidents = append(v.Incidents, events[i])
-</span>                        }
+</span>        if isOwner || s.can(p, OpAbsencesTeam) {
+                absences, err := domain.Load[domain.AbsenceRequest](ctx, s.Store, domain.KindAbsence, internID)
+                if err != nil {
+        <span class="cov8" title="1">                return v, e</span>rr
                 }
-        }
-        <span class="cov8" title="1">return v, nil</span>
+                grants, err := domain.Load[domain.AccessGrant](ctx, s.Store, domain.KindAccessGrant, internID)
+                if err != nil {
+                        return v, err
+        <span class="cov8" title="1">        }
+</span>                <span class="cov8" title="1">v.Absences, v.AccessGrants = reverse(absences), grants
+</span>        }
+        <span class="cov8" title="1">if s.can(p, OpBriefsRead) {
+                briefs, err := domain.Load[domain.MentorBrief](ctx, s.Store, domain.KindBrief, internID)
+                if err != nil {
+                        return v, </span>err
+                <span class="cov0" title="0">}
+</span>                v.Briefs = reverse(briefs)
+        <span class="cov8" title="1">}
+</span>        i<span class="cov8" title="1">f s.can(p, OpIncidentsRead) {
+</span>                events, err := domain.Load[domain.TelemetryEvent](ctx, s.Store, domain.KindEvent, internID)
+                if err != nil {
+        <span class="cov8" title="1">                return v, err
+                }
+</span>                <span class="cov0" title="0">for i := len(events) - 1; i &gt;= 0; i-- {
+</span>                        if events[i].Name == "rbac.incident" {
+        <span class="cov8" title="1">                        v.Incidents = append(v.Incidents, events[i])
+                        }
+</span>                <span class="cov8" title="1">}
+</span>        }
+        return </span>v, nil
 }
 
-// ReviewAbsence согласовывает или отклоняет заявку на отгул руководителем.
-func (s *Service) ReviewAbsence(ctx context.Context, p domain.Principal, id, decision, comment string) (*domain.AbsenceRequest, error) {
-        <span class="cov8" title="1">if err := s.authorize(ctx, p, OpAbsencesReview); err != nil </span>{
-                <span class="cov8" title="1">return nil, err
-</span>        }
-        <span class="cov8" title="1">id = strings.TrimSpace(id)
+/<span class="cov8" title="1">/ ReviewAbsence �</span>�огласовывает или отклоняет заявку на отгул руководителем.
+fu<span class="cov0" title="0">nc (s *Service) ReviewAbsence(ctx context.Context, p domain.Principal, id, decision, comment string) (*domain.AbsenceRequest, error) {
+</span>        if err := s.authorize(ctx, p, OpAbsencesReview); err != nil {
+                return nil, err
+        <span class="cov8" title="1">}
+        id = strings.TrimSpace(id)
         decision = strings.TrimSpace(decision)
         comment = strings.TrimSpace(comment)
-        if id == "" </span>{
-                <span class="cov0" title="0">return nil, fmt.Errorf("%w: не указан id заявки", domain.ErrValidation)
+        if id == "" {
+                return nil, fmt.Errorf("%w: не указан id заявки", domain.ErrValidation)
 </span>        }
-        <span class="cov8" title="1">if decision != domain.AbsenceStatusApproved &amp;&amp; decision != domain.AbsenceStatusRejected </span>{
-                <span class="cov8" title="1">return nil, fmt.Errorf("%w: некорректное решение %q (ожидается approved или rejected)", domain.ErrValidation, decision)
+        <span class="cov8" title="1">if decision != domain.AbsenceStatusApproved &amp;&amp; decision != domain.AbsenceStatusRejected {
+</span>                <span class="cov0" title="0">return nil, fmt.Errorf("%w: некорректное решение %q (ожидается approved или rejected)", domain.ErrValidation, decision)
 </span>        }
 
-        <span class="cov8" title="1">all, err := domain.Load[domain.AbsenceRequest](ctx, s.Store, domain.KindAbsence, "")
-        if err != nil </span>{
-                <span class="cov0" title="0">return nil, err
-</span>        }
-        <span class="cov8" title="1">var target *domain.AbsenceRequest
-        for i := range all </span>{
-                <span class="cov8" title="1">if all[i].ID == id || all[i].Number == id </span>{
-                        <span class="cov8" title="1">target = &amp;all[i]
-                        break</span>
-                }
+        all, err := domain.Load[domain.AbsenceRequest](ctx, s.Store, domain.KindAbsence, "")
+        <span class="cov8" title="1">if err != nil {
+                return nil, err
         }
-        <span class="cov8" title="1">if target == nil </span>{
-                <span class="cov0" title="0">return nil, domain.ErrNotFound
+        var target *domain.AbsenceRequest
+        for i := range all {
+                if all[i].ID == id || all[i].Number == id {
+                        target = &amp;all[i]
+</span>                        break
+                }
+        <span class="cov8" title="1">}
+        if target == nil {
+</span>                <span class="cov8" title="1">return nil, domain.ErrNotFound
 </span>        }
 
-        <span class="cov8" title="1">now := s.Clock.Now()
-        target.Status = decision
-        target.Decision = decision
+        now := s.Clock.Now</span>()
+        ta<span class="cov8" title="1">rget.Status = decision
+</span>        target.Decision = decision
         target.Comment = comment
         target.ReviewerID = p.ID
-        target.ReviewedAt = &amp;now
-</span>
-        <span class="cov8" title="1">if err := domain.Save(ctx, s.Store, domain.KindAbsence, target.ID, target.InternID, target.CreatedAt, *target); err != nil </span>{
-                <span class="cov0" title="0">return nil, err
-</span>        }
+        <span class="cov8" title="1">target.ReviewedAt = &amp;now
 
-        // 1. Clickstream-событие absence.reviewed
-        <span class="cov8" title="1">s.Events.Track(ctx, target.InternID, p, domain.EventKindClickstream, "absence.reviewed", domain.SeverityInfo, map[string]any{
-                "id":          target.ID,
-                "number":      target.Number,
-                "decision":    decision,
-                "comment":     comment,
-                "reviewer_id": p.ID,
-        })
-</span>
-        // 2. Системное уведомление от AI-Buddy в чат стажёра
-        <span class="cov8" title="1">var notifyText string
-        if decision == domain.AbsenceStatusApproved </span>{
-                <span class="cov8" title="1">notifyText = fmt.Sprintf("✅ Руководитель согласовал твою заявку на отгул %s. Статус в системе «Отсутствия» обновлён.", target.Number)
-</span>        } else {
-                <span class="cov8" title="1">notifyText = fmt.Sprintf("❌ Руководитель отклонил твою заявку на отгул %s. Статус в системе «Отсутствия» обновлён.", target.Number)
-                if comment != "" </span>{
-                        <span class="cov8" title="1">notifyText += fmt.Sprintf("\nКомментарий: %s", comment)
-</span>                }
+        if err := domain.Save(ctx, s.Store, domain.KindAbsence, target.ID, target.InternID, target.CreatedAt, *target); err != nil {
+                return nil, err
         }
 
-        <span class="cov8" title="1">msg := domain.ChatMessage{
+        // 1. Clickstream-событие absence.reviewed
+        s.Events.Track(ctx, target.InternID, p, domain.EventKindClickstream, "absence.reviewed", domain.SeverityInfo, map[string]any{
+                "id":          target.ID,
+</span>                "number":      target.Number,
+        <span class="cov8" title="1">        "decision":    decision,
+</span>                "comment":     comment,
+                "reviewer_id": p.ID,
+        <span class="cov8" title="1">})
+</span>
+        <span class="cov8" title="1">// 2. Систем</span>ное уведомление от AI-Buddy в чат стажёра
+        var notifyText string
+        if decision == domain.AbsenceStatusApproved {
+                notifyText = fmt.Sprintf("✅ Руководитель согласовал твою заявку на отгул %s. Статус в системе «Отсутствия» обновлён.", target.Number)
+        <span class="cov8" title="1">} else {
+                notifyText = fmt.Spr</span>intf("❌ Руководитель отклонил твою заявку на отгул %s. Статус в системе «Отсутствия» обновлён.", target.Number)
+                <span class="cov8" title="1">if comment != "" {
+</span>                        notifyText += fmt.Sprintf("\nКомментарий: %s", comment)
+        <span class="cov8" title="1">        }
+</span>        }
+
+        msg := domain.ChatMessage{
                 ID:        s.IDs.NewID("msg"),
                 InternID:  target.InternID,
                 Role:      domain.MessageAssistant,
@@ -6427,243 +6513,243 @@ func (s *Service) ReviewAbsence(ctx context.Context, p domain.Principal, id, dec
                 Engine:    domain.EngineSmart,
                 Sources:   []domain.DocRef{},
                 CreatedAt: now,
-</span>        }
-        <span class="cov8" title="1">_ = s.saveMessage(ctx, msg)
-</span>
+        }
+        _ = s.saveMessage(ctx, msg)
+
         // Уведомление во входящие
-        <span class="cov8" title="1">_, _ = s.Services.Notifications.Send(ctx, target.InternID, "Согласование отгула", notifyText, "absence", now)
-</span>
-        <span class="cov8" title="1">return target, nil</span>
+        _, _ = s.Services.Notifications.Send(ctx, target.InternID, "Согласование отгула", notifyText, "absence", now)
+
+</span>        return target, nil
 }
 
-func reverse[T any](in []T) []T {
-        <span class="cov8" title="1">out := make([]T, len(in))
-        for i, v := range in </span>{
-                <span class="cov8" title="1">out[len(in)-1-i] = v
-</span>        }
-        <span class="cov8" title="1">return out</span>
+f<span class="cov8" title="1">unc reverse[T any](in []T) []T {
+        out := make([]T, len(in)</span>)
+        f<span class="cov8" title="1">or i, v := range in {
+</span>                out[len(in)-1-i] = v
+        <span class="cov8" title="1">}
+</span>        return out
 }
 
-// ChatResult — результат обработки сообщения или подтверждённого действия.
-type ChatResult struct {
-        UserMessage      *domain.ChatMessage    `json:"user_message"`
-        Message          *domain.ChatMessage    `json:"message"`
+/<span class="cov8" title="1">/ ChatResult </span>— результат обработки сообщения или подтверждённого действия.
+ty<span class="cov8" title="1">pe ChatResult struct {
+</span>        UserMessage      *domain.ChatMessage    `json:"user_message"`
+        <span class="cov8" title="1">Message  </span>        *domain.ChatMessage    `json:"message"`
         ToolCalls        []domain.MCPToolCall   `json:"tool_calls"`
         RBAC             *domain.RBACVerdict    `json:"rbac"`
         Checklist        []domain.ChecklistItem `json:"checklist"`
         ChecklistUpdates []domain.ChecklistItem `json:"checklist_updates"`
-        Progress         domain.Progress        `json:"progress"`
+        <span class="cov8" title="1">Progress         domain.Progress        `json:"progress"`
         NextStep         *domain.ChecklistItem  `json:"next_step"`
-        LatencyMS        float64                `json:"latency_ms"`
+        LatencyMS        float64                `json:"latency</span>_ms"`
 }
-
-func (s *Service) saveMessage(ctx context.Context, m domain.ChatMessage) error {
-        <span class="cov8" title="1">return domain.Save(ctx, s.Store, domain.KindMessage, m.ID, m.InternID, m.CreatedAt, m)
-</span>}
-
-func callIDs(calls []domain.MCPToolCall) []string {
-        <span class="cov8" title="1">ids := make([]string, 0, len(calls))
-        for _, c := range calls </span>{
+</span>
+f<span class="cov8" title="1">unc (s *Service) saveMessage(ctx context.Context, m domain.ChatMessage) error {
+        return domain.Save(ctx, s.Store, domain.KindMessage, m.</span>ID, m.InternID, m.CreatedAt, m)
+}
+</span>
+f<span class="cov8" title="1">unc callIDs(calls []domain.MCPToolCall) []string {
+        ids := make([]string, 0, len(calls))
+        for _, c := ra</span>nge calls {
                 <span class="cov8" title="1">ids = append(ids, c.ID)
 </span>        }
-        <span class="cov8" title="1">return ids</span>
+        <span class="cov8" title="1">return ids
 }
-
-func nonNil[T any](in []T) []T {
-        <span class="cov8" title="1">if in == nil </span>{
-                <span class="cov8" title="1">return []T{}
-</span>        }
-        <span class="cov8" title="1">return in</span>
-}
-
-// Chat обрабатывает сообщение стажёра: агент → MCP/RBAC → эффекты на чек-лист → ответ.
+</span>
+</span>func nonNil[T any](in []T) []T {
+        <span class="cov8" title="1">if in == nil {
+                return []T{}
+</span>        }<span class="cov8" title="1">
+</span>        return in
+}<span class="cov8" title="1">
+</span>
+/<span class="cov8" title="1">/ Chat обрабатывает сообщение стажёра: агент → MCP/RBAC → эффекты на чек-лист → ответ.
 func (s *Service) Chat(ctx context.Context, p domain.Principal, text string, emit func(agent.Stage), targetInternID ...string) (ChatResult, error) {
-        <span class="cov8" title="1">started := time.Now()
-        var res ChatResult
-        if err := s.authorize(ctx, p, OpChatSend); err != nil </span>{
+        started := time.Now()
+</span>        var res ChatResult
+        <span class="cov8" title="1">if err := s.authorize(ctx, p, OpChatSend); err </span>!= nil {
                 <span class="cov8" title="1">return res, err
 </span>        }
         <span class="cov8" title="1">text = strings.TrimSpace(text)
-        if n := len([]rune(text)); n == 0 || n &gt; maxMessageLen </span>{
-                <span class="cov8" title="1">return res, fmt.Errorf("%w: сообщение должно быть от 1 до %d символов", domain.ErrValidation, maxMessageLen)
-</span>        }
-        <span class="cov8" title="1">internID := s.resolveInternID(p, targetInternID...)
+        if n := len([]rune(text)); n == 0 || n &gt; maxMessageLen {
+</span>                return res, fmt.Errorf("%w: сообщение должно быть от 1 до %d символов", domain.ErrValidation, maxMessageLen)
+        <span class="cov8" title="1">}
+        internID := s.resolveInternID(p, targetInternID...)
         intern, err := domain.LoadOne[domain.InternProfile](ctx, s.Store, domain.KindIntern, internID)
-        if err != nil </span>{
-                <span class="cov8" title="1">return res, err
+        if err != nil {
+</span>                return res, err
+        <span class="cov8" title="1">}
+        checklist, err</span> := domain.LoadChecklist(ctx, s.Store, internID)
+        i<span class="cov8" title="1">f err != nil {
+</span>                return res, err
+        <span class="cov8" title="1">}
+</span>        t<span class="cov8" title="1">ask, err := domain.LoadOne[domain.SprintTask](ctx, s.Store, domain.KindSprintTask, internID)
+        if err != nil {
+</span>                r<span class="cov8" title="1">eturn res, err
 </span>        }
-        <span class="cov8" title="1">checklist, err := domain.LoadChecklist(ctx, s.Store, internID)
-        if err != nil </span>{
-                <span class="cov8" title="1">return res, err
-</span>        }
-        <span class="cov8" title="1">task, err := domain.LoadOne[domain.SprintTask](ctx, s.Store, domain.KindSprintTask, internID)
-        if err != nil </span>{
-                <span class="cov8" title="1">return res, err
-</span>        }
-        <span class="cov8" title="1">sess := s.loadSession(ctx, internID)
-</span>
-        <span class="cov8" title="1">user := domain.ChatMessage{
-                ID: s.IDs.NewID("msg"), InternID: internID, Role: domain.MessageUser, Text: text,
-                Sources: []domain.DocRef{}, Suggestions: []string{}, ToolCallIDs: []string{}, CreatedAt: s.Clock.Now(),
-</span>        }
-        <span class="cov8" title="1">if err := s.saveMessage(ctx, user); err != nil </span>{
-                <span class="cov8" title="1">return res, err
-</span>        }
-        <span class="cov8" title="1">s.Events.Track(ctx, internID, p, domain.EventKindClickstream, "chat.message_sent", domain.SeverityInfo,
-                map[string]any{"length": len([]rune(text))})
-</span>
-        <span class="cov8" title="1">reply := s.Agent.Handle(ctx, agent.Request{
-                Principal: p, Intern: intern, Text: text, Checklist: checklist, Task: task,
-                LastIntent: sess.LastIntent, Emit: emit,
-        })
-</span>
-        <span class="cov8" title="1">updates, err := s.applyEffects(ctx, p, reply.ToolCalls, reply.DocsRead, internID)
-        if err != nil </span>{
-                <span class="cov8" title="1">return res, err
-</span>        }
-        <span class="cov8" title="1">if reply.OpenQuestion != "" </span>{
-                <span class="cov8" title="1">q := openQuestion{Text: reply.OpenQuestion, AskedAt: s.Clock.Now()}
-                if err := domain.Save(ctx, s.Store, domain.KindOpenQuestion, s.IDs.NewID("q"), internID, q.AskedAt, q); err != nil </span>{
-                        <span class="cov8" title="1">return res, err
-</span>                }
+        sess := s.loadSession(ctx, internID)
+
+        user := domain</span>.ChatMessage{
+                <span class="cov0" title="0">ID: s.IDs.NewID("msg"), InternID: internID, Role: domain.MessageUser, Text: text,
+</span>                Sources: []domain.DocRef{}, Suggestions: []string{}, ToolCallIDs: []string{}, CreatedAt: s.Clock.Now(),
         }
-        <span class="cov8" title="1">checklist, err = domain.LoadChecklist(ctx, s.Store, internID)
-        if err != nil </span>{
-                <span class="cov0" title="0">return res, err
+        <span class="cov8" title="1">if err := s.saveMessage(ctx, user); err != nil {
+                return res, err
+        }
+        s.Events.Track(ctx, internID, p, domain.EventKindClickstream, "chat.message_sent", domain.SeverityInfo,
+                map[string]any{"length": len([]rune(text))})
+
+</span>        reply := s.Agent.Handle(ctx, agent.Request{
+        <span class="cov8" title="1">        Principal: p, Intern: intern, Text: text, Checklist</span>: checklist, Task: task,
+                <span class="cov0" title="0">LastIntent: sess.LastIntent, Emit: emit,
+</span>        })
+
+</span>        updates, err := s.applyEffects(ctx, p, reply.ToolCalls, reply.DocsRead, internID)
+        <span class="cov8" title="1">if err != nil {
+                return res, err
+        }
+        if reply.OpenQuestion != "" {
+</span>                q := openQuestion{Text: reply.OpenQuestion, AskedAt: s.Clock.Now()}
+        <span class="cov8" title="1">        if err := domain.Save(ct</span>x, s.Store, domain.KindOpenQuestion, s.IDs.NewID("q"), internID, q.AskedAt, q); err != nil {
+                <span class="cov8" title="1">        return res, err
+</span>                }
+        <span class="cov8" title="1">}
+        checklist, err = domain.Loa</span>dChecklist(ctx, s.Store, internID)
+        i<span class="cov8" title="1">f err != nil {
+                return res, err
 </span>        }
 
         <span class="cov8" title="1">assistant := domain.ChatMessage{
                 ID: s.IDs.NewID("msg"), InternID: internID, Role: domain.MessageAssistant,
                 Text:   reply.Text + checklistNote(updates, checklist),
                 Intent: reply.Intent, Engine: reply.Engine, Sources: nonNil(reply.Sources),
-                ActionCard: reply.ActionCard, ResultCard: reply.ResultCard, Suggestions: nonNil(reply.Suggestions),
+                Actio</span>nCard: reply.ActionCard, ResultCard: reply.ResultCard, Suggestions: nonNil(reply.Suggestions),
                 ToolCallIDs: callIDs(reply.ToolCalls), CreatedAt: s.Clock.Now(),
-</span>        }
-        <span class="cov8" title="1">if err := s.saveMessage(ctx, assistant); err != nil </span>{
-                <span class="cov0" title="0">return res, err
-</span>        }
-        <span class="cov8" title="1">s.saveSession(ctx, internID, session{LastIntent: reply.Intent, Turns: sess.Turns + 1})
-</span>
-        <span class="cov8" title="1">latency := float64(time.Since(started).Microseconds()) / 1000
-        payload := map[string]any{
-                "intent": reply.Intent, "scenario": reply.Scenario, "engine": reply.Engine,
-                "answered": reply.Answered, "latency_ms": latency, "tool_calls": len(reply.ToolCalls),
-</span>        }
-        <span class="cov8" title="1">if reply.SavingKey != "" </span>{
+        }
+        if err := s.saveMessage(ctx, assistant); err != nil {
+        <span class="cov8" title="1">        return res, err
+</span>        }<span class="cov8" title="1">
+</span>        s.saveSession(ctx, internID, session{LastIntent: reply.Intent, Turns: sess.Turns + 1})
+
+        latency := float64(time.Since(started).Microseconds()) / 1000
+        payload := map[string]any{</span>
+                <span class="cov8" title="1">"intent": reply.Intent, "scenario": reply.Scenario, "engine": reply.Engine,
+                "answered": reply.Answered, "latency_ms</span>": latency, "tool_calls": len(reply.ToolCalls),
+        }
+</span>        if reply.SavingKey != "" {
                 <span class="cov8" title="1">payload["saving_key"] = reply.SavingKey
 </span>        }
-        <span class="cov8" title="1">s.Events.Track(ctx, internID, p, domain.EventKindAgent, "agent.answer", domain.SeverityInfo, payload)
-        if reply.LLMFallback != "" </span>{
-                <span class="cov8" title="1">s.Events.Track(ctx, internID, p, domain.EventKindAgent, "llm.fallback", domain.SeverityWarn,
-                        map[string]any{"reason": reply.LLMFallback, "fallback": "smart_engine"})
+        <span class="cov8" title="1">s.Events.Track(ctx, internID, p, domain.EventKindAg</span>ent, "agent.answer", domain.SeverityInfo, payload)
+        i<span class="cov8" title="1">f reply.LLMFallback != "" {
+</span>                s.Events.Track(ctx, internID, p, domain.EventKindAgent, "llm.fallback", domain.SeverityWarn,
+                <span class="cov0" title="0">        map[string]any{"reason": reply.LLMFallback, "fallback": "smart_engine"})
 </span>        }
 
-        <span class="cov8" title="1">return ChatResult{
+</span>        return ChatResult{
                 UserMessage: &amp;user, Message: &amp;assistant, ToolCalls: nonNil(reply.ToolCalls), RBAC: reply.Verdict,
                 Checklist: checklist, ChecklistUpdates: nonNil(updates), Progress: domain.ComputeProgress(checklist),
-                NextStep: domain.NextStep(checklist), LatencyMS: latency,
-        }, nil</span>
+        <span class="cov8" title="1">        NextStep: domain</span>.NextStep(checklist), LatencyMS: latency,
+        }, nil
 }
-
-func checklistNote(updates, checklist []domain.ChecklistItem) string {
-        <span class="cov8" title="1">if len(updates) == 0 </span>{
+</span>
+fu<span class="cov8" title="1">nc checklistNote(updates, checklist []domain.ChecklistItem) string {
+</span>        if len(updates) == 0 {
                 <span class="cov8" title="1">return ""
 </span>        }
-        <span class="cov8" title="1">var b strings.Builder
-        b.WriteString("\n\n")
-        for _, u := range updates </span>{
-                <span class="cov8" title="1">state := "выполнен"
-                if u.Status == domain.StatusInProgress </span>{
-                        <span class="cov8" title="1">state = "в работе"
-</span>                }
-                <span class="cov8" title="1">fmt.Fprintf(&amp;b, "Шаг чек-листа «%s» — %s. ", u.Title, state)</span>
+        <span class="cov0" title="0">var b strings.Builder
+</span>        b.WriteString("\n\n")
+        for _, u := range updates {
+                state := "выполнен"
+                if u.Status == domain.StatusInProgress {
+        <span class="cov8" title="1">                state = "в работе"
+                }
+                fmt.Fprintf(&amp;b, "Шаг</span> чек-листа «%s» — %s. ", u.Title, state)
+        }<span class="cov8" title="1">
+</span>        if<span class="cov8" title="1"> next := domain.NextStep(checklist); next != nil {
+</span>                fmt.Fprintf(&amp;b, "Следующий шаг: «%s».", next.Title)
+        } else {
+        <span class="cov8" title="1">        b.WriteString("Все шаги чек-листа выполнены!")
         }
-        <span class="cov8" title="1">if next := domain.NextStep(checklist); next != nil </span>{
-                <span class="cov8" title="1">fmt.Fprintf(&amp;b, "Следующий шаг: «%s».", next.Title)
-</span>        } else {
-                <span class="cov0" title="0">b.WriteString("Все шаги чек-листа выполнены!")
-</span>        }
-        <span class="cov8" title="1">return strings.TrimRight(b.String(), " ")</span>
+</span>        r<span class="cov8" title="1">eturn strings.TrimRight(b.String(), " ")
 }
-
-func evidence(call domain.MCPToolCall) string {
-        <span class="cov8" title="1">switch call.Tool </span>{
-        case mcp.ToolRequestRepoAccess:
-                <span class="cov8" title="1">return fmt.Sprintf("Доступ к %v выдан через IAM (AI-Buddy)", call.Result["repository"])</span>
+</span>
+</span>func evidence(call domain.MCPToolCall) string {
+        s<span class="cov8" title="1">witch call.Tool {
+</span>        ca<span class="cov8" title="1">se mcp.ToolRequestRepoAccess:
+</span>                return fmt.Sprintf("Доступ к %v выдан через IAM (AI-Buddy)", call.Result["repository"])
         case mcp.ToolCreateDayOff:
-                <span class="cov8" title="1">return fmt.Sprintf("Заявка %v оформлена через AI-Buddy", call.Result["request_number"])</span>
-        case mcp.ToolSendBrief:
-                <span class="cov8" title="1">return "Бриф к 1:1 отправлен наставнику"</span>
-        }
-        <span class="cov0" title="0">return "Выполнено через AI-Buddy"</span>
+                return fmt.Sprintf("Заявка %v оформлена через AI-Buddy", call.Result["request_number"])
+        <span class="cov8" title="1">case mcp.ToolSendBrief:
+                return "Бриф к 1:1 отправлен нас</span>тавнику"
+        }<span class="cov8" title="1">
+        return "</span>Выполнено через AI-Buddy"
 }
 
-// applyEffects применяет правила checklist_effects из спецификации агента.
-func (s *Service) applyEffects(ctx context.Context, p domain.Principal, calls []domain.MCPToolCall, docs []string, targetInternID ...string) ([]domain.ChecklistItem, error) {
-        <span class="cov8" title="1">internID := s.resolveInternID(p, targetInternID...)
+</span>// a<span class="cov8" title="1">pplyEffects применяет �</span>�равила checklist_effects из спецификации агента.
+func <span class="cov8" title="1">(s *Service) applyEffects(ctx context.Context, p domain.Principal, calls []domain.MCPToolCall, docs []string, targetInternID ...string) ([]domain.ChecklistItem, error) {
+</span>        internID := s.resolveInternID(p, targetInternID...)
         now := s.Clock.Now()
-        for _, id := range docs </span>{
-                <span class="cov8" title="1">if err := domain.Save(ctx, s.Store, domain.KindDocRead, internID+":"+id, internID, now, docRead{DocID: id, ReadAt: now}); err != nil </span>{
-                        <span class="cov8" title="1">return nil, err
+        for _, id := range docs {
+                i<span class="cov8" title="1">f err := domain.Save(ctx, s.Store, domain.KindDocRead, internID+":"+id, internID, now, docRead{DocID: id, ReadAt: now}); err != nil {
+                        return nil, err
 </span>                }
-        }
-        <span class="cov8" title="1">read := map[string]bool{}
-        if len(docs) &gt; 0 </span>{
-                <span class="cov8" title="1">ids, err := s.docsReadFor(ctx, internID)
-                if err != nil </span>{
-                        <span class="cov8" title="1">return nil, err
+</span>        }
+</span>        read := map[string]bool{}
+        if len(docs) &gt; 0 {
+                i<span class="cov8" title="1">ds, err</span> := s.docsReadFor(ctx, internID)
+                if err != nil {
+                        r<span class="cov8" title="1">eturn nil, err
 </span>                }
-                <span class="cov8" title="1">for _, id := range ids </span>{
-                        <span class="cov8" title="1">read[id] = true
-</span>                }
-        }
-
-        <span class="cov8" title="1">var updates []domain.ChecklistItem
-        for _, eff := range s.Spec.Agent.ChecklistEffects </span>{
-                <span class="cov8" title="1">status, proof := domain.ChecklistStatus(""), ""
-                switch </span>{
-                case eff.Tool != "":
-                        <span class="cov8" title="1">for _, c := range calls </span>{
-                                <span class="cov8" title="1">if c.Tool == eff.Tool &amp;&amp; c.OK() </span>{
-                                        <span class="cov8" title="1">status, proof = domain.ChecklistStatus(eff.Status), evidence(c)
-</span>                                }
+                fo<span class="cov8" title="1">r _, id := range ids {
+</span>                        read[id] = true
+                }
+        }<span class="cov8" title="1">
+</span>
+</span>        var updates []domain.ChecklistItem
+        f<span class="cov8" title="1">or _, eff := range s.Spec.Agent.ChecklistEffects {
+                status, proof := domain.ChecklistStatu</span>s(""), ""
+                s<span class="cov0" title="0">witch {
+</span>                case eff.Tool != "":
+                <span class="cov8" title="1">        for _, c := r</span>ange calls {
+                        <span class="cov0" title="0">        if c.Tool == eff.Tool &amp;&amp; c.OK() {
+</span>                                        status, proof = domain.ChecklistStatus(eff.Status), evidence(c)
+                <span class="cov8" title="1">                }
                         }
-                case len(eff.DocsRead) &gt; 0 &amp;&amp; len(docs) &gt; 0:
-                        <span class="cov8" title="1">done := 0
-                        for _, id := range eff.DocsRead </span>{
-                                <span class="cov8" title="1">if read[id] </span>{
-                                        <span class="cov8" title="1">done++
-</span>                                }
+</span>                c<span class="cov8" title="1">ase len(</span>eff.DocsRead) &gt; 0 &amp;&amp; len(docs) &gt; 0:
+                        done := 0
+                <span class="cov8" title="1">        for _, id := range eff.DocsRead {
+</span>                        <span class="cov8" title="1">        if read[id] {
+</span>                                        done++
+                <span class="cov8" title="1">                }
                         }
-                        <span class="cov8" title="1">switch </span>{
-                        case done == len(eff.DocsRead):
-                                <span class="cov8" title="1">status, proof = domain.ChecklistStatus(eff.Status), "Инструкции изучены через AI-Buddy"</span>
+                        switch {
+</span>                        case done == len(eff.DocsRead):
+        <span class="cov8" title="1">                        status, proof = </span>domain.ChecklistStatus(eff.Status), "Инструкции изучены через AI-Buddy"
                         case done &gt; 0:
-                                <span class="cov8" title="1">status, proof = domain.StatusInProgress, fmt.Sprintf("Изучено инструкций: %d из %d", done, len(eff.DocsRead))</span>
+                                status, proof = domain.StatusInProgress, fmt.Sprintf("Изучено инструкций: %d из %d", done, len(eff.DocsRead))
                         }
                 }
-                <span class="cov8" title="1">if status == "" </span>{
-                        <span class="cov8" title="1">continue</span>
+                if status == "" {
+                        continue
                 }
-                <span class="cov8" title="1">item, err := domain.LoadOne[domain.ChecklistItem](ctx, s.Store, domain.KindChecklist, domain.ChecklistRecordID(internID, eff.Item))
-                if errors.Is(err, domain.ErrNotFound) </span>{
-                        <span class="cov0" title="0">continue</span>
+                item, err := domain.LoadOne[domain.ChecklistItem](ctx, s.Store, domain.KindChecklist, domain.ChecklistRecordID(internID, eff.Item))
+                if errors.Is(err, domain.ErrNotFound) {
+                        continue
                 }
-                <span class="cov8" title="1">if err != nil </span>{
-                        <span class="cov0" title="0">return nil, err
-</span>                }
-                <span class="cov8" title="1">next, changed, err := item.Advance(status, proof, now)
-                if err != nil || !changed </span>{
-                        <span class="cov8" title="1">continue</span> // шаг уже в этом или более позднем статусе
+                if err != nil {
+                        return nil, err
                 }
-                <span class="cov8" title="1">if err := domain.SaveChecklistItem(ctx, s.Store, internID, next); err != nil </span>{
-                        <span class="cov8" title="1">return nil, err
-</span>                }
-                <span class="cov8" title="1">updates = append(updates, next)
+                next, changed, err := item.Advance(status, proof, now)
+                if err != nil || !changed {
+                        continue // шаг уже в этом или более позднем статусе
+                }
+                if err := domain.SaveChecklistItem(ctx, s.Store, internID, next); err != nil {
+                        return nil, err
+                }
+                updates = append(updates, next)
                 s.Events.Track(ctx, internID, p, domain.EventKindClickstream, "checklist.updated", domain.SeverityInfo,
-                        map[string]any{"item": next.ID, "status": string(next.Status), "evidence": next.Evidence})</span>
+                        map[string]any{"item": next.ID, "status": string(next.Status), "evidence": next.Evidence})
         }
-        <span class="cov8" title="1">return updates, nil</span>
+        return updates, nil
 }
 </pre>
 		

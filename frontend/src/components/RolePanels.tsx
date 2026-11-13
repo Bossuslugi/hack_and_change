@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { Brief, Notification, Workspace } from '../api/schemas';
+import type { AgentSkill, Brief, Notification, Workspace } from '../api/schemas';
 import { useCron, useReviewAbsence, useSetFlag } from '../hooks/useBuddy';
 import { ABSENCE_STATUS_LABEL, formatDate, formatDateTime, formatMinutes, plural } from '../lib/format';
 import { Icon } from './ui/icons';
@@ -249,45 +249,110 @@ function Incidents({ workspace }: { workspace: Workspace }) {
   );
 }
 
+function AgentSkills({ skills }: { skills: AgentSkill[] }) {
+  if (!skills || skills.length === 0) return null;
+  return (
+    <Card className="p-4">
+      <CardTitle aside={<Badge tone="ai">{skills.length}</Badge>}>Модульные скиллы агента (Agent Skills)</CardTitle>
+      <p className="mt-1 text-meta text-ink-500">
+        Подключённые функциональные модули AI-Buddy, реализующие специализированные сценарии помощи стажёру.
+      </p>
+      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        {skills.map((s) => (
+          <div key={s.id} className="rounded-card border border-line bg-canvas p-3">
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-mono text-meta font-medium text-ink-900">{s.id}</span>
+              <Badge tone={s.active ? 'ok' : 'neutral'}>{s.active ? 'active' : 'disabled'}</Badge>
+            </div>
+            <p className="mt-1 text-body font-medium text-ink-900">{s.name}</p>
+            <p className="mt-0.5 text-meta text-ink-500">{s.description}</p>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
 function Flags({ workspace }: { workspace: Workspace }) {
   const setFlag = useSetFlag();
   const canWrite = workspace.permissions.flags_write === true;
+  const runtimeFlags = workspace.feature_flags.filter((f) => f.kind === 'runtime');
+  const compileFlags = workspace.feature_flags.filter((f) => f.kind === 'compile_time');
+
   return (
     <Card className="p-4">
-      <CardTitle>Feature flags</CardTitle>
-      <p className="mt-1 text-meta text-ink-500">Runtime-флаги хранятся в Redis и применяются без перезапуска. Compile-time задаются при сборке.</p>
-      <ul className="mt-2 divide-y divide-line">
-        {workspace.feature_flags.map((f) => {
-          const locked = f.kind !== 'runtime' || !canWrite;
-          return (
-            <li key={f.key} className="flex items-center justify-between gap-4 py-2">
-              <div className="min-w-0">
-                <p className="truncate font-mono text-meta font-medium text-ink-900">{f.key}</p>
-                <p className="text-meta text-ink-500">{f.description}</p>
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
-                <Badge mono>{f.kind === 'runtime' ? 'runtime' : 'compile-time'}</Badge>
-                <button
-                  type="button"
-                  role="switch"
-                  aria-checked={f.enabled}
-                  aria-label={f.key}
-                  disabled={locked}
-                  onClick={() => setFlag.mutate({ key: f.key, enabled: !f.enabled })}
-                  className={cn(
-                    'relative h-6 w-10 rounded-full transition-colors',
-                    FOCUS,
-                    f.enabled ? 'bg-ok-500' : 'bg-ink-400/50',
-                    locked && 'cursor-not-allowed opacity-50',
-                  )}
-                >
-                  <span className={cn('absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-card transition-[left]', f.enabled ? 'left-[18px]' : 'left-0.5')} />
-                </button>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
+      <CardTitle>Feature flags (Runtime vs Compile-Time)</CardTitle>
+      <p className="mt-1 text-meta text-ink-500">
+        Runtime-флаги хранятся в Redis и переключаются на лету. Compile-time флаги зафиксированы при сборке бинарника через embed/ldflags.
+      </p>
+
+      <div className="mt-4 space-y-4">
+        <div>
+          <Eyebrow className="mb-2 text-ink-700">Runtime Flags (переключаемые на лету)</Eyebrow>
+          <ul className="divide-y divide-line rounded-card border border-line bg-canvas px-3">
+            {runtimeFlags.map((f) => {
+              const locked = !canWrite;
+              return (
+                <li key={f.key} className="flex items-center justify-between gap-4 py-2.5">
+                  <div className="min-w-0">
+                    <p className="truncate font-mono text-meta font-medium text-ink-900">{f.key}</p>
+                    <p className="text-meta text-ink-500">{f.description}</p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <Badge mono>runtime</Badge>
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={f.enabled}
+                      aria-label={f.key}
+                      disabled={locked}
+                      onClick={() => setFlag.mutate({ key: f.key, enabled: !f.enabled })}
+                      className={cn(
+                        'relative h-6 w-10 rounded-full transition-colors',
+                        FOCUS,
+                        f.enabled ? 'bg-ok-500' : 'bg-ink-400/50',
+                        locked && 'cursor-not-allowed opacity-50',
+                      )}
+                    >
+                      <span className={cn('absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-card transition-[left]', f.enabled ? 'left-[18px]' : 'left-0.5')} />
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+
+        <div>
+          <Eyebrow className="mb-2 text-ink-700">Compile-Time Flags (зафиксированы при сборке)</Eyebrow>
+          <ul className="divide-y divide-line rounded-card border border-line bg-canvas px-3">
+            {compileFlags.map((f) => (
+              <li key={f.key} className="flex items-center justify-between gap-4 py-2.5">
+                <div className="min-w-0">
+                  <p className="truncate font-mono text-meta font-medium text-ink-900">{f.key}</p>
+                  <p className="text-meta text-ink-500">{f.description}</p>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <Badge mono tone="neutral">compile-time</Badge>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={f.enabled}
+                    aria-label={f.key}
+                    disabled
+                    className={cn(
+                      'relative h-6 w-10 cursor-not-allowed rounded-full opacity-50 transition-colors',
+                      f.enabled ? 'bg-ok-500' : 'bg-ink-400/50',
+                    )}
+                  >
+                    <span className={cn('absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-card transition-[left]', f.enabled ? 'left-[18px]' : 'left-0.5')} />
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
     </Card>
   );
 }
@@ -370,6 +435,7 @@ export function LeadPanel({ workspace }: { workspace: Workspace }) {
         <Incidents workspace={workspace} />
       </div>
       <Notifications items={workspace.notifications} />
+      <AgentSkills skills={workspace.skills} />
       <Flags workspace={workspace} />
       <Briefs workspace={workspace} />
     </div>

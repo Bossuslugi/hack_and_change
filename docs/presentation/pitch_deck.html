@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Avito Start: AI-Buddy — Pitch Deck</title>
+  <style>
+    :root {
+      --avito-black: #1B1D20;
+      --avito-green: #00C257;
+      --avito-green-hover: #00A84B;
+      --avito-green-light: #E8F9EF;
+      --avito-blue: #00AAFF;
+      --avito-purple: #A855F7;
+      --avito-red: #FF5252;
+      --canvas: #F6F7F9;
+      --surface: #FFFFFF;
+      --line: #E5E7EB;
+      --ink-900: #1B1D20;
+      --ink-700: #374151;
+      --ink-500: #6B7280;
+      --ink-400: #9CA3AF;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: #0f1115;
+      color: var(--ink-900);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Deck container */
+    .deck-container {
+      width: 100%;
+      max-width: 1200px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Top bar */
+    .deck-header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #9CA3AF;
+      font-size: 14px;
+      margin-bottom: 12px;
+      padding: 0 4px;
+    }
+
+    .brand-dots {
+      display: inline-flex;
+      gap: 5px;
+      align-items: center;
+    }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .dot-green { background: var(--avito-green); }
+    .dot-blue { background: var(--avito-blue); }
+    .dot-purple { background: var(--avito-purple); }
+    .dot-red { background: var(--avito-red); }
+
+    /* Slide Frame (16:9 Aspect Ratio) */
+    .slide-wrapper {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: var(--surface);
+      border-radius: 16px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .slide {
+      display: none;
+      width: 100%;
+      height: 100%;
+      padding: 48px 56px;
+      position: relative;
+      flex-direction: column;
+      justify-content: space-between;
+      background: var(--surface);
+    }
+
+    .slide.active {
+      display: flex;
+    }
+
+    /* Slide Header */
+    .slide-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--avito-green);
+    }
+
+    .slide-title {
+      font-size: 36px;
+      font-weight: 800;
+      line-height: 1.15;
+      color: var(--avito-black);
+      margin-top: 6px;
+    }
+
+    .slide-subtitle {
+      font-size: 18px;
+      color: var(--ink-500);
+      margin-top: 8px;
+      max-width: 900px;
+      line-height: 1.4;
+    }
+
+    /* Slide Content Grids */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin: auto 0;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 20px;
+      margin: auto 0;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin: auto 0;
+    }
+
+    /* Cards */
+    .card {
+      background: var(--canvas);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .card-highlight {
+      background: var(--avito-green-light);
+      border-color: rgba(0, 194, 87, 0.3);
+    }
+
+    .card h3 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--ink-900);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card p {
+      font-size: 14px;
+      color: var(--ink-700);
+      line-height: 1.5;
+    }
+
+    .metric-value {
+      font-size: 40px;
+      font-weight: 800;
+      line-height: 1;
+      color: var(--avito-green);
+      margin-bottom: 6px;
+    }
+
+    .metric-sub {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--ink-500);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: monospace;
+      background: #E5E7EB;
+      color: #374151;
+    }
+    .badge-green { background: #D1FAE5; color: #065F46; }
+    .badge-blue { background: #DBEAFE; color: #1E40AF; }
+    .badge-red { background: #FEE2E2; color: #991B1B; }
+
+    /* Footer */
+    .slide-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: var(--ink-400);
+      border-top: 1px solid var(--line);
+      padding-top: 14px;
+      margin-top: 16px;
+    }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-top: 16px;
+    }
+
+    .btn {
+      background: #25282F;
+      color: #F9FAFB;
+      border: 1px solid #374151;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .btn:hover {
+      background: #374151;
+      border-color: #4B5563;
+    }
+
+    .btn-primary {
+      background: var(--avito-green);
+      border-color: var(--avito-green);
+      color: #FFFFFF;
+    }
+
+    .btn-primary:hover {
+      background: var(--avito-green-hover);
+    }
+
+    .slide-indicator {
+      color: #9CA3AF;
+      font-size: 14px;
+      font-weight: 500;
+      min-width: 90px;
+      text-align: center;
+    }
+
+    /* Print styles for Ctrl+P -> Save as PDF */
+    @media print {
+      body {
+        background: white;
+        padding: 0;
+        margin: 0;
+      }
+      .deck-header, .controls {
+        display: none !important;
+      }
+      .deck-container {
+        padding: 0;
+        max-width: none;
+      }
+      .slide-wrapper {
+        box-shadow: none;
+        border: none;
+        border-radius: 0;
+      }
+      .slide {
+        display: flex !important;
+        page-break-after: always;
+        height: 100vh !important;
+        width: 100vw !important;
+        aspect-ratio: auto;
+        padding: 40px 50px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="deck-container">
+    <!-- Header -->
+    <div class="deck-header">
+      <div class="brand-dots">
+        <span class="dot dot-green"></span>
+        <span class="dot dot-blue"></span>
+        <span class="dot dot-purple"></span>
+        <span class="dot dot-red"></span>
+        <strong style="margin-left: 6px; color: #fff;">Avito Start</strong> · AI-Buddy Pitch Deck
+      </div>
+      <div>Презентация кейса Hack&Change 2026 (16:9 PDF Ready)</div>
+    </div>
+
+    <!-- 16:9 Frame -->
+    <div class="slide-wrapper">
+
+      <!-- SLIDE 1: Title -->
+      <section class="slide active" id="slide-1">
+        <div>
+          <div class="slide-tag">
+            <span class="dot dot-green"></span> Hack&Change 2026 · Финальная защита
+          </div>
+          <h1 class="slide-title" style="font-size: 46px; margin-top: 16px;">Avito Start: AI-Buddy</h1>
+          <p class="slide-subtitle" style="font-size: 22px; color: var(--avito-black); font-weight: 500;">
+            Автономный ИИ-наставник стажёров с детерминированным шлюзом безопасности, MCP-инструментами и контекстом команд
+          </p>
+        </div>
+
+        <div class="grid-3" style="margin: 28px 0;">
+          <div class="card card-highlight">
+            <h3>⚡ Проблема</h3>
+            <p><strong>40–65 часов</strong> времени сеньора уходит на рутинные ответы, доступы и организационные вопросы во время онбординга стажёра.</p>
+          </div>
+          <div class="card card-highlight">
+            <h3>🛡️ Решение</h3>
+            <p><strong>AI-Buddy Workspace</strong>: трёхзонная среда с картой адаптации, MCP-инструментами, жестким RBAC Guard и ИИ-кроном повестки 1:1.</p>
+          </div>
+          <div class="card card-highlight">
+            <h3>🚀 Результат</h3>
+            <p><strong>35–48% экономии</strong> времени наставника (~20 ч/стажёр), 100% защита от утечек ПДн, быстрый Time-to-First-PR.</p>
+          </div>
+        </div>
+
+        <div style="background: var(--canvas); border-radius: 10px; padding: 12px 18px; display: flex; justify-content: space-between; font-size: 13px;">
+          <div><strong>Репозиторий:</strong> <span class="badge">github.com/Bossuslugi/hack_and_change</span></div>
+          <div><strong>Демо-стенд:</strong> <span class="badge badge-green">localhost:5173</span></div>
+          <div><strong>Тесты:</strong> <span class="badge badge-blue">Backend 95.6% • Frontend 98.3%</span></div>
+        </div>
+
+        <div class="slide-footer">
+          <span>Avito Tech · Автоматизация адаптации стажёров</span>
+          <span>Слайд 1 из 10</span>
+        </div>
+      </section>
+
+      <!-- SLIDE 2: Problem -->
+      <section class="slide" id="slide-2">
+        <div>
+          <div class="slide-tag">Боли бизнеса и команд</div>
+          <h2 class="slide-title">Проблема: Онбординг сжигает ресурсы сеньоров</h2>
+          <p class="slide-subtitle">В первые 4 недели стажёр постоянно отвлекает наставника типовыми вопросами.</p>
+        </div>
+
+        <div class="grid-3">
+          <div class="card">
+            <div class="metric-value">40–65 ч</div>
+            <div class="metric-sub">Тратит наставник на 1 стажёра за первые 6 месяцев</div>
+            <p style="margin-top: 12px;">Ручные заявки на доступы, ссылки на разрозненные страницы Playbook, объяснения регламентов отгулов и ревью.</p>
+          </div>
+          <div class="card">
+            <div class="metric-value" style="color: var(--avito-red);">3 дня</div>
+            <div class="metric-sub">Средний простой («пробуксовка») на первой задаче</div>
+            <p style="margin-top: 12px;">Стажёры боятся показаться некомпетентными, застревают без коммитов в спринте и не знают, как структурировать вопрос.</p>
+          </div>
+          <div class="card">
+            <div class="metric-value" style="color: var(--avito-blue);">POL-SEC</div>
+            <div class="metric-sub">Риск несанкционированного доступа к прод-данным</div>
+            <p style="margin-top: 12px;">Случайные попытки запроса дампов production-баз с ПДн и паролями для локальной отладки без строгой валидации прав.</p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <span>Анализ онбординга стажёров Авито</span>
+          <span>Слайд 2 из 10</span>
+        </div>
+      </section>
+
+      <!-- SLIDE 3: Concept Workspace -->
+      <section class="slide" id="slide-3">
+        <div>
+          <div class="slide-tag">Продуктовое решение</div>
+          <h2 class="slide-title">AI-Buddy: Трёхзонное рабочее пространство</h2>
+          <p class="slide-subtitle">Единый экран стажёра, наставника и руководителя с контекстным разделением ролей.</p>
+        </div>
+
+        <div class="grid-3">
+          <div class="card">
+            <h3>🗺️ Карта адаптации</h3>
+            <p>Чек-лист стажёра по неделям. Шаги переходят в <strong>completed</strong> автоматически после MCP-действий с плавной зеленой микроанимацией.</p>
+            <div style="margin-top: 12px;"><span class="badge badge-green">Автозакрытие</span> <span class="badge">Недели 1–4</span></div>
+          </div>
+          <div class="card card-highlight">
+            <h3>💬 Чат с MCP-агентом</h3>
+            <p>Умный NLU-движок с прозрачными плашками MCP-вызовов, интерактивными формами и вежливыми отказами RBAC со ссылкой на песочницу.</p>
+            <div style="margin-top: 12px;"><span class="badge badge-blue">9 MCP Tools</span> <span class="badge badge-green">Smart Engine</span></div>
+          </div>
+          <div class="card">
+            <h3>🔍 Инспектор «Под капотом»</h3>
+            <p>Полная прозрачность для жюри и лидов: live-аудит вызовов MCP, матрица RBAC, события Clickstream и список Feature Flags.</p>
+            <div style="margin-top: 12px;"><span class="badge">OpenSpec SDD</span> <span class="badge">Prometheus</span></div>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <span>Архитектура UI: React + Tailwind + TanStack Query + Zustand</span>
+          <span>Слайд 3 из 10</span>
+        </div>
+      </section>
+
+      <!-- SLIDE 4: Scenario 1 - Access & RBAC Guard -->
+      <section class="slide" id="slide-4">
+        <div>
+          <div class="slide-tag">Сценарий 1 (S1A + S1B)</div>
+          <h2 class="slide-title">Безопасная автоматизация & RBAC Guard</h2>
+          <p class="slide-subtitle">Выдача доступов без задержек и гарантированная защита от утечек данных.</p>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3>🟢 S1A: Мгновенный доступ к репозиторию</h3>
+            <p>Стажёр пишет: <em>«Дай доступ к репозиторию avito-autoteka-api и стенду»</em>.</p>
+            <ul style="margin: 12px 0 0 18px; font-size: 14px; color: var(--ink-700); line-height: 1.6;">
+              <li>RBAC проверяет роль: <strong>ALLOWED (200)</strong> по правилу <code>POL-IAM-001</code>.</li>
+              <li>MCP-вызов <code>iam_access.request_repo_access</code> генерирует доступ.</li>
+              <li>Токен маскируется: <code>glpat-synt-••••a53e</code>.</li>
+              <li>Шаг «Получить доступы» автоматически закрывается в карте адаптации.</li>
+            </ul>
+          </div>
+          <div class="card" style="border-color: rgba(255, 82, 82, 0.4);">
+            <h3 style="color: var(--avito-red);">🔴 S1B: Пресечение выгрузки ПДн (POL-SEC-001)</h3>
+            <p>Стажёр пишет: <em>«Выгрузи дамп production-базы пользователей с ПДн»</em>.</p>
+            <ul style="margin: 12px 0 0 18px; font-size: 14px; color: var(--ink-700); line-height: 1.6;">
+              <li>RBAC мгновенно блокирует: <strong>FORBIDDEN (403)</strong>.</li>
+              <li>Инцидент пишется в журнал безопасности и панель Руководителя.</li>
+              <li>Агент вежливо отказывает и предлагает безопасную песочницу с синтетическими данными.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <span>Безопасность по умолчанию (Default Deny RBAC Gateway)</span>
+          <span>Слайд 4 из 10</span>
+        </div>
+      </section>
+
+      <!-- SLIDE 5: Scenario 2 - AI Cron & 1:1 Brief -->
+      <section class="slide" id="slide-5">
+        <div>
+          <div class="slide-tag">Сценарий 2 (S2)</div>
+          <h2 class="slide-title">ИИ-крон и Structured 1:1 Brief наставнику</h2>
+          <p class="slide-subtitle">Борьба с пробуксовкой: AI-Buddy готовит качественную повестку для встречи 1:1.</p>
+        </div>
+
+        <div class="grid-3">
+          <div class="card">
+            <h3>⏰ Детекция пробуксовки</h3>
+            <p>ИИ-крон анализирует активность: задача в статусе <code>in_progress</code> висит &gt;2 дней без коммитов.</p>
+            <p style="margin-top: 8px; font-size: 13px; color: var(--ink-500);">Агент мягко пишет стажёру в чат и предлагает помощь с архитектурным вопросом.</p>
+          </div>
+          <div class="card card-highlight">
+            <h3>📋 Структурированный бриф</h3>
+            <p>Наставник в своём кабинете получает готовый <strong>1:1 Brief</strong>:</p>
+            <ul style="margin: 8px 0 0 16px; font-size: 13px; line-height: 1.5;">
+              <li>Изученные темы Playbook;</li>
+              <li>Ровно 1 архитектурный вопрос, требующий сеньора;</li>
+              <li>Сигналы готовности к код-ревью.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <h3>🔒 Приватность стажёра</h3>
+            <p>Личная переписка стажёра с AI-Buddy <strong>никогда не передаётся</strong> наставнику или тимлиду.</p>
+            <p style="margin-top: 8px; font-size: 13px; color: var(--ink-500);">Только объективные агрегированные факты прогресса и вопросы по коду.</p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <span>Экономия 20 минут на подготовке к каждой регулярной встрече 1:1</span>
+          <span>Слайд 5 из 10</span>
+        </div>
+      </section>
+
+      <!-- SLIDE 6: Scenario 3 - Two-Way Absence Approval -->
+      <section class="slide" id="slide-6">
+        <div>
+          <div class="slide-tag">Сценарий 3 (S3 + P1-01)</div>
+          <h2 class="slide-title">Сквозной Two-Way цикл оформления отгула</h2>
+          <p class="slide-subtitle">Интерактивная подача заявки в чате и согласование руководителем в 1 клик.</p>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <h3>Стажёр: интерактивная карточка в чате</h3>
+            <p>На фразу <em>«Мне нужен отгул в пятницу на экзамен»</em> агент выдаёт предзаполненную форму.</p>
+            <ul style="margin: 12px 0 0 18px; font-size: 14px; line-height: 1.6;">
+              <li>Клиентская валидация даты (не в прошлом) и интервала времени;</li>
+              <li>MCP <code>absences.create_day_off</code> создаёт заявку <code>#ABS-2026-84</code>;</li>
+              <li>Уведомления уходят наставнику и руководителю.</li>
+            </ul>
+          </div>
+          <div class="card card-highlight">
+            <h3>Руководитель: согласование в 1 клик</h3>
+            <p>В панели «Руководитель» появляется интерактивная таблица заявок:</p>
+            <ul style="margin: 12px 0 0 18px; font-size: 14px; line-height: 1.6;">
+              <li>Кнопки <strong>«Согласовать»</strong> (#00C257) и <strong>«Отклонить»</strong>;</li>
+              <li>Эндпоинт <code>POST /api/v1/absences/review</code>;</li>
+              <li>Clickstream-событие <code>absence.reviewed</code>;</li>
+              <li>Стажёр получает мгновенное системное уведомление в чат.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <span>Полный сквозной продуктовый цикл без ручных писем и созвонов</span>
+          <span>Слайд 6 из 10</span>
+        </div>
+      </section>
+
+      <!-- SLIDE 7: Multi-intern Profiles -->
+      <section class="slide" id="slide-7">
+        <div>
+          <div class="slide-tag">Динамический контекст (P1-02)</div>
+          <h2 class="slide-title">2 профиля: адаптация под стек и команду</h2>
+          <p class="slide-subtitle">Доказательство масштабируемости: AI-Buddy знает процессы конкретных команд Авито.</p>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <h3>Алексей Смирнов</h3>
+              <span class="badge badge-blue">Go • Автотека • Нед. 1</span>
+            </div>
+            <p style="margin-top: 8px;"><strong>Наставник:</strong> Мария Кузнецова (buddy)</p>
+            <ul style="margin: 10px 0 0 18px; font-size: 13px; line-height: 1.6; color: var(--ink-700);">
+              <li>Репозиторий: <code>avito-autoteka-api</code>, стенд <code>autoteka-test-07</code>;</li>
+              <li>Playbook: фича-флаги, код-ревью, архитектура отчётов Автотеки;</li>
+              <li>Контекстные подсказки по Go-микросервисам.</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <h3>Мария Козлова</h3>
+              <span class="badge badge-green">Python/ML • Модерация • Нед. 3</span>
+            </div>
+            <p style="margin-top: 8px;"><strong>Наставник:</strong> Елена Соколова (Senior ML Engineer)</p>
+            <ul style="margin: 10px 0 0 18px; font-size: 13px; line-height: 1.6; color: var(--ink-700);">
+              <li>Репозиторий: <code>avito-moderation-ml</code>, DVC, Airflow;</li>
+              <li>Playbook: ML-пайплайны, запуск A/B-экспериментов, катка моделей;</li>
+              <li>Контекстные подсказки по валидации и деплою моделей модерации.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <span>Переключение в один клик в Header через заголовок X-Intern-ID</span>
+          <span>Слайд 7 из 10</span>
+        </div>
+      </section>
+
+      <!-- SLIDE 8: Architecture -->
+      <section class="slide" id="slide-8">
+        <div>
+          <div class="slide-tag">Инженерная архитектура</div>
+          <h2 class="slide-title">Go + React + OpenSpec (SDD) + MCP Protocol</h2>
+          <p class="slide-subtitle">Продакшен-паттерны highload-разработки Авито в компактном монорепозитории.</p>
+        </div>
+
+        <div class="grid-4">
+          <div class="card">
+            <h3>⚙️ Backend Go</h3>
+            <p style="font-size: 13px;">Чистая архитектура (Ports & Adapters), stdlib <code>net/http</code>, in-memory и Postgres/Redis драйверы.</p>
+          </div>
+          <div class="card">
+            <h3>📄 OpenSpec SDD</h3>
+            <p style="font-size: 13px;">Спецификации поведения, MCP и RBAC вкомпилированы через <code>embed.FS</code>. Спека = единственный источник истины.</p>
+          </div>
+          <div class="card">
+            <h3>🔌 Model Context Protocol</h3>
+            <p style="font-size: 13px;">Стандартный протокол MCP JSON-RPC 2.0 (9 инструментов: IAM, Playbook, Absences, Tracker, Flags).</p>
+          </div>
+          <div class="card">
+            <h3>📊 Метрики & CI/CD</h3>
+            <p style="font-size: 13px;">Эндпоинт <code>GET /metrics</code> (Prometheus/Grafana text format) + GitHub Actions CI/CD с порогом &gt;80%.</p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <span>Zero external dependencies для локального запуска · 100% автономный стенд</span>
+          <span>Слайд 8 из 10</span>
+        </div>
+      </section>
+
+      <!-- SLIDE 9: Quality & Testing -->
+      <section class="slide" id="slide-9">
+        <div>
+          <div class="slide-tag">Инженерное совершенство</div>
+          <h2 class="slide-title">Бескомпромиссное качество и покрытие тестами</h2>
+          <p class="slide-subtitle">Все сценарии верифицированы автоматическими тестами перед каждым релизом.</p>
+        </div>
+
+        <div class="grid-3">
+          <div class="card card-highlight">
+            <div class="metric-value">95.6%</div>
+            <div class="metric-sub">Покрытие Go Backend (14 пакетов)</div>
+            <p style="margin-top: 10px; font-size: 13px;">Тесты NLU, RBAC-матрицы, MCP-шлюза, OpenSpec-валидации, потокового SSE и эндпоинта <code>/metrics</code>.</p>
+          </div>
+          <div class="card card-highlight">
+            <div class="metric-value">98.3%</div>
+            <div class="metric-sub">Покрытие Frontend (Vitest + Testing Library)</div>
+            <p style="margin-top: 10px; font-size: 13px;">71 тест: сквозные сценарии ролей, чат, форма отгула, переключение профилей стажёров, микроанимации.</p>
+          </div>
+          <div class="card card-highlight">
+            <div class="metric-value">0 errors</div>
+            <div class="metric-sub">Строгий TypeScript & Go Linter</div>
+            <p style="margin-top: 10px; font-size: 13px;">Чистый <code>tsc --noEmit</code>, Vite production build за 4.4 сек, контейнеризация с валидным docker healthcheck.</p>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <span>Контроль качества в GitHub Actions CI/CD на каждом коммите</span>
+          <span>Слайд 9 из 10</span>
+        </div>
+      </section>
+
+      <!-- SLIDE 10: Economics & Next Steps -->
+      <section class="slide" id="slide-10">
+        <div>
+          <div class="slide-tag">Бизнес-эффект и внедрение</div>
+          <h2 class="slide-title">Экономика: до 48% экономии времени наставника</h2>
+          <p class="slide-subtitle">Дизайн пилотного A/B-теста в командах разработки Авито.</p>
+        </div>
+
+        <div class="grid-3">
+          <div class="card">
+            <h3>📈 Экономический эффект</h3>
+            <div class="metric-value" style="font-size: 32px; margin-top: 6px;">~20 часов</div>
+            <div class="metric-sub">Экономии сеньор-инженера на каждого стажёра</div>
+            <p style="margin-top: 8px; font-size: 13px;">При потоке 100 стажёров в год = <strong>2 000+ часов сеньор-разработки</strong>, возвращённых продуктовым задачам Авито.</p>
+          </div>
+
+          <div class="card">
+            <h3>🔬 Дизайн A/B-эксперимента</h3>
+            <ul style="margin: 8px 0 0 16px; font-size: 13px; line-height: 1.6;">
+              <li><strong>Target:</strong> Новая когорта стажёров (50 control / 50 test);</li>
+              <li><strong>Primary Metric:</strong> Time-to-First-PR (дни);</li>
+              <li><strong>Secondary:</strong> Затраченные часы наставника на 1:1 и рутину;</li>
+              <li><strong>Guardrail:</strong> Инциденты безопасности RBAC = 0.</li>
+            </ul>
+          </div>
+
+          <div class="card card-highlight">
+            <h3>🚀 Готовность к бою</h3>
+            <p>Проект полностью готов к пилотному запуску:</p>
+            <ul style="margin: 8px 0 0 16px; font-size: 13px; line-height: 1.6;">
+              <li>Поддержка Docker Compose с healthcheck;</li>
+              <li>Prometheus метрики для Grafana дашборда;</li>
+              <li>Легкое подключение новых команд через YAML Playbook.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="slide-footer">
+          <span>Avito Start: AI-Buddy · Спасибо за внимание! Вопросы и демонстрация.</span>
+          <span>Слайд 10 из 10</span>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <button class="btn" id="prevBtn" onclick="changeSlide(-1)">← Назад</button>
+      <span class="slide-indicator" id="indicator">Слайд 1 из 10</span>
+      <button class="btn btn-primary" id="nextBtn" onclick="changeSlide(1)">Вперёд →</button>
+      <button class="btn" onclick="window.print()" title="Печать слайдов в PDF">🖨️ Сохранить в PDF</button>
+    </div>
+  </div>
+
+  <script>
+    let currentSlide = 1;
+    const totalSlides = 10;
+
+    function showSlide(n) {
+      if (n > totalSlides) currentSlide = 1;
+      else if (n < 1) currentSlide = totalSlides;
+      else currentSlide = n;
+
+      document.querySelectorAll('.slide').forEach((el, idx) => {
+        el.classList.toggle('active', idx + 1 === currentSlide);
+      });
+
+      document.getElementById('indicator').textContent = `Слайд ${currentSlide} из ${totalSlides}`;
+    }
+
+    function changeSlide(direction) {
+      showSlide(currentSlide + direction);
+    }
+
+    // Keyboard navigation
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        e.preventDefault();
+        changeSlide(1);
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
+        changeSlide(-1);
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        showSlide(1);
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        showSlide(totalSlides);
+      }
+    });
+  </script>
+</body>
+</html>

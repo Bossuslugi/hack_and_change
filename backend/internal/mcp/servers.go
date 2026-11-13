@@ -592,6 +592,11 @@ func (f *Flags) Set(ctx context.Context, key string, enabled bool) (domain.Featu
 		if err := f.cache.Set(ctx, flagCachePrefix+key, value, 0); err != nil {
 			return flag, err
 		}
+		if key == "ai_buddy.proactive_cron" {
+			_ = f.cache.Set(ctx, flagCachePrefix+"proactive_ai_cron", value, 0)
+		} else if key == "proactive_ai_cron" {
+			_ = f.cache.Set(ctx, flagCachePrefix+"ai_buddy.proactive_cron", value, 0)
+		}
 		flag.Enabled = enabled
 		return flag, nil
 	}

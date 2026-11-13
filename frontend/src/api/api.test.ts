@@ -226,8 +226,8 @@ describe('API-клиент', () => {
       fetch: fake.fn,
     });
     await customApi.getWorkspace();
-    expect(fake.calls[0].url).toBe('/api/v1/workspace?intern_id=u-intern-02');
-    expect(fake.calls[0].internId).toBe('u-intern-02');
+    expect(fake.calls[0]?.url).toBe('/api/v1/workspace?intern_id=u-intern-02');
+    expect(fake.calls[0]?.internId).toBe('u-intern-02');
   });
 
   it('управляет активным ID стажёра в auth', () => {

@@ -52,6 +52,7 @@ func New(o Options) http.Handler {
 	s := &Server{svc: o.Service, log: o.Logger, origins: o.CORSOrigins, chunkDelay: o.StreamChunkDelay, mux: http.NewServeMux()}
 
 	s.mux.HandleFunc("GET /healthz", s.health)
+	s.mux.HandleFunc("GET /metrics", s.metrics)
 	s.mux.Handle("GET /api/v1/workspace", s.auth(s.workspace))
 	s.mux.Handle("POST /api/v1/chat", s.auth(s.chat))
 	s.mux.Handle("POST /api/v1/chat/stream", s.auth(s.chatStream))
@@ -213,6 +214,30 @@ func (s *Server) health(w http.ResponseWriter, r *http.Request) {
 		status, state = http.StatusServiceUnavailable, "degraded"
 	}
 	writeJSON(w, status, map[string]any{"status": state, "store": info.Store, "cache": info.Cache})
+}
+
+func (s *Server) metrics(w http.ResponseWriter, r *http.Request) {
+	m, ratio, err := s.svc.PrometheusMetrics(r.Context())
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Не удалось собрать метрики", nil)
+		return
+	}
+	w.Header().Set("Content-Type", "text/plain; version=0.0.4; charset=utf-8")
+	fmt.Fprintf(w, "# HELP aibuddy_mentor_minutes_saved_total Total mentor minutes saved by AI-Buddy.\n")
+	fmt.Fprintf(w, "# TYPE aibuddy_mentor_minutes_saved_total counter\n")
+	fmt.Fprintf(w, "aibuddy_mentor_minutes_saved_total %d\n\n", m.MentorMinutesSaved)
+
+	fmt.Fprintf(w, "# HELP aibuddy_mcp_calls_total Total MCP tool executions.\n")
+	fmt.Fprintf(w, "# TYPE aibuddy_mcp_calls_total counter\n")
+	fmt.Fprintf(w, "aibuddy_mcp_calls_total %d\n\n", m.ToolCalls)
+
+	fmt.Fprintf(w, "# HELP aibuddy_rbac_denials_total Total security denials enforced by RBAC gateway.\n")
+	fmt.Fprintf(w, "# TYPE aibuddy_rbac_denials_total counter\n")
+	fmt.Fprintf(w, "aibuddy_rbac_denials_total %d\n\n", m.RBACBlocks)
+
+	fmt.Fprintf(w, "# HELP aibuddy_checklist_completed_ratio Ratio of completed checklist items (0.0 to 1.0).\n")
+	fmt.Fprintf(w, "# TYPE aibuddy_checklist_completed_ratio gauge\n")
+	fmt.Fprintf(w, "aibuddy_checklist_completed_ratio %.2f\n", ratio)
 }
 
 func getInternID(r *http.Request, explicit ...string) string {

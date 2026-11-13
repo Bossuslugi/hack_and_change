@@ -162,11 +162,19 @@ func Data() domain.SeedData {
 			"avito-messenger-gateway": "Messenger",
 		},
 		Flags: []domain.FeatureFlag{
-			{Key: "ai_buddy.proactive_cron", Enabled: true, Kind: domain.FlagRuntime, Description: "ИИ-крон: проактивные сообщения стажёру и бриф наставнику"},
+			// Runtime Flags (переключаемые на лету: слайды 10–11)
+			{Key: "proactive_ai_cron", Enabled: true, Kind: domain.FlagRuntime, Description: "ИИ-крон: проактивные сообщения стажёру и бриф наставнику"},
+			{Key: "strict_rbac_guard", Enabled: true, Kind: domain.FlagRuntime, Description: "Строгая RBAC-защита: немедленная блокировка выгрузки ПДн (POL-SEC-001)"},
+			{Key: "mentor_auto_brief", Enabled: true, Kind: domain.FlagRuntime, Description: "Автогенерация Structured 1:1 Brief наставнику при пробуксовке стажёра"},
+			{Key: "ai_buddy.proactive_cron", Enabled: true, Kind: domain.FlagRuntime, Description: "ИИ-крон: фоновый запуск проверок (системный алиас)"},
 			{Key: "ai_buddy.absence_action_card", Enabled: true, Kind: domain.FlagRuntime, Description: "Интерактивная карточка оформления отгула в чате"},
 			{Key: "ai_buddy.llm_answers", Enabled: true, Kind: domain.FlagRuntime, Description: "Формулировка ответов внешней LLM (если задан LLM_API_KEY)"},
-			{Key: "ai_buddy.mcp_jsonrpc", Enabled: true, Kind: domain.FlagCompileTime, Description: "MCP JSON-RPC endpoint POST /mcp"},
-			{Key: "ai_buddy.synthetic_data_only", Enabled: true, Kind: domain.FlagCompileTime, Description: "Только синтетические данные и имитации сервисов"},
+
+			// Compile-Time Flags (зафиксированные при сборке бинарника через embed/ldflags)
+			{Key: "sdd_spec_enforcement", Enabled: true, Kind: domain.FlagCompileTime, Description: "Валидация контрактов OpenSpec в runtime через embed.FS"},
+			{Key: "synthetic_data_watermark", Enabled: true, Kind: domain.FlagCompileTime, Description: "Водяные знаки синтетических данных и маскирование токенов"},
+			{Key: "mcp_jsonrpc_v2", Enabled: true, Kind: domain.FlagCompileTime, Description: "Поддержка протокола MCP JSON-RPC 2.0"},
+			{Key: "ai_buddy.mcp_jsonrpc", Enabled: true, Kind: domain.FlagCompileTime, Description: "MCP JSON-RPC endpoint POST /mcp (системный алиас)"},
 		},
 		Docs: []domain.KnowledgeDoc{
 			doc("pb-feature-flags", "Как катить задачу под фича-флагом",

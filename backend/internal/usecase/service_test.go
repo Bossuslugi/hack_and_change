@@ -744,7 +744,7 @@ func TestWorkspaceByRole(t *testing.T) {
 			if ws.Intern.ID != seed.InternID || len(ws.Checklist) != 7 || ws.Progress.Completed != 2 || ws.NextStep.ID != "access_repo" {
 				t.Fatalf("состояние стажёра: %+v", ws.Progress)
 			}
-			if ws.SprintTask.Key != "AUT-1423" || len(ws.FeatureFlags) != 5 || ws.Storage.Store != "memory" || ws.Storage.Cache != "memory" {
+			if ws.SprintTask.Key != "AUT-1423" || len(ws.FeatureFlags) != 10 || len(ws.Skills) != 5 || ws.Storage.Store != "memory" || ws.Storage.Cache != "memory" {
 				t.Fatalf("задача/флаги/хранилище: %+v", ws.Storage)
 			}
 			if ws.Engine.Mode != domain.EngineSmart || ws.Metrics.MentorHoursBaselineMin != 40 || ws.Metrics.MentorHoursBaselineMax != 48 {
