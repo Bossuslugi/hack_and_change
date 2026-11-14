@@ -262,7 +262,9 @@ const (
 	SeverityInfo         = "info"
 	SeverityWarn         = "warn"
 	SeveritySecurity     = "security"
-	AbsenceStatusPending = "pending_approval"
+	AbsenceStatusPending  = "pending_approval"
+	AbsenceStatusApproved = "approved"
+	AbsenceStatusRejected = "rejected"
 )
 
 // ActionCard — интерактивная карточка, требующая подтверждения пользователя.
@@ -362,18 +364,22 @@ func (c MCPToolCall) OK() bool { return c.Status == ToolSuccess }
 
 // AbsenceRequest — заявка на отгул в имитации сервиса «Отсутствия».
 type AbsenceRequest struct {
-	ID          string    `json:"id"`
-	Number      string    `json:"number"`
-	InternID    string    `json:"intern_id"`
-	InternName  string    `json:"intern_name"`
-	Date        string    `json:"date"`
-	TimeFrom    string    `json:"time_from"`
-	TimeTo      string    `json:"time_to"`
-	Reason      string    `json:"reason"`
-	Status      string    `json:"status"`
-	Notified    []string  `json:"notified"`
-	IsSynthetic bool      `json:"is_synthetic"`
-	CreatedAt   time.Time `json:"created_at"`
+	ID          string     `json:"id"`
+	Number      string     `json:"number"`
+	InternID    string     `json:"intern_id"`
+	InternName  string     `json:"intern_name"`
+	Date        string     `json:"date"`
+	TimeFrom    string     `json:"time_from"`
+	TimeTo      string     `json:"time_to"`
+	Reason      string     `json:"reason"`
+	Status      string     `json:"status"`
+	Notified    []string   `json:"notified"`
+	IsSynthetic bool       `json:"is_synthetic"`
+	Decision    string     `json:"decision,omitempty"`
+	ReviewerID  string     `json:"reviewer_id,omitempty"`
+	ReviewedAt  *time.Time `json:"reviewed_at,omitempty"`
+	Comment     string     `json:"comment,omitempty"`
+	CreatedAt   time.Time  `json:"created_at"`
 }
 
 var (
@@ -518,6 +524,14 @@ const (
 	EventKindAgent       = "agent"
 	EventKindCron        = "cron"
 )
+
+// AgentSkill — подключённый модульный скилл агента.
+type AgentSkill struct {
+	ID          string `json:"id" yaml:"id"`
+	Name        string `json:"name" yaml:"name"`
+	Description string `json:"description" yaml:"description"`
+	Active      bool   `json:"active" yaml:"active"`
+}
 
 // FeatureFlag — флаг функциональности.
 type FeatureFlag struct {

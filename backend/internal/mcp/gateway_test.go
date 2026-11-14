@@ -23,7 +23,7 @@ func TestRegistryConformsToSpec(t *testing.T) {
 		t.Fatalf("реестр должен повторять спецификацию: %d инструментов", len(tools))
 	}
 	for _, name := range []string{
-		ToolRequestRepoAccess, ToolExportProdPII, ToolSearchDocs, ToolCreateDayOff, ToolSendBrief,
+		ToolRequestRepoAccess, ToolExportProdPII, ToolSearchDocs, ToolCreateDayOff, ToolReviewDayOff, ToolSendBrief,
 		ToolSendNotification, ToolTaskActivity, ToolListFlags,
 	} {
 		if _, ok := f.reg.Tool(name); !ok {

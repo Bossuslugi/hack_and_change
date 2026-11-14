@@ -7,6 +7,18 @@ export default {
   // Тема переключается классом .dark на <html>; цвета — CSS-переменные из src/index.css.
   darkMode: 'class',
   theme: {
+    borderRadius: {
+      none: '0',
+      tag: '6px', // бейджи, теги, мелкие кнопки
+      card: '12px', // карточки, инпуты, кнопки
+      panel: '16px', // панели и контейнеры
+      full: '9999px', // точки статуса, аватары, тумблеры
+    },
+    fontSize: {
+      meta: ['12px', { lineHeight: '16px' }],
+      body: ['14px', { lineHeight: '20px' }],
+      display: ['32px', { lineHeight: '36px', letterSpacing: '-0.02em' }],
+    },
     extend: {
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],

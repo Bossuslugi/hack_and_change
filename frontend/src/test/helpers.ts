@@ -77,6 +77,8 @@ export interface Call {
   path: string;
   token: string;
   body: unknown;
+  url?: string;
+  internId?: string;
 }
 
 export type Route = (call: Call) => Response | Promise<Response> | undefined;
@@ -92,6 +94,8 @@ export function fakeFetch(route: Route) {
       path: url.pathname,
       token: (headers.get('Authorization') ?? '').replace('Bearer ', ''),
       body: typeof init?.body === 'string' ? JSON.parse(init.body) : undefined,
+      url: url.pathname + url.search,
+      internId: headers.get('X-Intern-ID') ?? undefined,
     };
     calls.push(call);
     const response = await route(call);

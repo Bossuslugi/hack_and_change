@@ -168,6 +168,14 @@ export const sprintTaskSchema = z.object({
 });
 export type SprintTask = z.infer<typeof sprintTaskSchema>;
 
+export const agentSkillSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string(),
+  active: z.boolean().default(true),
+});
+export type AgentSkill = z.infer<typeof agentSkillSchema>;
+
 export const featureFlagSchema = z.object({
   key: z.string(),
   enabled: z.boolean(),
@@ -235,6 +243,10 @@ export const absenceSchema = z.object({
   notified: list(z.string()),
   is_synthetic: z.boolean(),
   created_at: z.string(),
+  decision: z.string().optional(),
+  reviewer_id: z.string().optional(),
+  reviewed_at: z.string().optional(),
+  comment: z.string().optional(),
 });
 export type Absence = z.infer<typeof absenceSchema>;
 
@@ -307,6 +319,7 @@ export const workspaceSchema = z.object({
   progress: progressSchema,
   next_step: checklistItemSchema.nullish(),
   sprint_task: sprintTaskSchema,
+  skills: list(agentSkillSchema).default([]),
   feature_flags: list(featureFlagSchema),
   metrics: metricsSchema,
   messages: list(chatMessageSchema),

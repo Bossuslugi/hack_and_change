@@ -1,12 +1,14 @@
 // Серверное состояние через TanStack Query: запросы workspace/telemetry и мутации сценариев.
 // Каждая мутация обновляет кэш из ответа сервера (без лишнего запроса) и инвалидирует зависимые данные.
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
+import { useMemo } from 'react';
 import { api, type DemoRole } from '../api/auth';
 import { ApiError } from '../api/client';
-import type { ChatMessage, ChatResult, CronResult, Workspace } from '../api/schemas';
+import type { ChatMessage, ChatResult, CronResult, ToolCall, Workspace } from '../api/schemas';
 import { useUi } from '../store/ui';
 
-export const workspaceKey = (role: DemoRole) => ['workspace', role] as const;
+export const workspaceKey = (role: DemoRole, internId?: string) =>
+  internId ? (['workspace', role, internId] as const) : (['workspace', role] as const);
 export const telemetryKey = (role: DemoRole) => ['telemetry', role] as const;
 
 export function errorText(error: unknown): string {
@@ -16,8 +18,9 @@ export function errorText(error: unknown): string {
 
 export function useWorkspace() {
   const role = useUi((s) => s.role);
+  const internId = useUi((s) => s.activeInternId);
   return useQuery({
-    queryKey: workspaceKey(role),
+    queryKey: workspaceKey(role, internId),
     queryFn: () => api.getWorkspace(),
     staleTime: 3_000,
     // Наставник и руководитель видят новые брифы и уведомления без перезагрузки.
@@ -27,15 +30,26 @@ export function useWorkspace() {
   });
 }
 
-export function useTelemetry(enabled: boolean) {
+/** Телеметрия роли. С `live` опрашивается каждые 4 секунды (открытый инспектор), иначе обновляется по событиям. */
+export function useTelemetry(live: boolean) {
   const role = useUi((s) => s.role);
   return useQuery({
     queryKey: telemetryKey(role),
     queryFn: () => api.getTelemetry(),
-    enabled,
-    refetchInterval: enabled ? 4_000 : false,
+    staleTime: 3_000,
+    refetchInterval: live ? 4_000 : false,
     refetchOnWindowFocus: false,
   });
+}
+
+/** MCP-вызовы сообщения по их id: сначала из ответа чата, после перезагрузки — из аудита. */
+export function useToolCalls(ids: string[]): ToolCall[] {
+  const local = useUi((s) => s.toolCalls);
+  const audit = useTelemetry(false).data?.tool_calls;
+  return useMemo(
+    () => ids.map((id) => local[id] ?? audit?.find((call) => call.id === id)).filter((call): call is ToolCall => call !== undefined),
+    [ids, local, audit],
+  );
 }
 
 function upsertMessages(existing: ChatMessage[], incoming: Array<ChatMessage | null | undefined>): ChatMessage[] {
@@ -51,7 +65,9 @@ function upsertMessages(existing: ChatMessage[], incoming: Array<ChatMessage | n
 
 /** Применяет результат чата/действия к кэшу workspace и обновляет зависимые данные в фоне. */
 export function applyChatResult(client: QueryClient, role: DemoRole, result: ChatResult, submittedMessageId?: string): void {
-  client.setQueryData<Workspace>(workspaceKey(role), (ws) => {
+  useUi.getState().rememberToolCalls(result.tool_calls);
+  const internId = useUi.getState().activeInternId;
+  const updateWorkspace = (ws: Workspace | undefined): Workspace | undefined => {
     if (!ws) return ws;
     let messages = upsertMessages(ws.messages, [result.user_message, result.message]);
     if (submittedMessageId && result.message) {
@@ -66,7 +82,9 @@ export function applyChatResult(client: QueryClient, role: DemoRole, result: Cha
       progress: result.progress,
       next_step: result.next_step ?? null,
     };
-  });
+  };
+  client.setQueryData<Workspace>(workspaceKey(role, internId), updateWorkspace);
+  client.setQueryData<Workspace>(workspaceKey(role), updateWorkspace);
   void client.invalidateQueries({ queryKey: ['workspace'] });
   void client.invalidateQueries({ queryKey: ['telemetry'] });
 }
@@ -110,6 +128,43 @@ export function useExecuteAction() {
   });
 }
 
+export interface ReviewAbsenceInput {
+  id: string;
+  decision: 'approved' | 'rejected';
+  comment?: string;
+}
+
+/** Согласование или отклонение заявки на отгул руководителем → POST /api/v1/absences/review */
+export function useReviewAbsence() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, decision, comment }: ReviewAbsenceInput) => api.reviewAbsence(id, decision, comment),
+    onSuccess: (updated) => {
+      const role = useUi.getState().role;
+      const internId = useUi.getState().activeInternId;
+      const updateFn = (ws: Workspace | undefined): Workspace | undefined => {
+        if (!ws) return ws;
+        return {
+          ...ws,
+          absences: ws.absences.map((a) => (a.id === updated.id ? { ...a, ...updated } : a)),
+        };
+      };
+      client.setQueryData<Workspace>(workspaceKey(role, internId), updateFn);
+      client.setQueryData<Workspace>(workspaceKey(role), updateFn);
+      void client.invalidateQueries({ queryKey: ['workspace'] });
+      void client.invalidateQueries({ queryKey: ['telemetry'] });
+      useUi.getState().showToast({
+        kind: 'success',
+        text:
+          updated.decision === 'approved' || updated.status === 'approved'
+            ? `Заявка ${updated.number} согласована`
+            : `Заявка ${updated.number} отклонена`,
+      });
+    },
+    onError: (error) => useUi.getState().showToast({ kind: 'error', text: errorText(error) }),
+  });
+}
+
 export function useCron() {
   const client = useQueryClient();
   return useMutation({
@@ -117,6 +172,7 @@ export function useCron() {
     onSuccess: (result: CronResult) => {
       const ui = useUi.getState();
       ui.setCronResult(result);
+      ui.rememberToolCalls(result.tool_calls);
       ui.showToast({ kind: result.triggered && !result.deduplicated ? 'success' : 'info', text: `ИИ-крон: ${result.reason}` });
       void client.invalidateQueries({ queryKey: ['workspace'] });
       void client.invalidateQueries({ queryKey: ['telemetry'] });

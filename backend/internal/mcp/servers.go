@@ -21,6 +21,7 @@ const (
 	ToolExportProdPII     = "db_admin.export_prod_pii"
 	ToolSearchDocs        = "playbook.search_docs"
 	ToolCreateDayOff      = "absences.create_day_off"
+	ToolReviewDayOff      = "absences.review_day_off"
 	ToolSendBrief         = "mentor.send_1on1_brief"
 	ToolSendNotification  = "notifications.send"
 	ToolTaskActivity      = "tracker.get_task_activity"
@@ -76,6 +77,7 @@ func (s *Services) BindAll(r *Registry) error {
 		{ToolExportProdPII, s.DBAdmin.ExportProdPII, nil},
 		{ToolSearchDocs, s.Playbook.SearchTool, nil},
 		{ToolCreateDayOff, s.Absences.CreateDayOff, nil},
+		{ToolReviewDayOff, s.Absences.ReviewDayOff, nil},
 		{ToolSendBrief, s.Mentor.SendBrief, nil},
 		{ToolSendNotification, s.Notifications.SendTool, nil},
 		{ToolTaskActivity, s.Tracker.TaskActivity, nil},
@@ -419,6 +421,47 @@ func (s *Absences) CreateDayOff(ctx context.Context, c Call) (map[string]any, er
 	}, nil
 }
 
+// ReviewDayOff согласовывает или отклоняет заявку на отгул руководителем.
+func (s *Absences) ReviewDayOff(ctx context.Context, c Call) (map[string]any, error) {
+	id := argString(c.Args, "id")
+	decision := strings.TrimSpace(argString(c.Args, "decision"))
+	comment := strings.TrimSpace(argString(c.Args, "comment"))
+	if decision != domain.AbsenceStatusApproved && decision != domain.AbsenceStatusRejected {
+		return nil, Errorf(CodeInvalidArgs, "некорректное решение %q: ожидается approved или rejected", decision)
+	}
+	all, err := domain.Load[domain.AbsenceRequest](ctx, s.store, domain.KindAbsence, "")
+	if err != nil {
+		return nil, err
+	}
+	var target *domain.AbsenceRequest
+	for i := range all {
+		if all[i].ID == id || all[i].Number == id {
+			target = &all[i]
+			break
+		}
+	}
+	if target == nil {
+		return nil, Errorf(CodeNotFound, "заявка на отгул %q не найдена", id)
+	}
+	target.Status = decision
+	target.Decision = decision
+	target.Comment = comment
+	target.ReviewerID = c.Principal.ID
+	t := c.Now
+	target.ReviewedAt = &t
+	if err := domain.Save(ctx, s.store, domain.KindAbsence, target.ID, target.InternID, target.CreatedAt, *target); err != nil {
+		return nil, err
+	}
+	return map[string]any{
+		"id":             target.ID,
+		"request_number": target.Number,
+		"status":         target.Status,
+		"decision":       target.Decision,
+		"comment":        target.Comment,
+		"is_synthetic":   true,
+	}, nil
+}
+
 func toAny(in []string) []any {
 	out := make([]any, 0, len(in))
 	for _, s := range in {
@@ -553,6 +596,11 @@ func (f *Flags) Set(ctx context.Context, key string, enabled bool) (domain.Featu
 		}
 		if err := f.cache.Set(ctx, flagCachePrefix+key, value, 0); err != nil {
 			return flag, err
+		}
+		if key == "ai_buddy.proactive_cron" {
+			_ = f.cache.Set(ctx, flagCachePrefix+"proactive_ai_cron", value, 0)
+		} else if key == "proactive_ai_cron" {
+			_ = f.cache.Set(ctx, flagCachePrefix+"ai_buddy.proactive_cron", value, 0)
 		}
 		flag.Enabled = enabled
 		return flag, nil

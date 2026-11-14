@@ -138,6 +138,33 @@ tools:
       - { code: "INVALID_ARGUMENTS", description: "Дата в прошлом, time_to раньше time_from" }
       - { code: "DUPLICATE", description: "Заявка на эту дату уже существует" }
 
+  - name: absences.review_day_off
+    server: absences
+    title: "Согласовать или отклонить заявку на отгул"
+    description: "Руководитель согласовывает или отклоняет заявку на отгул сотрудника."
+    side_effects: "write"
+    input_schema:
+      type: object
+      additionalProperties: false
+      required: [id, decision]
+      properties:
+        id:       { type: string, minLength: 1, description: "ID заявки на отгул" }
+        decision: { type: string, enum: [approved, rejected], description: "Решение: approved или rejected" }
+        comment:  { type: string, maxLength: 500, description: "Комментарий руководителя" }
+    output_schema:
+      type: object
+      required: [id, request_number, status, decision, is_synthetic]
+      properties:
+        id:             { type: string }
+        request_number: { type: string }
+        status:         { type: string }
+        decision:       { type: string }
+        comment:        { type: string }
+        is_synthetic:   { type: boolean }
+    errors:
+      - { code: "NOT_FOUND", description: "Заявка не найдена" }
+      - { code: "INVALID_ARGUMENTS", description: "Некорректное решение" }
+
   - name: mentor.send_1on1_brief
     server: mentor
     title: "Отправить наставнику Structured 1:1 Brief"
