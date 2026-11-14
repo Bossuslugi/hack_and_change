@@ -112,6 +112,20 @@ func (e *env) login(token string) domain.Principal {
 	return p
 }
 
+// reopen возвращает шаг чек-листа в pending: в демо-данных он уже закрыт, а сценарий проверяет сам переход статусов.
+func (e *env) reopen(id string) {
+	e.t.Helper()
+	recID := domain.ChecklistRecordID(seed.InternID, id)
+	it, err := domain.LoadOne[domain.ChecklistItem](e.ctx, e.store.Store, domain.KindChecklist, recID)
+	if err != nil {
+		e.t.Fatalf("reopen(%s): %v", id, err)
+	}
+	it.Status, it.Evidence, it.CompletedAt = domain.StatusPending, "", nil
+	if err := domain.Save(e.ctx, e.store.Store, domain.KindChecklist, recID, seed.InternID, now, it); err != nil {
+		e.t.Fatalf("reopen(%s): %v", id, err)
+	}
+}
+
 func (e *env) chat(text string) usecase.ChatResult {
 	e.t.Helper()
 	res, err := e.svc.Chat(e.ctx, e.intern, text, nil)
@@ -206,14 +220,14 @@ func TestScenario1A_AccessGrantCompletesChecklistStep(t *testing.T) {
 		t.Fatalf("обновления чек-листа: %s", got)
 	}
 	step := item(t, res.Checklist, "access_repo")
-	if step.Position != 1 || step.Status != domain.StatusCompleted || step.CompletedAt == nil || !strings.Contains(step.Evidence, "avito-autoteka-api") {
-		t.Fatalf("шаг №1: %+v", step)
+	if step.Position != 4 || step.Status != domain.StatusCompleted || step.CompletedAt == nil || !strings.Contains(step.Evidence, "avito-autoteka-api") {
+		t.Fatalf("шаг доступов: %+v", step)
 	}
-	if !strings.Contains(msg.Text, "«Получить доступы к репозиторию команды и тестовому стенду» — выполнен") ||
-		!strings.Contains(msg.Text, "Следующий шаг: «Изучить процессы команды") {
+	if !strings.Contains(msg.Text, "«Получить доступы к репозиторию avito-autoteka-api и staging-стенду» — выполнен") ||
+		!strings.Contains(msg.Text, "Следующий шаг: «Первая задача в спринте") {
 		t.Fatalf("в ответе нет отметки о чек-листе: %s", msg.Text)
 	}
-	if res.NextStep == nil || res.NextStep.ID != "team_processes" || res.Progress.Completed != 3 || res.LatencyMS < 0 {
+	if res.NextStep == nil || res.NextStep.ID != "first_task" || res.Progress.Completed != 4 || res.LatencyMS < 0 {
 		t.Fatalf("прогресс: %+v next=%+v", res.Progress, res.NextStep)
 	}
 
@@ -225,7 +239,7 @@ func TestScenario1A_AccessGrantCompletesChecklistStep(t *testing.T) {
 	if len(ws.Messages) != 3 || ws.Messages[1].Role != domain.MessageUser || ws.Messages[2].ID != msg.ID || len(ws.Messages[2].ToolCallIDs) != 1 {
 		t.Fatalf("история чата: %d сообщений", len(ws.Messages))
 	}
-	if ws.Metrics.ActionsAutomated != 1 || ws.Metrics.MentorMinutesSaved != 15 || ws.Metrics.ToolCalls != 1 || ws.Metrics.ChecklistPercent != 42 {
+	if ws.Metrics.ActionsAutomated != 1 || ws.Metrics.MentorMinutesSaved != 15 || ws.Metrics.ToolCalls != 1 || ws.Metrics.ChecklistPercent != 57 {
 		t.Fatalf("метрики: %+v", ws.Metrics)
 	}
 	answers := e.events("agent.answer")
@@ -266,7 +280,7 @@ func TestScenario1B_RBACBlocksPIIExport(t *testing.T) {
 			if !strings.Contains(res.Message.Text, "песочниц") || !strings.Contains(res.Message.Text, "политикой безопасности") {
 				t.Fatalf("ответ: %s", res.Message.Text)
 			}
-			if len(res.ChecklistUpdates) != 0 || res.Progress.Completed != 2 {
+			if len(res.ChecklistUpdates) != 0 || res.Progress.Completed != 3 {
 				t.Fatalf("чек-лист не должен меняться: %+v", res.ChecklistUpdates)
 			}
 
@@ -304,6 +318,7 @@ func TestSessionContextContinuesAfterRefusal(t *testing.T) {
 // S2 (часть 1): контекстный ответ, синтетические источники, прогресс документации.
 func TestScenario2_ContextualAnswerUpdatesDocProgress(t *testing.T) {
 	e := newEnv(t, nil)
+	e.reopen("team_processes")
 	res := e.chat(askProcess)
 
 	msg := res.Message
@@ -338,6 +353,7 @@ func TestScenario2_ContextualAnswerUpdatesDocProgress(t *testing.T) {
 
 func TestScenario2_PartialReadingMovesStepToInProgress(t *testing.T) {
 	e := newEnv(t, nil)
+	e.reopen("team_processes")
 	res := e.chat("Как у нас проходит ревью?")
 	if got := updated(res.ChecklistUpdates); got != "team_processes=in_progress" {
 		t.Fatalf("после одной инструкции из двух шаг должен быть в работе: %s", got)
@@ -534,7 +550,7 @@ func TestScenario3_DayOffThroughAbsencesService(t *testing.T) {
 	if msg == nil || msg.ResultCard == nil || msg.ResultCard.Type != domain.CardAbsenceCreated || msg.ResultCard.Lines[0].Value != "#ABS-2026-84" {
 		t.Fatalf("сообщение с результатом: %+v", msg)
 	}
-	for _, want := range []string{"#ABS-2026-84", "пт, 13.11, 14:00–18:00", "Мария Кузнецова, Дмитрий Орлов", "«Разобраться с оформлением отсутствий» — выполнен"} {
+	for _, want := range []string{"#ABS-2026-84", "пт, 13.11, 14:00–18:00", "Мария Кузнецова, Дмитрий Орлов", "«Разобраться с оформлением отсутствий и отгулов» — выполнен"} {
 		if !strings.Contains(msg.Text, want) {
 			t.Errorf("в подтверждении нет %q: %s", want, msg.Text)
 		}
@@ -741,7 +757,7 @@ func TestWorkspaceByRole(t *testing.T) {
 					t.Errorf("permissions[%s] = %v, want %v", key, ws.Permissions[key], want)
 				}
 			}
-			if ws.Intern.ID != seed.InternID || len(ws.Checklist) != 7 || ws.Progress.Completed != 2 || ws.NextStep.ID != "access_repo" {
+			if ws.Intern.ID != seed.InternID || len(ws.Checklist) != 7 || ws.Progress.Completed != 3 || ws.NextStep.ID != "access_repo" {
 				t.Fatalf("состояние стажёра: %+v", ws.Progress)
 			}
 			if ws.SprintTask.Key != "AUT-1423" || len(ws.FeatureFlags) != 10 || len(ws.Skills) != 5 || ws.Storage.Store != "memory" || ws.Storage.Cache != "memory" {
@@ -775,7 +791,7 @@ func TestResetRestoresDemoState(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if ws.Progress.Completed != 2 || len(ws.Messages) != 1 || len(ws.AccessGrants) != 0 || ws.Metrics.RBACBlocks != 0 || ws.Metrics.MentorMinutesSaved != 0 {
+	if ws.Progress.Completed != 3 || len(ws.Messages) != 1 || len(ws.AccessGrants) != 0 || ws.Metrics.RBACBlocks != 0 || ws.Metrics.MentorMinutesSaved != 0 {
 		t.Fatalf("состояние после сброса: %+v / %+v", ws.Progress, ws.Metrics)
 	}
 	for _, f := range ws.FeatureFlags {
@@ -947,6 +963,7 @@ func TestStoreFailuresSurfaceAsErrors(t *testing.T) {
 		} {
 			t.Run(name, func(t *testing.T) {
 				e := newEnv(t, nil)
+				e.reopen("team_processes")
 				br(e.store)
 				if _, err := e.svc.Chat(e.ctx, e.intern, askProcess, nil); !errors.Is(err, errStore) {
 					t.Fatalf("ожидалась ошибка хранилища: %v", err)

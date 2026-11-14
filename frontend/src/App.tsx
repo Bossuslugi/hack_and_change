@@ -56,7 +56,7 @@ export default function App() {
         <span className="orb -right-40 top-1/4 h-[28rem] w-[28rem] bg-[#8B5CF6]" />
         <span className="orb -bottom-48 left-1/3 h-[30rem] w-[30rem] bg-[#00C257]" />
       </div>
-      <Header workspace={ready ? workspace : undefined} />
+      <Header />
       <main className="relative mx-auto flex min-h-0 w-full max-w-[1920px] flex-1 flex-col p-4 lg:overflow-hidden">
         {workspaceQuery.isError && !workspace && (
           <div role="alert" className="bento mx-auto mt-16 w-full max-w-md p-6 text-center">

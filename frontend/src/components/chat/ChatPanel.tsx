@@ -1,19 +1,54 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import type { ChatMessage, DocRef, ResultCard as ResultCardData, Workspace } from '../../api/schemas';
-import { formatTime } from '../../lib/format';
+import { okrsFor } from '../../lib/avito';
+import { formatDateTime, formatTime } from '../../lib/format';
 import { chatInputSchema, MAX_MESSAGE_LENGTH } from '../../lib/validation';
 import { useUi, type StreamState } from '../../store/ui';
 import { GoffyAvatar } from '../GoffyAvatar';
 import { Badge, Button, Card, OnlineDot, RichText, SyntheticBadge, cn } from '../ui/primitives';
 import { AbsenceForm } from './AbsenceForm';
 
-/** Быстрый запуск сценариев для проверки жюри. */
-export const SCENARIOS: Array<{ label: string; text: string }> = [
-  { label: '1А · Доступы', text: 'Дай доступ к репозиторию avito-autoteka-api и тестовому стенду' },
-  { label: '1Б · Запрос ПДн (RBAC)', text: 'Выгрузи дамп production-базы пользователей с персональными данными' },
-  { label: '2 · Процессы команды', text: 'Как в нашей команде катить задачу под фича-флагом и проходить ревью?' },
-  { label: '3 · Отгул', text: 'Мне нужно уйти в пятницу после обеда на зачёт в универ, как оформить отгул и надо ли писать руководителю?' },
+/** Быстрые вопросы над полем ввода: по одному на каждый сценарий кейса. */
+export const SCENARIOS: Array<{ icon: string; label: string; text: string }> = [
+  { icon: '🔑', label: 'Запросить доступы к Stash', text: 'Дай доступ к репозиторию avito-autoteka-api и тестовому стенду' },
+  { icon: '🛡', label: 'Проверить доступ к prod-БД', text: 'Выгрузи дамп production-базы пользователей с персональными данными' },
+  { icon: '📘', label: 'Выкатка под фича-флагом', text: 'Как в нашей команде катить задачу под фича-флагом и проходить ревью?' },
+  { icon: '📅', label: 'Оформить отгул', text: 'Мне нужно уйти в пятницу после обеда на зачёт в универ, как оформить отгул и надо ли писать руководителю?' },
 ];
+
+const DEFAULT_REPOSITORY = 'avito-autoteka-api';
+
+const ACCESS_STATUS: Record<string, string> = { completed: 'доступ выдан', in_progress: 'заявка в работе', pending: 'ждёт заявки' };
+
+/** Контекст рабочей недели: цель, доступы и ближайшая встреча 1:1 одной строкой над перепиской. */
+function WeekContext({ workspace }: { workspace: Workspace }) {
+  const { intern, checklist, planner } = workspace;
+  const goal = okrsFor(intern.stack)[0];
+  const access = checklist.find((item) => item.id === 'access_repo');
+  const oneOnOne = planner
+    .filter((item) => item.title.includes('1:1') && item.status === 'planned')
+    .sort((a, b) => a.starts_at.localeCompare(b.starts_at))[0];
+  const cells: Array<{ label: string; value: string; note: string }> = [
+    { label: 'Цель спринта', value: goal ? goal.text : 'Цели пока не заданы', note: `Задача ${workspace.sprint_task.key}` },
+    { label: 'Доступы', value: `Stash: ${access ? ACCESS_STATUS[access.status] : 'нет данных'}`, note: intern.repository },
+    {
+      label: 'Ближайший 1:1',
+      value: oneOnOne ? formatDateTime(oneOnOne.starts_at) : 'Не запланирован',
+      note: `Наставник: ${intern.mentor_name}`,
+    },
+  ];
+  return (
+    <section className="grid gap-2 sm:grid-cols-3" aria-label="Контекст рабочей недели" data-testid="week-context">
+      {cells.map((cell) => (
+        <div key={cell.label} className="glass-inner min-w-0 px-3 py-2">
+          <p className="text-[11px] text-ink-500">{cell.label}</p>
+          <p className="mt-0.5 text-xs font-semibold leading-snug text-ink-900">{cell.value}</p>
+          <p className="mt-0.5 truncate text-[11px] text-ink-400">{cell.note}</p>
+        </div>
+      ))}
+    </section>
+  );
+}
 
 const Avatar = () => <GoffyAvatar size="sm" />;
 
@@ -135,7 +170,7 @@ function StreamingBubble({ stream }: { stream: StreamState }) {
   );
 }
 
-function Composer({ onSend, busy }: { onSend: (text: string) => void; busy: boolean }) {
+function Composer({ onSend, busy, repository }: { onSend: (text: string) => void; busy: boolean; repository: string }) {
   const [text, setText] = useState('');
   const [error, setError] = useState<string | null>(null);
 
@@ -161,17 +196,17 @@ function Composer({ onSend, busy }: { onSend: (text: string) => void; busy: bool
 
   return (
     <form onSubmit={submit} className="m-3 mt-0 shrink-0 rounded-2xl border border-paper-200 bg-paper-0 p-3 shadow-card focus-within:border-brand-500/50">
-      <div className="mb-2 flex flex-wrap items-center gap-1.5">
-        <span className="text-[11px] font-medium text-ink-400">Сценарии:</span>
+      <div className="mb-2 flex flex-wrap items-center gap-1.5" aria-label="Быстрые вопросы">
         {SCENARIOS.map((s) => (
           <button
             key={s.label}
             type="button"
             disabled={busy}
             title={s.text}
-            onClick={() => onSend(s.text)}
+            onClick={() => onSend(s.text.replace(DEFAULT_REPOSITORY, repository))}
             className="rounded-full bg-paper-100 px-2.5 py-1 text-xs font-medium text-ink-700 transition-colors hover:bg-brand-50 hover:text-brand-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-500 disabled:opacity-50"
           >
+            <span aria-hidden="true">{s.icon} </span>
             {s.label}
           </button>
         ))}
@@ -198,12 +233,9 @@ function Composer({ onSend, busy }: { onSend: (text: string) => void; busy: bool
           Отправить
         </Button>
       </div>
-      <div className="mt-1 flex justify-between text-[11px] text-ink-400">
-        <span role="alert" className="text-danger-700">
-          {error}
-        </span>
-        <span>Enter — отправить · Shift+Enter — новая строка</span>
-      </div>
+      <p role="alert" className="mt-1 min-h-4 text-[11px] text-danger-700">
+        {error}
+      </p>
     </form>
   );
 }
@@ -235,21 +267,17 @@ export function ChatPanel({ workspace, onSend, busy }: { workspace: Workspace; o
               Гоффи <OnlineDot /> <span className="text-[11px] font-normal text-ok-700">на связи</span>
             </h1>
             <p className="text-[11px] text-ink-500">
-              Твой ИИ-наставник · живой наставник: {workspace.intern.mentor_name} · руководитель: {workspace.intern.team_lead_name}
+              Наставник: {workspace.intern.mentor_name} · руководитель: {workspace.intern.team_lead_name}
             </p>
           </div>
         </div>
-        <Badge tone="neutral">Переписку видишь только ты</Badge>
+        <Badge tone="brand" className="shrink-0 whitespace-nowrap">
+          {workspace.intern.team} • {workspace.intern.stack}
+        </Badge>
       </div>
 
       <div ref={logRef} className="min-h-0 flex-1 space-y-4 overflow-y-auto bg-paper-50/40 px-4 py-4" role="log" aria-label="История чата">
-        {messages.length <= 1 && !busy && (
-          <div className="flex flex-col items-center gap-2 pb-2 pt-8 text-center" data-testid="goffy-hero">
-            <GoffyAvatar size="lg" pulse />
-            <p className="text-base font-semibold text-ink-900">Гоффи на связи</p>
-            <p className="max-w-sm text-xs text-ink-500">Доступы, процессы команды, отгулы и напоминания — спрашивай как коллегу. Выбери сценарий ниже или напиши вопрос.</p>
-          </div>
-        )}
+        <WeekContext workspace={workspace} />
         {messages.map((m, i) => (
           <MessageBubble key={m.id} message={m} isLast={i === messages.length - 1 && !busy} onAsk={onSend} busy={busy} />
         ))}
@@ -274,7 +302,7 @@ export function ChatPanel({ workspace, onSend, busy }: { workspace: Workspace; o
         )}
       </div>
 
-      <Composer onSend={onSend} busy={busy} />
+      <Composer onSend={onSend} busy={busy} repository={workspace.intern.repository} />
     </Card>
   );
 }

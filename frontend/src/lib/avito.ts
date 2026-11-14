@@ -53,25 +53,93 @@ export const AVITO_SERVICES: Array<{ name: string; purpose: string }> = [
 /** Какие сервисы затрагивает шаг чек-листа. */
 export const STEP_SERVICES: Record<string, string[]> = {
   access_repo: ['Stash', 'Redash'],
-  local_env: ['Stash'],
   team_processes: ['Confluence'],
   first_task: ['Jira', 'Stash'],
   absence_rules: ['Confluence'],
 };
 
-/** Из чего состоит заявка на доступ. */
-export const ACCESS_REQUEST_FIELDS: Array<{ label: string; value: string }> = [
-  { label: 'Проект / ресурс', value: 'Stash: avito-autoteka-api · Redash' },
-  { label: 'Уровень прав', value: 'Чтение · Редактирование · Администрирование' },
-  { label: 'Обоснование', value: 'Зачем нужен доступ и для какой задачи' },
-  { label: 'Согласующий', value: 'Владелец проекта · DevOps · Руководитель' },
+export interface SpecRow {
+  label: string;
+  value: string;
+}
+
+interface StepContext {
+  stepId: string;
+  week: number;
+  description: string;
+  stack: string;
+  repository: string;
+  mentorName: string;
+  taskKey: string;
+}
+
+const isMl = (stack: string) => stack.includes('ML');
+
+/** Паспорт активного шага: четыре строки о том, где шаг живёт и кто его согласует. */
+export function stepSpec(ctx: StepContext): SpecRow[] {
+  if (ctx.stepId === 'access_repo') {
+    return [
+      { label: 'Проект / ресурс', value: `Stash: ${ctx.repository} · Redash` },
+      { label: 'Уровень прав', value: 'Чтение · Редактирование · Администрирование' },
+      { label: 'Обоснование', value: 'Зачем нужен доступ и для какой задачи' },
+      { label: 'Согласующий', value: 'Владелец проекта · DevOps · Руководитель' },
+    ];
+  }
+  if (ctx.stepId === 'first_task') {
+    return isMl(ctx.stack)
+      ? [
+          { label: 'Тикет и сервис', value: `Jira: ${ctx.taskKey} • Stash: ${ctx.repository}` },
+          { label: 'Метрики и аналитика', value: 'Redash • Grafana (Precision/Recall и сплит A/B-теста)' },
+          { label: 'Условие выкатки', value: 'Runtime Feature Flag (guard_dup_classifier_v2)' },
+          { label: 'Согласующий ревьюер', value: `${ctx.mentorName} (Senior ML) • Команда Модерации` },
+        ]
+      : [
+          { label: 'Тикет и сервис', value: `Jira: ${ctx.taskKey} • Stash: ${ctx.repository}` },
+          { label: 'Метрики и аналитика', value: 'Grafana (ошибки и время ответа ручки отчёта)' },
+          { label: 'Условие выкатки', value: 'Runtime Feature Flag, включение ступенями' },
+          { label: 'Согласующий ревьюер', value: `${ctx.mentorName} • дежурный ревьюер команды` },
+        ];
+  }
+  return [
+    { label: 'Сервисы', value: (STEP_SERVICES[ctx.stepId] ?? ['Гоффи']).join(' • ') },
+    { label: 'Срок', value: `Неделя ${ctx.week}` },
+    { label: 'Что сделать', value: ctx.description },
+    { label: 'Кто поможет', value: `Гоффи • ${ctx.mentorName}` },
+  ];
+}
+
+export interface Okr {
+  text: string;
+  /** Шаги чек-листа, по которым считается прогресс цели. */
+  steps: string[];
+}
+
+const GO_OKRS: Okr[] = [
+  { text: 'Закрыть первую боевую задачу в Stash за 2 недели', steps: ['access_repo', 'first_task'] },
+  { text: 'Освоить пайплайн катки под фича-флагом', steps: ['team_processes'] },
+  { text: 'Сформировать ИПР и трекер прогресса со 2-й недели', steps: ['first_one_on_one'] },
 ];
 
-export const WEEK_OKRS: string[] = [
-  'Закрыть первую боевую задачу в Stash за 2 недели',
-  'Освоить пайплайн катки под фича-флагом',
-  'Сформировать ИПР и трекер прогресса со 2-й недели',
+const ML_OKRS: Okr[] = [
+  { text: 'Выкатить классификатор дубликатов под runtime-флагом', steps: ['first_task'] },
+  { text: 'Запустить A/B-тест и собрать Precision/Recall в Redash', steps: ['team_processes', 'first_task'] },
+  { text: 'Согласовать дизайн эксперимента на 1:1 с наставником', steps: ['first_one_on_one'] },
 ];
+
+/** Цели на адаптацию: у ML-стажёра третьей недели они про выкатку модели, у Go-стажёра — про первую задачу. */
+export function okrsFor(stack: string): Okr[] {
+  return isMl(stack) ? ML_OKRS : GO_OKRS;
+}
+
+const STATUS_WEIGHT: Record<string, number> = { completed: 1, in_progress: 0.5, pending: 0 };
+
+/** Прогресс цели в процентах по статусам связанных шагов чек-листа. */
+export function okrProgress(okr: Okr, checklist: Array<{ id: string; status: string }>): number {
+  const linked = checklist.filter((item) => okr.steps.includes(item.id));
+  if (linked.length === 0) return 0;
+  const sum = linked.reduce((acc, item) => acc + (STATUS_WEIGHT[item.status] ?? 0), 0);
+  return Math.round((sum / linked.length) * 100);
+}
 
 export interface StepQuiz {
   question: string;

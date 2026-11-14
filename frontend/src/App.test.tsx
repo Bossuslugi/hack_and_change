@@ -121,11 +121,14 @@ describe('Гоффи: рабочее пространство стажёра', (
     expect(within(step('access_repo')).getByText('Следующий шаг')).toBeInTheDocument();
     expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '2');
 
-    // Гоффи — аватар в шапке, в чате и на приветственном экране.
+    // Гоффи — аватар в шапке, в шапке чата и у приветствия; над перепиской — контекст недели вместо пустого экрана.
     expect(screen.getByText(/Привет, Алексей! Я Гоффи/)).toBeInTheDocument();
-    const hero = screen.getByTestId('goffy-hero');
-    expect(within(hero).getByRole('img', { name: 'Гоффи' })).toHaveAttribute('data-size', 'lg');
-    expect(screen.getAllByRole('img', { name: 'Гоффи' }).length).toBeGreaterThanOrEqual(4);
+    const context = screen.getByTestId('week-context');
+    expect(within(context).getByText('Цель спринта')).toBeInTheDocument();
+    expect(within(context).getByText('Stash: ждёт заявки')).toBeInTheDocument();
+    expect(within(context).getByText('Наставник: Мария Кузнецова')).toBeInTheDocument();
+    expect(screen.getAllByRole('img', { name: 'Гоффи' }).length).toBeGreaterThanOrEqual(3);
+    expect(screen.queryByText(/Переписку видишь только ты|Enter — отправить|Сценарии:/)).not.toBeInTheDocument();
     expect(screen.queryByText(/AI-Buddy/)).not.toBeInTheDocument();
   });
 
@@ -133,7 +136,7 @@ describe('Гоффи: рабочее пространство стажёра', (
     const { calls } = backend();
     const user = userEvent.setup();
     renderApp();
-    await user.click(await screen.findByRole('button', { name: '1А · Доступы' }));
+    await user.click(await screen.findByRole('button', { name: 'Запросить доступы к Stash' }));
 
     const card = await screen.findByTestId('result-access_granted');
     expect(within(card).getByText('Доступ выдан')).toBeInTheDocument();
@@ -142,7 +145,7 @@ describe('Гоффи: рабочее пространство стажёра', (
     expect(within(step('team_processes')).getByText('Следующий шаг')).toBeInTheDocument();
     expect(calls.find((c) => c.path === '/api/v1/chat/stream')?.body).toEqual({ message: SCENARIOS[0]!.text });
     await waitFor(() => expect(screen.queryByTestId('streaming')).not.toBeInTheDocument());
-    expect(screen.queryByTestId('goffy-hero')).not.toBeInTheDocument();
+    expect(within(screen.getByTestId('week-context')).getByText('Stash: доступ выдан')).toBeInTheDocument();
 
     // Телеметрия (MCP, RBAC, политики) стажёру не показывается.
     expect(chatLog()).not.toHaveTextContent(/POL-|ALLOWED|RBAC|MCP|iam_access|intern_backend|Smart Engine/);
@@ -152,7 +155,7 @@ describe('Гоффи: рабочее пространство стажёра', (
     backend();
     const user = userEvent.setup();
     renderApp();
-    await user.click(await screen.findByRole('button', { name: '1Б · Запрос ПДн (RBAC)' }));
+    await user.click(await screen.findByRole('button', { name: 'Проверить доступ к prod-БД' }));
 
     const card = await screen.findByTestId('result-rbac_denied');
     expect(card).toHaveAttribute('role', 'alert');
@@ -169,7 +172,7 @@ describe('Гоффи: рабочее пространство стажёра', (
     backend();
     const user = userEvent.setup();
     renderApp();
-    await user.click(await screen.findByRole('button', { name: '2 · Процессы команды' }));
+    await user.click(await screen.findByRole('button', { name: 'Выкатка под фича-флагом' }));
 
     const sources = await screen.findByLabelText('Источники');
     expect(within(sources).getAllByText('Тестовая инструкция (Синтетические данные)')).toHaveLength(2);
@@ -181,7 +184,7 @@ describe('Гоффи: рабочее пространство стажёра', (
     const { calls } = backend();
     const user = userEvent.setup();
     renderApp();
-    await user.click(await screen.findByRole('button', { name: '3 · Отгул' }));
+    await user.click(await screen.findByRole('button', { name: 'Оформить отгул' }));
 
     const form = await screen.findByRole('form', { name: 'Заявка на отгул' });
     expect(within(form).getByText('Ждёт подтверждения')).toBeInTheDocument();
@@ -216,7 +219,7 @@ describe('Гоффи: рабочее пространство стажёра', (
     backend(({ path }) => (path === '/api/v1/mcp/execute' ? json(fixtures.executeForbidden, 403) : undefined));
     const user = userEvent.setup();
     renderApp();
-    await user.click(await screen.findByRole('button', { name: '3 · Отгул' }));
+    await user.click(await screen.findByRole('button', { name: 'Оформить отгул' }));
     const form = await screen.findByRole('form', { name: 'Заявка на отгул' });
     await user.click(within(form).getByRole('button', { name: 'Оформить отгул' }));
     expect(await within(form).findByRole('alert')).toHaveTextContent(/default deny/);
@@ -242,11 +245,11 @@ describe('Гоффи: рабочее пространство стажёра', (
     await waitFor(() => expect(calls.filter((c) => c.path === '/api/v1/chat/stream')).toHaveLength(2));
   });
 
-  it('кнопка «Спросить Гоффи» у следующего шага запускает сценарий', async () => {
+  it('кнопка «Запросить через Гоффи» у шага доступов запускает сценарий', async () => {
     const { calls } = backend();
     const user = userEvent.setup();
     renderApp();
-    await user.click(await screen.findByRole('button', { name: 'Спросить Гоффи' }));
+    await user.click(await screen.findByRole('button', { name: 'Запросить через Гоффи' }));
     await screen.findByTestId('result-access_granted');
     expect(calls.find((c) => c.path === '/api/v1/chat/stream')?.body).toEqual({ message: SCENARIOS[0]!.text });
   });
@@ -271,7 +274,7 @@ describe('Гоффи: рабочее пространство стажёра', (
     });
     const user = userEvent.setup();
     renderApp();
-    await user.click(await screen.findByRole('button', { name: '1А · Доступы' }));
+    await user.click(await screen.findByRole('button', { name: 'Запросить доступы к Stash' }));
     const bubble = await screen.findByTestId('streaming');
     await waitFor(() => expect(bubble).toHaveTextContent('Проверяю, можно ли это сделать…'));
     expect(bubble).not.toHaveTextContent(/iam_access|MCP|RBAC/);
@@ -287,12 +290,12 @@ describe('Гоффи: рабочее пространство стажёра', (
     });
     const user = userEvent.setup();
     renderApp();
-    await user.click(await screen.findByRole('button', { name: '1А · Доступы' }));
+    await user.click(await screen.findByRole('button', { name: 'Запросить доступы к Stash' }));
     expect(await screen.findByText(/Не удалось получить ответ: Внутренняя ошибка сервера/)).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Скрыть' }));
     expect(screen.queryByText(/Не удалось получить ответ/)).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: '1А · Доступы' }));
+    await user.click(screen.getByRole('button', { name: 'Запросить доступы к Stash' }));
     await screen.findByText(/Не удалось получить ответ/);
     fail = false;
     await user.click(screen.getByRole('button', { name: 'Повторить' }));
@@ -331,8 +334,9 @@ describe('разделы левой панели', () => {
     backend();
     const user = userEvent.setup();
     renderApp();
-    expect(await screen.findByText('Цели на адаптацию и OKR команды')).toBeInTheDocument();
-    expect(screen.getByText('Закрыть первую боевую задачу в Stash за 2 недели')).toBeInTheDocument();
+    expect(await screen.findByText('Цели на адаптацию и OKR')).toBeInTheDocument();
+    expect(screen.getAllByTestId('okr')).toHaveLength(3);
+    expect(within(screen.getByLabelText('Цели на адаптацию')).getByText('Закрыть первую боевую задачу в Stash за 2 недели')).toBeInTheDocument();
     expect(within(screen.getByLabelText('Состав заявки на доступ')).getByText('Уровень прав')).toBeInTheDocument();
     expect(within(step('team_processes')).getByText('Confluence')).toBeInTheDocument();
 

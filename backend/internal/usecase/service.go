@@ -179,6 +179,52 @@ func (s *Service) seedRecords() ([]domain.Record, error) {
 			return nil, err
 		}
 		recs = append(recs, rec)
+		if in.ID == seed.Intern2ID {
+			history, err := s.seedHistory(in, now, suggestions)
+			if err != nil {
+				return nil, err
+			}
+			recs = append(recs, history...)
+		}
+	}
+	return recs, nil
+}
+
+// seedHistory — уже состоявшийся обмен в чате ML-стажёра: вопрос про пайплайны и ответ со ссылками на Playbook.
+// На третьей неделе пустой чат выглядел бы неправдоподобно.
+func (s *Service) seedHistory(in domain.InternProfile, now time.Time, suggestions []string) ([]domain.Record, error) {
+	sources := []domain.DocRef{}
+	for _, d := range s.Seed.Docs {
+		if d.ID == "pb-ml-pipelines" || d.ID == "pb-ml-ab-test" {
+			sources = append(sources, d.Ref())
+		}
+	}
+	base := welcomeMessage + "-" + in.ID
+	messages := []domain.ChatMessage{
+		{
+			ID: base + "-q1", InternID: in.ID, Role: domain.MessageUser,
+			Text:    "Как устроен ML-пайплайн команды и что подготовить к A/B-тесту классификатора дубликатов?",
+			Sources: []domain.DocRef{}, Suggestions: []string{}, ToolCallIDs: []string{}, CreatedAt: now.Add(time.Second),
+		},
+		{
+			ID: base + "-a1", InternID: in.ID, Role: domain.MessageAssistant,
+			Text: "Коротко по задаче MOD-842:\n\n" +
+				"- Датасеты и артефакты модели версионируются через DVC, DAG обучения и валидации запускается в Airflow.\n" +
+				"- Перед сборкой проверь воспроизводимость локально: dvc repro.\n" +
+				"- Модель выкатывается выключенной под runtime-флагом, затем включается на долю трафика в A/B-тесте.\n" +
+				"- Precision/Recall и сплит эксперимента смотри в Redash и Grafana.\n\n" +
+				"Дизайн эксперимента стоит обсудить с наставником на 1:1: я добавлю этот вопрос в бриф.",
+			Intent: agent.IntentKnowledge, Engine: domain.EngineSmart,
+			Sources: sources, Suggestions: suggestions, ToolCallIDs: []string{}, CreatedAt: now.Add(2 * time.Second),
+		},
+	}
+	recs := make([]domain.Record, 0, len(messages))
+	for _, m := range messages {
+		rec, err := domain.NewRecord(domain.KindMessage, m.ID, in.ID, m.CreatedAt, m)
+		if err != nil {
+			return nil, err
+		}
+		recs = append(recs, rec)
 	}
 	return recs, nil
 }

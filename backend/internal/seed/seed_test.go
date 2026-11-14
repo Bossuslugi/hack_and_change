@@ -78,10 +78,10 @@ func TestSeedChecklistAndTask(t *testing.T) {
 		positions[it.Position] = true
 		byID[it.ID] = it
 	}
-	if it := byID["access_repo"]; it.Position != 1 || it.Status != domain.StatusPending {
-		t.Errorf("шаг №1 чек-листа — доступы в статусе pending: %+v", it)
+	if it := byID["access_repo"]; it.Position != 4 || it.Status != domain.StatusInProgress {
+		t.Errorf("доступы — текущий шаг №4 в работе: %+v", it)
 	}
-	if it := byID["first_task"]; it.Title != "Первая задача в спринте" || it.Status != domain.StatusInProgress {
+	if it := byID["first_task"]; it.Position != 5 || it.Status != domain.StatusPending {
 		t.Errorf("первая задача: %+v", it)
 	}
 	for _, id := range []string{"team_processes", "absence_rules", "first_one_on_one"} {

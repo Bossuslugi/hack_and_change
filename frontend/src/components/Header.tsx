@@ -1,10 +1,9 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { api, DEMO_INTERNS, DEMO_ROLES, DEMO_USERS, type DemoRole } from '../api/auth';
-import type { Workspace } from '../api/schemas';
 import { useReset } from '../hooks/useBuddy';
 import { useUi } from '../store/ui';
 import { GoffyAvatar } from './GoffyAvatar';
-import { Badge, Button, cn } from './ui/primitives';
+import { Button, cn } from './ui/primitives';
 
 function RoleSwitcher() {
   const role = useUi((s) => s.role);
@@ -17,7 +16,7 @@ function RoleSwitcher() {
   };
 
   return (
-    <div role="radiogroup" aria-label="Роль пользователя" className="inline-flex rounded-2xl bg-paper-100 p-1">
+    <div role="radiogroup" aria-label="Роль пользователя" className="inline-flex shrink-0 whitespace-nowrap rounded-2xl bg-paper-100 p-1">
       {DEMO_ROLES.map((r) => (
         <button
           key={r}
@@ -54,7 +53,7 @@ function InternSwitcher() {
   };
 
   return (
-    <div role="radiogroup" aria-label="Профиль стажёра" className="inline-flex rounded-2xl bg-paper-100 p-1">
+    <div role="radiogroup" aria-label="Профиль стажёра" className="inline-flex shrink-0 whitespace-nowrap rounded-2xl bg-paper-100 p-1">
       {DEMO_INTERNS.map((intern) => {
         const active = activeInternId === intern.id;
         return (
@@ -114,7 +113,7 @@ function ThemeToggle() {
   );
 }
 
-export function Header({ workspace }: { workspace?: Workspace }) {
+export function Header() {
   const openInspector = useUi((s) => s.openInspector);
   const inspectorOpen = useUi((s) => s.inspectorOpen);
   const reset = useReset();
@@ -127,42 +126,31 @@ export function Header({ workspace }: { workspace?: Workspace }) {
 
   return (
     <header className="sticky top-0 z-20 shrink-0 border-b border-paper-200 bg-paper-0/70 backdrop-blur-xl transition-colors duration-300">
-      <div className="mx-auto flex max-w-[1920px] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5">
-        <div className="flex items-center gap-2.5">
+      <div className="mx-auto flex max-w-[1920px] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5 lg:flex-nowrap">
+        <div className="flex shrink-0 items-center gap-2.5">
           <GoffyAvatar size="sm" className="h-9 w-9" />
-          <div className="leading-tight">
-            <p className="text-sm font-semibold text-ink-900">
-              Гоффи <span className="font-normal text-ink-400">· Avito Start</span>
-            </p>
-            <p className="text-[11px] text-ink-500">ИИ-наставник для стажёров · прототип</p>
-          </div>
+          <p className="whitespace-nowrap text-sm font-semibold text-ink-900">
+            Гоффи <span className="font-normal text-ink-400">· Avito Start</span>
+          </p>
         </div>
 
-        {workspace && (
-          <div className="hidden items-center gap-1.5 lg:flex" aria-label="Контекст стажёра">
-            <Badge>{workspace.intern.name}</Badge>
-            <Badge tone="brand">Команда {workspace.intern.team}</Badge>
-            <Badge tone="brand">{workspace.intern.stack}</Badge>
-            <Badge tone="accent">{workspace.intern.stage}</Badge>
-          </div>
-        )}
-
-        <div className="ml-auto flex flex-wrap items-center gap-2">
+        <div className="ml-auto flex flex-wrap items-center gap-2 lg:flex-nowrap">
           <InternSwitcher />
           <RoleSwitcher />
           <ThemeToggle />
-          <Button onClick={toggleInspector} aria-pressed={inspectorOpen} title="MCP · JSON-RPC · RBAC · Clickstream">
+          <Button className="whitespace-nowrap" onClick={toggleInspector} aria-pressed={inspectorOpen} title="MCP · JSON-RPC · RBAC · Clickstream">
             <svg viewBox="0 0 20 20" className="h-4 w-4" aria-hidden="true">
               <path d="M3 5h14M3 10h9M3 15h12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" fill="none" />
             </svg>
             Инспектор жюри
           </Button>
-          <Button variant="ghost" onClick={() => reset.mutate()} loading={reset.isPending} title="Вернуть демо-данные в исходное состояние">
+          <Button variant="ghost" className="whitespace-nowrap" onClick={() => reset.mutate()} loading={reset.isPending} title="Вернуть демо-данные в исходное состояние">
             Сбросить демо
           </Button>
         </div>
       </div>
-      <p className="border-t border-warn-500/20 bg-warn-50/80 px-4 py-1 text-center text-[11px] text-warn-700">
+      {/* Дисклеймер остаётся для скринридеров; видимые плашки синтетики стоят у каждой инструкции в чате. */}
+      <p className="sr-only">
         Синтетические данные: сотрудники, инструкции и корпоративные сервисы — имитации. Инструкции не являются регламентами Авито.
       </p>
     </header>

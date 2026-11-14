@@ -328,7 +328,7 @@ func TestServiceIntents(t *testing.T) {
 	s := newStack(t, nil)
 
 	r := s.ask("Что дальше по чек-листу?", "")
-	mustContain(t, r.Text, "2 из 7 шагов (28%)", "Следующий шаг", "Получить доступы")
+	mustContain(t, r.Text, "3 из 7 шагов (42%)", "Следующий шаг", "Получить доступы")
 	if len(r.Suggestions) != 1 || r.Suggestions[0] != agent.ScenarioPrompts["access_repo"] {
 		t.Errorf("подсказка следующего шага: %v", r.Suggestions)
 	}

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { ChecklistItem, Workspace } from '../api/schemas';
 import { useCron } from '../hooks/useBuddy';
-import { ACCESS_REQUEST_FIELDS, AVITO_BENCHMARKS, AVITO_SERVICES, MENTOR_LOAD, STEP_QUIZ, STEP_SERVICES, WEEK_OKRS, type Benchmark } from '../lib/avito';
+import { AVITO_BENCHMARKS, AVITO_SERVICES, MENTOR_LOAD, STEP_QUIZ, STEP_SERVICES, okrProgress, okrsFor, stepSpec, type Benchmark } from '../lib/avito';
 import { formatMinutes, initials, plural, STATUS_LABEL } from '../lib/format';
 import { useUi } from '../store/ui';
 import { Planner } from './Planner';
@@ -41,11 +41,16 @@ function StatusIcon({ status }: { status: ChecklistItem['status'] }) {
 function HeroBar({ workspace }: { workspace: Workspace }) {
   const { progress, next_step: next, intern } = workspace;
   return (
-    <section className="bento flex max-h-[110px] shrink-0 items-center gap-4 overflow-hidden px-4 py-3" aria-label="Прогресс стажёра">
+    <section className="bento flex shrink-0 items-center gap-4 overflow-hidden px-4 py-3" aria-label="Прогресс стажёра">
       <p className="shrink-0 bg-gradient-to-r from-brand-500 to-accent-500 bg-clip-text text-3xl font-bold leading-none text-transparent">{progress.percent}%</p>
       <div className="min-w-0 flex-1">
-        <div className="flex items-baseline justify-between gap-3">
-          <p className="truncate text-sm font-semibold text-ink-900">{intern.name}</p>
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+          <div className="flex min-w-0 flex-wrap items-center gap-1.5" aria-label="Контекст стажёра">
+            <p className="mr-1 text-sm font-semibold text-ink-900">{intern.name}</p>
+            <Badge tone="brand">Команда {intern.team}</Badge>
+            <Badge tone="brand">{intern.stack}</Badge>
+            <Badge tone="accent">{intern.stage}</Badge>
+          </div>
           <p className="shrink-0 text-xs text-ink-500">
             Выполнено {progress.completed} из {progress.total} {plural(progress.total, ['шага', 'шагов', 'шагов'])}
             {progress.in_progress > 0 && ` · в работе ${progress.in_progress}`}
@@ -115,14 +120,27 @@ function StepQuizCard({ stepId }: { stepId: string }) {
   );
 }
 
-/** Состав заявки на доступ: показываем заранее, что спросит сервис. */
-function AccessRequestHint() {
+/** Паспорт активного шага: ресурс, метрики, условие выкатки и согласующий. */
+function StepPassport({ item, workspace }: { item: ChecklistItem; workspace: Workspace }) {
+  const { intern, sprint_task: task } = workspace;
+  const rows = stepSpec({
+    stepId: item.id,
+    week: item.week,
+    description: item.description,
+    stack: intern.stack,
+    repository: intern.repository,
+    mentorName: intern.mentor_name,
+    taskKey: task.key,
+  });
   return (
-    <dl className="glass-inner mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 p-3 text-[11px]" aria-label="Состав заявки на доступ">
-      {ACCESS_REQUEST_FIELDS.map((f) => (
-        <div key={f.label} className="contents">
-          <dt className="text-ink-500">{f.label}</dt>
-          <dd className="text-ink-900">{f.value}</dd>
+    <dl
+      className="glass-inner mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 p-3 text-[11px]"
+      aria-label={item.id === 'access_repo' ? 'Состав заявки на доступ' : 'Паспорт шага'}
+    >
+      {rows.map((row) => (
+        <div key={row.label} className="contents">
+          <dt className="text-ink-500">{row.label}</dt>
+          <dd className="text-ink-900">{row.value}</dd>
         </div>
       ))}
     </dl>
@@ -167,10 +185,10 @@ function Checklist({ workspace, onAsk }: { workspace: Workspace; onAsk?: (text: 
                     ))}
                   </p>
                   {item.evidence && item.status !== 'pending' && <p className="mt-1 text-[11px] text-ink-500">{item.evidence}</p>}
-                  {isNext && item.id === 'access_repo' && <AccessRequestHint />}
+                  {isNext && <StepPassport item={item} workspace={workspace} />}
                   {isNext && prompt && onAsk && (
                     <Button size="sm" variant="primary" className="mt-2" onClick={() => onAsk(prompt)}>
-                      Спросить Гоффи
+                      {item.id === 'access_repo' ? 'Запросить через Гоффи' : 'Спросить Гоффи'}
                     </Button>
                   )}
                   {item.status !== 'completed' && onAsk && <StepQuizCard stepId={item.id} />}
@@ -363,20 +381,29 @@ export function MentorLoad() {
   );
 }
 
-/** Цели первых недель: согласованы с руководителем, видны рядом с чек-листом. */
+/** Цели на адаптацию: согласованы с руководителем, прогресс считается по связанным шагам чек-листа. */
 function Okrs({ workspace }: { workspace: Workspace }) {
+  const { intern, checklist } = workspace;
   return (
     <Card className="overflow-hidden p-4">
-      <CardTitle aside={<Badge tone="accent">Неделя 1–2</Badge>}>Цели на адаптацию и OKR команды</CardTitle>
-      <ol className="mt-3 space-y-1.5">
-        {WEEK_OKRS.map((goal, i) => (
-          <li key={goal} className="glass-inner flex items-start gap-2.5 px-3 py-2 text-sm text-ink-900">
-            <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-accent-50 text-[11px] font-semibold text-accent-700">{i + 1}</span>
-            {goal}
-          </li>
-        ))}
+      <CardTitle aside={<Badge tone="accent">3 цели</Badge>}>Цели на адаптацию и OKR</CardTitle>
+      <p className="mt-0.5 text-[11px] text-ink-400">Согласовано с руководителем: {intern.team_lead_name}</p>
+      <ol className="mt-3 grid gap-2 xl:grid-cols-3" aria-label="Цели на адаптацию">
+        {okrsFor(intern.stack).map((okr) => {
+          const percent = okrProgress(okr, checklist);
+          return (
+            <li key={okr.text} data-testid="okr" className="glass-inner flex flex-col gap-2 p-3">
+              <p className="flex-1 text-xs font-medium leading-snug text-ink-900">{okr.text}</p>
+              <div className="flex items-center gap-2">
+                <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-paper-100" aria-hidden="true">
+                  <span className="block h-full rounded-full bg-gradient-to-r from-brand-500 to-ok-500" style={{ width: `${percent}%` }} />
+                </span>
+                <span className="font-mono text-[11px] text-ink-500">{percent}%</span>
+              </div>
+            </li>
+          );
+        })}
       </ol>
-      <p className="mt-2 text-[11px] text-ink-400">Согласовано с руководителем: {workspace.intern.team_lead_name}.</p>
       <ul className="mt-3 flex flex-wrap gap-1.5" aria-label="Сервисы команды">
         {AVITO_SERVICES.map((service) => (
           <li key={service.name}>
@@ -450,8 +477,8 @@ export function Sidebar({ workspace, onAsk }: { workspace: Workspace; onAsk?: (t
       <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pr-1 stack-scroll">
         {tab === 'onboarding' && (
           <>
-            <Checklist workspace={workspace} onAsk={onAsk} />
             <Okrs workspace={workspace} />
+            <Checklist workspace={workspace} onAsk={onAsk} />
             <MentorCard workspace={workspace} />
             <TaskCard workspace={workspace} />
           </>
