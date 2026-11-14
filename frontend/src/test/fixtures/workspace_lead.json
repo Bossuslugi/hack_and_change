@@ -28,12 +28,12 @@
    "position": 1,
    "week": 1,
    "title": "Получить доступы к репозиторию команды и тестовому стенду",
-   "description": "Доступ к avito-autoteka-api и стенду с синтетическими данными. AI-Buddy оформит через IAM.",
+   "description": "Доступ к avito-autoteka-api и стенду с синтетическими данными. Гоффи оформит через IAM.",
    "status": "completed",
    "scenario": "S1",
-   "evidence": "Доступ к avito-autoteka-api выдан через IAM (AI-Buddy)",
-   "updated_at": "2026-11-13T11:54:55.1066804+03:00",
-   "completed_at": "2026-11-13T11:54:55.1066804+03:00"
+   "evidence": "Доступ к avito-autoteka-api выдан через IAM (Гоффи)",
+   "updated_at": "2026-11-14T17:30:46.772436+03:00",
+   "completed_at": "2026-11-14T17:30:46.772436+03:00"
   },
   {
    "id": "meet_team",
@@ -43,7 +43,7 @@
    "description": "Вводная встреча с командой Autoteka, знакомство с наставником и руководителем.",
    "status": "completed",
    "evidence": "Вводная встреча проведена в первый день",
-   "updated_at": "2026-11-13T11:54:54.7989528+03:00"
+   "updated_at": "2026-11-14T17:30:46.4556629+03:00"
   },
   {
    "id": "local_env",
@@ -53,19 +53,19 @@
    "description": "Go, Docker, IDE и корпоративный VPN на рабочем ноутбуке.",
    "status": "completed",
    "evidence": "Окружение настроено по инструкции",
-   "updated_at": "2026-11-13T11:54:54.7989528+03:00"
+   "updated_at": "2026-11-14T17:30:46.4556629+03:00"
   },
   {
    "id": "team_processes",
    "position": 4,
    "week": 1,
    "title": "Изучить процессы команды: фича-флаги и код-ревью",
-   "description": "Как команда катит задачи под фича-флагами и как проходит ревью. Спроси AI-Buddy.",
+   "description": "Как команда катит задачи под фича-флагами и как проходит ревью. Спроси Гоффи.",
    "status": "completed",
    "scenario": "S2",
-   "evidence": "Инструкции изучены через AI-Buddy",
-   "updated_at": "2026-11-13T11:54:55.763751+03:00",
-   "completed_at": "2026-11-13T11:54:55.763751+03:00"
+   "evidence": "Инструкции изучены через Гоффи",
+   "updated_at": "2026-11-14T17:30:47.3843666+03:00",
+   "completed_at": "2026-11-14T17:30:47.3843666+03:00"
   },
   {
    "id": "first_task",
@@ -76,7 +76,7 @@
    "status": "in_progress",
    "scenario": "S2",
    "evidence": "Задача взята в работу",
-   "updated_at": "2026-11-13T11:54:54.7989528+03:00"
+   "updated_at": "2026-11-14T17:30:46.4556629+03:00"
   },
   {
    "id": "absence_rules",
@@ -86,20 +86,20 @@
    "description": "Отгул, отпуск, больничный: как оформить через сервис «Отсутствия» и кого предупредить.",
    "status": "completed",
    "scenario": "S3",
-   "evidence": "Заявка #ABS-2026-84 оформлена через AI-Buddy",
-   "updated_at": "2026-11-13T11:54:56.1005903+03:00",
-   "completed_at": "2026-11-13T11:54:56.1005903+03:00"
+   "evidence": "Заявка #ABS-2026-84 оформлена через Гоффи",
+   "updated_at": "2026-11-14T17:30:47.6943427+03:00",
+   "completed_at": "2026-11-14T17:30:47.6943427+03:00"
   },
   {
    "id": "first_one_on_one",
    "position": 7,
    "week": 2,
    "title": "Провести первую встречу 1:1 с наставником",
-   "description": "Обсудить прогресс и вопросы, требующие участия сеньора. AI-Buddy подготовит бриф.",
+   "description": "Обсудить прогресс и вопросы, требующие участия сеньора. Гоффи подготовит бриф.",
    "status": "in_progress",
    "scenario": "S2",
    "evidence": "Бриф к 1:1 отправлен наставнику",
-   "updated_at": "2026-11-13T11:54:56.162124+03:00"
+   "updated_at": "2026-11-14T17:30:47.7381137+03:00"
   }
  ],
  "progress": {
@@ -117,7 +117,7 @@
   "status": "in_progress",
   "scenario": "S2",
   "evidence": "Задача взята в работу",
-  "updated_at": "2026-11-13T11:54:54.7989528+03:00"
+  "updated_at": "2026-11-14T17:30:46.4556629+03:00"
  },
  "sprint_task": {
   "key": "AUT-1423",
@@ -130,12 +130,62 @@
   "repository": "avito-autoteka-api",
   "architecture_question": "Где в avito-autoteka-api проходит граница между слоем сборки отчёта и агрегатором источников: на каком слое вычислять mileage_verified, чтобы не сломать контракт /v1/report/summary для существующих клиентов?"
  },
+ "skills": [
+  {
+   "id": "skill.onboarding_navigator",
+   "name": "Навигатор онбординга",
+   "description": "Ведение стажёра по чек-листу адаптации, рекомендации следующего шага и автозакрытие этапов",
+   "active": true
+  },
+  {
+   "id": "skill.contextual_playbook_rag",
+   "name": "Контекстный Playbook RAG",
+   "description": "Поиск по синтетической базе знаний команды с маркировкой источников и учётом стека",
+   "active": true
+  },
+  {
+   "id": "skill.rbac_security_guard",
+   "name": "RBAC Security Guard",
+   "description": "Блокировка доступа к ПДн, продакшн-дампам и финансам по политике POL-SEC-001 с предложением песочницы",
+   "active": true
+  },
+  {
+   "id": "skill.absence_workflow_automation",
+   "name": "Автоматизация отгулов и отсутствий",
+   "description": "Сквозное интерактивное оформление отгулов и двухстороннее согласование руководителем",
+   "active": true
+  },
+  {
+   "id": "skill.proactive_mentor_sync",
+   "name": "Проактивная синхронизация с ментором",
+   "description": "Фоновый ИИ-крон, обнаружение пробуксовок стажёра и автогенерация повестки встречи 1:1",
+   "active": true
+  }
+ ],
  "feature_flags": [
+  {
+   "key": "proactive_ai_cron",
+   "enabled": true,
+   "kind": "runtime",
+   "description": "ИИ-крон: проактивные сообщения стажёру и бриф наставнику"
+  },
+  {
+   "key": "strict_rbac_guard",
+   "enabled": true,
+   "kind": "runtime",
+   "description": "Строгая RBAC-защита: немедленная блокировка выгрузки ПДн (POL-SEC-001)"
+  },
+  {
+   "key": "mentor_auto_brief",
+   "enabled": true,
+   "kind": "runtime",
+   "description": "Автогенерация Structured 1:1 Brief наставнику при пробуксовке стажёра"
+  },
   {
    "key": "ai_buddy.proactive_cron",
    "enabled": true,
    "kind": "runtime",
-   "description": "ИИ-крон: проактивные сообщения стажёру и бриф наставнику"
+   "description": "ИИ-крон: фоновый запуск проверок (системный алиас)"
   },
   {
    "key": "ai_buddy.absence_action_card",
@@ -150,16 +200,28 @@
    "description": "Формулировка ответов внешней LLM (если задан LLM_API_KEY)"
   },
   {
+   "key": "sdd_spec_enforcement",
+   "enabled": true,
+   "kind": "compile_time",
+   "description": "Валидация контрактов OpenSpec в runtime через embed.FS"
+  },
+  {
+   "key": "synthetic_data_watermark",
+   "enabled": true,
+   "kind": "compile_time",
+   "description": "Водяные знаки синтетических данных и маскирование токенов"
+  },
+  {
+   "key": "mcp_jsonrpc_v2",
+   "enabled": true,
+   "kind": "compile_time",
+   "description": "Поддержка протокола MCP JSON-RPC 2.0"
+  },
+  {
    "key": "ai_buddy.mcp_jsonrpc",
    "enabled": true,
    "kind": "compile_time",
-   "description": "MCP JSON-RPC endpoint POST /mcp"
-  },
-  {
-   "key": "ai_buddy.synthetic_data_only",
-   "enabled": true,
-   "kind": "compile_time",
-   "description": "Только синтетические данные и имитации сервисов"
+   "description": "MCP JSON-RPC endpoint POST /mcp (системный алиас)"
   }
  ],
  "metrics": {
@@ -168,7 +230,7 @@
   "rbac_blocks": 1,
   "briefs_prepared": 1,
   "unanswered_questions": 0,
-  "tool_calls": 9,
+  "tool_calls": 12,
   "docs_read": 3,
   "docs_total": 7,
   "checklist_percent": 71,
@@ -176,22 +238,26 @@
   "mentor_hours_baseline_min": 40,
   "mentor_hours_baseline_max": 48,
   "saving_percent": 2.7,
-  "avg_response_ms": 302.4
+  "avg_response_ms": 302.5,
+  "deflection_rate": 100,
+  "access_grants": 1,
+  "tasks_done": 1,
+  "tasks_total": 8
  },
  "messages": [],
  "notifications": [
   {
-   "id": "ntf-74323946760c",
+   "id": "ntf-9b62da8b9432",
    "recipient_id": "u-lead-01",
    "title": "Отгул: Алексей Смирнов",
    "body": "Алексей Смирнов оформил(а) отгул на 20.11.2026, 14:00–18:00. Причина: Зачёт в университете. Заявка #ABS-2026-84. Заявка ожидает согласования в сервисе «Отсутствия».",
    "kind": "absence",
-   "created_at": "2026-11-13T11:54:56.1005903+03:00"
+   "created_at": "2026-11-14T17:30:47.6943427+03:00"
   }
  ],
  "briefs": [
   {
-   "id": "brief-f68677356177",
+   "id": "brief-a978082d23dc",
    "intern_id": "u-intern-01",
    "intern_name": "Алексей Смирнов",
    "mentor_id": "u-mentor-01",
@@ -201,7 +267,8 @@
     "Изучил инструкцию «Как проходить код-ревью»",
     "Изучил инструкцию «Отсутствия: отгул, отпуск, больничный»",
     "Сам получил доступ к репозиторию avito-autoteka-api и тестовому стенду",
-    "Разобрался с оформлением отсутствий: заявка #ABS-2026-84"
+    "Разобрался с оформлением отсутствий: заявка #ABS-2026-84",
+    "Отчитался по «Командный синк Autoteka»: Синк прошёл, блокеров нет"
    ],
    "architecture_question": "Где в avito-autoteka-api проходит граница между слоем сборки отчёта и агрегатором источников: на каком слое вычислять mileage_verified, чтобы не сломать контракт /v1/report/summary для существующих клиентов?",
    "signals": [
@@ -209,12 +276,12 @@
     "Прогресс чек-листа адаптации: 5 из 7 шагов"
    ],
    "open_questions": [],
-   "created_at": "2026-11-13T11:54:56.1616131+03:00"
+   "created_at": "2026-11-14T17:30:47.7381137+03:00"
   }
  ],
  "absences": [
   {
-   "id": "abs-a3afcc9043ac",
+   "id": "abs-d58ae74b1104",
    "number": "#ABS-2026-84",
    "intern_id": "u-intern-01",
    "intern_name": "Алексей Смирнов",
@@ -222,31 +289,34 @@
    "time_from": "14:00",
    "time_to": "18:00",
    "reason": "Зачёт в университете",
-   "status": "pending_approval",
+   "status": "approved",
    "notified": [
     "Мария Кузнецова",
     "Дмитрий Орлов"
    ],
    "is_synthetic": true,
-   "created_at": "2026-11-13T11:54:56.1005903+03:00"
+   "decision": "approved",
+   "reviewer_id": "u-lead-01",
+   "reviewed_at": "2026-11-14T17:30:47.731133+03:00",
+   "created_at": "2026-11-14T17:30:47.6943427+03:00"
   }
  ],
  "access_grants": [
   {
-   "id": "grant-914d096d5170",
+   "id": "grant-428358f99ee5",
    "intern_id": "u-intern-01",
    "repository": "avito-autoteka-api",
    "access_level": "developer",
    "stand": "autoteka-test-07",
-   "token_masked": "glpat-synt-••••34c3",
-   "expires_at": "2027-02-11T11:54:55.0064931+03:00",
+   "token_masked": "glpat-synt-••••4236",
+   "expires_at": "2027-02-12T17:30:46.6716161+03:00",
    "is_synthetic": true,
-   "created_at": "2026-11-13T11:54:55.0064931+03:00"
+   "created_at": "2026-11-14T17:30:46.6716161+03:00"
   }
  ],
  "incidents": [
   {
-   "id": "evt-94aa113e4c3a",
+   "id": "evt-be9354b4dca9",
    "intern_id": "u-intern-01",
    "actor_id": "u-intern-01",
    "actor_role": "intern_backend",
@@ -262,11 +332,11 @@
     },
     "operation": "db_admin.export_prod_pii",
     "policy_id": "POL-SEC-001",
-    "reason": "Выгрузка production-данных с ПДн и финансовых сведений запрещена всем ролям AI-Buddy",
+    "reason": "Выгрузка production-данных с ПДн и финансовых сведений запрещена всем ролям Гоффи",
     "role": "intern_backend",
-    "tool_call_id": "call-7ffbfe601903"
+    "tool_call_id": "call-9dfed296ae03"
    },
-   "created_at": "2026-11-13T11:54:55.3553984+03:00"
+   "created_at": "2026-11-14T17:30:46.9784986+03:00"
   }
  ],
  "doc_progress": {
@@ -286,13 +356,156 @@
   "cache": "memory"
  },
  "permissions": {
+  "absence_approve": true,
   "briefs": true,
   "chat": false,
   "cron": true,
   "flags_write": true,
   "incidents": true,
+  "planner_add": true,
+  "planner_complete": false,
   "reset": true,
   "telemetry": true
  },
- "disclaimer": "Тестовая инструкция (Синтетические данные)"
+ "disclaimer": "Тестовая инструкция (Синтетические данные)",
+ "planner": [
+  {
+   "id": "plan-5ec0f4fa6ec7",
+   "intern_id": "u-intern-01",
+   "kind": "task",
+   "title": "Настроить Go-окружение",
+   "description": "",
+   "starts_at": "2026-11-14T00:00:00+03:00",
+   "duration_min": 0,
+   "all_day": true,
+   "link": "",
+   "mandatory": false,
+   "created_by": "u-intern-01",
+   "created_by_name": "Алексей Смирнов",
+   "status": "planned",
+   "report": "",
+   "is_synthetic": true
+  },
+  {
+   "id": "plan-dfb062003699",
+   "intern_id": "u-intern-01",
+   "kind": "task",
+   "title": "Пройти курс ИБ",
+   "description": "",
+   "starts_at": "2026-11-14T00:00:00+03:00",
+   "duration_min": 0,
+   "all_day": true,
+   "link": "",
+   "mandatory": true,
+   "created_by": "u-mentor-01",
+   "created_by_name": "Мария Кузнецова",
+   "status": "planned",
+   "report": "",
+   "is_synthetic": true
+  },
+  {
+   "id": "plan-1on1",
+   "intern_id": "u-intern-01",
+   "kind": "meeting",
+   "title": "Созвон 1:1 с наставником",
+   "description": "Первая встреча 1:1: прогресс по чек-листу и вопросы, где нужен опыт сеньора. Гоффи заранее отправит наставнику бриф.",
+   "starts_at": "2026-11-14T20:30:00+03:00",
+   "duration_min": 30,
+   "all_day": false,
+   "link": "https://meet.avito.example/autoteka-1on1",
+   "mandatory": true,
+   "created_by": "u-mentor-01",
+   "created_by_name": "Мария Кузнецова",
+   "status": "planned",
+   "report": "",
+   "is_synthetic": true
+  },
+  {
+   "id": "plan-sync",
+   "intern_id": "u-intern-01",
+   "kind": "sync",
+   "title": "Командный синк Autoteka",
+   "description": "Ежедневный синк команды: что сделано, что в работе, что мешает.",
+   "starts_at": "2026-11-15T11:00:00+03:00",
+   "duration_min": 15,
+   "all_day": false,
+   "link": "https://meet.avito.example/autoteka-daily",
+   "mandatory": true,
+   "created_by": "u-lead-01",
+   "created_by_name": "Дмитрий Орлов",
+   "status": "done",
+   "report": "Синк прошёл, блокеров нет",
+   "completed_at": "2026-11-14T17:30:47.7219527+03:00",
+   "is_synthetic": true
+  },
+  {
+   "id": "plan-review",
+   "intern_id": "u-intern-01",
+   "kind": "review",
+   "title": "Код-ревью задачи AUT-1423",
+   "description": "Разбор первого MR с наставником: фича-флаг, тесты, контракт ручки.",
+   "starts_at": "2026-11-16T15:00:00+03:00",
+   "duration_min": 45,
+   "all_day": false,
+   "link": "https://meet.avito.example/autoteka-review",
+   "mandatory": true,
+   "created_by": "u-mentor-01",
+   "created_by_name": "Мария Кузнецова",
+   "status": "planned",
+   "report": "",
+   "is_synthetic": true
+  },
+  {
+   "id": "plan-security-course",
+   "intern_id": "u-intern-01",
+   "kind": "task",
+   "title": "Пройти курс по информационной безопасности",
+   "description": "Обязательный вводный курс: работа с данными, ПДн, доступы.",
+   "starts_at": "2026-11-19T00:00:00+03:00",
+   "duration_min": 0,
+   "all_day": true,
+   "link": "",
+   "mandatory": true,
+   "created_by": "u-lead-01",
+   "created_by_name": "Дмитрий Орлов",
+   "status": "planned",
+   "report": "",
+   "is_synthetic": true
+  },
+  {
+   "id": "plan-first-pr",
+   "intern_id": "u-intern-01",
+   "kind": "deadline",
+   "title": "Срок сдачи первого PR",
+   "description": "Первый PR по задаче AUT-1423 должен быть отправлен на ревью.",
+   "starts_at": "2026-11-20T18:00:00+03:00",
+   "duration_min": 0,
+   "all_day": false,
+   "link": "",
+   "mandatory": true,
+   "created_by": "u-mentor-01",
+   "created_by_name": "Мария Кузнецова",
+   "status": "planned",
+   "report": "",
+   "is_synthetic": true
+  },
+  {
+   "id": "plan-feedback",
+   "intern_id": "u-intern-01",
+   "kind": "meeting",
+   "title": "Созвон по обратной связи за первую неделю",
+   "description": "Руководитель и наставник: итоги недели, ожидания на следующую.",
+   "starts_at": "2026-11-21T16:00:00+03:00",
+   "duration_min": 30,
+   "all_day": false,
+   "link": "https://meet.avito.example/autoteka-feedback",
+   "mandatory": true,
+   "created_by": "u-lead-01",
+   "created_by_name": "Дмитрий Орлов",
+   "status": "planned",
+   "report": "",
+   "is_synthetic": true
+  }
+ ],
+ "reminders": []
 }

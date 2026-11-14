@@ -28,10 +28,10 @@
    "position": 1,
    "week": 1,
    "title": "Получить доступы к репозиторию команды и тестовому стенду",
-   "description": "Доступ к avito-autoteka-api и стенду с синтетическими данными. AI-Buddy оформит через IAM.",
+   "description": "Доступ к avito-autoteka-api и стенду с синтетическими данными. Гоффи оформит через IAM.",
    "status": "pending",
    "scenario": "S1",
-   "updated_at": "2026-11-13T11:54:54.7989528+03:00"
+   "updated_at": "2026-11-14T17:30:46.4556629+03:00"
   },
   {
    "id": "meet_team",
@@ -41,7 +41,7 @@
    "description": "Вводная встреча с командой Autoteka, знакомство с наставником и руководителем.",
    "status": "completed",
    "evidence": "Вводная встреча проведена в первый день",
-   "updated_at": "2026-11-13T11:54:54.7989528+03:00"
+   "updated_at": "2026-11-14T17:30:46.4556629+03:00"
   },
   {
    "id": "local_env",
@@ -51,17 +51,17 @@
    "description": "Go, Docker, IDE и корпоративный VPN на рабочем ноутбуке.",
    "status": "completed",
    "evidence": "Окружение настроено по инструкции",
-   "updated_at": "2026-11-13T11:54:54.7989528+03:00"
+   "updated_at": "2026-11-14T17:30:46.4556629+03:00"
   },
   {
    "id": "team_processes",
    "position": 4,
    "week": 1,
    "title": "Изучить процессы команды: фича-флаги и код-ревью",
-   "description": "Как команда катит задачи под фича-флагами и как проходит ревью. Спроси AI-Buddy.",
+   "description": "Как команда катит задачи под фича-флагами и как проходит ревью. Спроси Гоффи.",
    "status": "pending",
    "scenario": "S2",
-   "updated_at": "2026-11-13T11:54:54.7989528+03:00"
+   "updated_at": "2026-11-14T17:30:46.4556629+03:00"
   },
   {
    "id": "first_task",
@@ -72,7 +72,7 @@
    "status": "in_progress",
    "scenario": "S2",
    "evidence": "Задача взята в работу",
-   "updated_at": "2026-11-13T11:54:54.7989528+03:00"
+   "updated_at": "2026-11-14T17:30:46.4556629+03:00"
   },
   {
    "id": "absence_rules",
@@ -82,17 +82,17 @@
    "description": "Отгул, отпуск, больничный: как оформить через сервис «Отсутствия» и кого предупредить.",
    "status": "pending",
    "scenario": "S3",
-   "updated_at": "2026-11-13T11:54:54.7989528+03:00"
+   "updated_at": "2026-11-14T17:30:46.4556629+03:00"
   },
   {
    "id": "first_one_on_one",
    "position": 7,
    "week": 2,
    "title": "Провести первую встречу 1:1 с наставником",
-   "description": "Обсудить прогресс и вопросы, требующие участия сеньора. AI-Buddy подготовит бриф.",
+   "description": "Обсудить прогресс и вопросы, требующие участия сеньора. Гоффи подготовит бриф.",
    "status": "pending",
    "scenario": "S2",
-   "updated_at": "2026-11-13T11:54:54.7989528+03:00"
+   "updated_at": "2026-11-14T17:30:46.4556629+03:00"
   }
  ],
  "progress": {
@@ -106,10 +106,10 @@
   "position": 1,
   "week": 1,
   "title": "Получить доступы к репозиторию команды и тестовому стенду",
-  "description": "Доступ к avito-autoteka-api и стенду с синтетическими данными. AI-Buddy оформит через IAM.",
+  "description": "Доступ к avito-autoteka-api и стенду с синтетическими данными. Гоффи оформит через IAM.",
   "status": "pending",
   "scenario": "S1",
-  "updated_at": "2026-11-13T11:54:54.7989528+03:00"
+  "updated_at": "2026-11-14T17:30:46.4556629+03:00"
  },
  "sprint_task": {
   "key": "AUT-1423",
@@ -122,12 +122,62 @@
   "repository": "avito-autoteka-api",
   "architecture_question": "Где в avito-autoteka-api проходит граница между слоем сборки отчёта и агрегатором источников: на каком слое вычислять mileage_verified, чтобы не сломать контракт /v1/report/summary для существующих клиентов?"
  },
+ "skills": [
+  {
+   "id": "skill.onboarding_navigator",
+   "name": "Навигатор онбординга",
+   "description": "Ведение стажёра по чек-листу адаптации, рекомендации следующего шага и автозакрытие этапов",
+   "active": true
+  },
+  {
+   "id": "skill.contextual_playbook_rag",
+   "name": "Контекстный Playbook RAG",
+   "description": "Поиск по синтетической базе знаний команды с маркировкой источников и учётом стека",
+   "active": true
+  },
+  {
+   "id": "skill.rbac_security_guard",
+   "name": "RBAC Security Guard",
+   "description": "Блокировка доступа к ПДн, продакшн-дампам и финансам по политике POL-SEC-001 с предложением песочницы",
+   "active": true
+  },
+  {
+   "id": "skill.absence_workflow_automation",
+   "name": "Автоматизация отгулов и отсутствий",
+   "description": "Сквозное интерактивное оформление отгулов и двухстороннее согласование руководителем",
+   "active": true
+  },
+  {
+   "id": "skill.proactive_mentor_sync",
+   "name": "Проактивная синхронизация с ментором",
+   "description": "Фоновый ИИ-крон, обнаружение пробуксовок стажёра и автогенерация повестки встречи 1:1",
+   "active": true
+  }
+ ],
  "feature_flags": [
+  {
+   "key": "proactive_ai_cron",
+   "enabled": true,
+   "kind": "runtime",
+   "description": "ИИ-крон: проактивные сообщения стажёру и бриф наставнику"
+  },
+  {
+   "key": "strict_rbac_guard",
+   "enabled": true,
+   "kind": "runtime",
+   "description": "Строгая RBAC-защита: немедленная блокировка выгрузки ПДн (POL-SEC-001)"
+  },
+  {
+   "key": "mentor_auto_brief",
+   "enabled": true,
+   "kind": "runtime",
+   "description": "Автогенерация Structured 1:1 Brief наставнику при пробуксовке стажёра"
+  },
   {
    "key": "ai_buddy.proactive_cron",
    "enabled": true,
    "kind": "runtime",
-   "description": "ИИ-крон: проактивные сообщения стажёру и бриф наставнику"
+   "description": "ИИ-крон: фоновый запуск проверок (системный алиас)"
   },
   {
    "key": "ai_buddy.absence_action_card",
@@ -142,16 +192,28 @@
    "description": "Формулировка ответов внешней LLM (если задан LLM_API_KEY)"
   },
   {
+   "key": "sdd_spec_enforcement",
+   "enabled": true,
+   "kind": "compile_time",
+   "description": "Валидация контрактов OpenSpec в runtime через embed.FS"
+  },
+  {
+   "key": "synthetic_data_watermark",
+   "enabled": true,
+   "kind": "compile_time",
+   "description": "Водяные знаки синтетических данных и маскирование токенов"
+  },
+  {
+   "key": "mcp_jsonrpc_v2",
+   "enabled": true,
+   "kind": "compile_time",
+   "description": "Поддержка протокола MCP JSON-RPC 2.0"
+  },
+  {
    "key": "ai_buddy.mcp_jsonrpc",
    "enabled": true,
    "kind": "compile_time",
-   "description": "MCP JSON-RPC endpoint POST /mcp"
-  },
-  {
-   "key": "ai_buddy.synthetic_data_only",
-   "enabled": true,
-   "kind": "compile_time",
-   "description": "Только синтетические данные и имитации сервисов"
+   "description": "MCP JSON-RPC endpoint POST /mcp (системный алиас)"
   }
  ],
  "metrics": {
@@ -168,14 +230,18 @@
   "mentor_hours_baseline_min": 40,
   "mentor_hours_baseline_max": 48,
   "saving_percent": 0,
-  "avg_response_ms": 0
+  "avg_response_ms": 0,
+  "deflection_rate": 0,
+  "access_grants": 0,
+  "tasks_done": 0,
+  "tasks_total": 6
  },
  "messages": [
   {
    "id": "msg-welcome",
    "intern_id": "u-intern-01",
    "role": "assistant",
-   "text": "Привет, Алексей! Я AI-Buddy — помогаю освоиться в команде Autoteka. Могу выдать доступы к репозиторию и стенду, объяснить процессы команды (фича-флаги, ревью), оформить отгул через сервис «Отсутствия» и подсказать следующий шаг чек-листа. С чего начнём?",
+   "text": "Привет, Алексей! Я Гоффи — твой ИИ-наставник в команде Autoteka. Помогу получить доступы к репозиторию и стенду, объясню процессы команды (фича-флаги, ревью), оформлю отгул через сервис «Отсутствия», напомню о встречах и подскажу следующий шаг чек-листа. С чего начнём?",
    "intent": "greeting",
    "engine": "smart",
    "sources": [],
@@ -188,7 +254,7 @@
    ],
    "proactive": false,
    "tool_call_ids": [],
-   "created_at": "2026-11-13T11:54:54.7989528+03:00"
+   "created_at": "2026-11-14T17:30:46.4556629+03:00"
   }
  ],
  "notifications": [],
@@ -209,13 +275,170 @@
   "cache": "memory"
  },
  "permissions": {
+  "absence_approve": false,
   "briefs": false,
   "chat": true,
   "cron": true,
   "flags_write": false,
   "incidents": false,
+  "planner_add": true,
+  "planner_complete": true,
   "reset": true,
   "telemetry": true
  },
- "disclaimer": "Тестовая инструкция (Синтетические данные)"
+ "disclaimer": "Тестовая инструкция (Синтетические данные)",
+ "planner": [
+  {
+   "id": "plan-1on1",
+   "intern_id": "u-intern-01",
+   "kind": "meeting",
+   "title": "Созвон 1:1 с наставником",
+   "description": "Первая встреча 1:1: прогресс по чек-листу и вопросы, где нужен опыт сеньора. Гоффи заранее отправит наставнику бриф.",
+   "starts_at": "2026-11-14T20:30:00+03:00",
+   "duration_min": 30,
+   "all_day": false,
+   "link": "https://meet.avito.example/autoteka-1on1",
+   "mandatory": true,
+   "created_by": "u-mentor-01",
+   "created_by_name": "Мария Кузнецова",
+   "status": "planned",
+   "report": "",
+   "is_synthetic": true
+  },
+  {
+   "id": "plan-sync",
+   "intern_id": "u-intern-01",
+   "kind": "sync",
+   "title": "Командный синк Autoteka",
+   "description": "Ежедневный синк команды: что сделано, что в работе, что мешает.",
+   "starts_at": "2026-11-15T11:00:00+03:00",
+   "duration_min": 15,
+   "all_day": false,
+   "link": "https://meet.avito.example/autoteka-daily",
+   "mandatory": true,
+   "created_by": "u-lead-01",
+   "created_by_name": "Дмитрий Орлов",
+   "status": "planned",
+   "report": "",
+   "is_synthetic": true
+  },
+  {
+   "id": "plan-review",
+   "intern_id": "u-intern-01",
+   "kind": "review",
+   "title": "Код-ревью задачи AUT-1423",
+   "description": "Разбор первого MR с наставником: фича-флаг, тесты, контракт ручки.",
+   "starts_at": "2026-11-16T15:00:00+03:00",
+   "duration_min": 45,
+   "all_day": false,
+   "link": "https://meet.avito.example/autoteka-review",
+   "mandatory": true,
+   "created_by": "u-mentor-01",
+   "created_by_name": "Мария Кузнецова",
+   "status": "planned",
+   "report": "",
+   "is_synthetic": true
+  },
+  {
+   "id": "plan-security-course",
+   "intern_id": "u-intern-01",
+   "kind": "task",
+   "title": "Пройти курс по информационной безопасности",
+   "description": "Обязательный вводный курс: работа с данными, ПДн, доступы.",
+   "starts_at": "2026-11-19T00:00:00+03:00",
+   "duration_min": 0,
+   "all_day": true,
+   "link": "",
+   "mandatory": true,
+   "created_by": "u-lead-01",
+   "created_by_name": "Дмитрий Орлов",
+   "status": "planned",
+   "report": "",
+   "is_synthetic": true
+  },
+  {
+   "id": "plan-first-pr",
+   "intern_id": "u-intern-01",
+   "kind": "deadline",
+   "title": "Срок сдачи первого PR",
+   "description": "Первый PR по задаче AUT-1423 должен быть отправлен на ревью.",
+   "starts_at": "2026-11-20T18:00:00+03:00",
+   "duration_min": 0,
+   "all_day": false,
+   "link": "",
+   "mandatory": true,
+   "created_by": "u-mentor-01",
+   "created_by_name": "Мария Кузнецова",
+   "status": "planned",
+   "report": "",
+   "is_synthetic": true
+  },
+  {
+   "id": "plan-feedback",
+   "intern_id": "u-intern-01",
+   "kind": "meeting",
+   "title": "Созвон по обратной связи за первую неделю",
+   "description": "Руководитель и наставник: итоги недели, ожидания на следующую.",
+   "starts_at": "2026-11-21T16:00:00+03:00",
+   "duration_min": 30,
+   "all_day": false,
+   "link": "https://meet.avito.example/autoteka-feedback",
+   "mandatory": true,
+   "created_by": "u-lead-01",
+   "created_by_name": "Дмитрий Орлов",
+   "status": "planned",
+   "report": "",
+   "is_synthetic": true
+  }
+ ],
+ "reminders": [
+  {
+   "id": "rem-plan-1on1",
+   "kind": "meeting",
+   "text": "🚨 Через 3 часа — Созвон 1:1 с наставником",
+   "at": "2026-11-14T20:30:00+03:00",
+   "item_id": "plan-1on1",
+   "urgent": true
+  },
+  {
+   "id": "rem-plan-sync",
+   "kind": "sync",
+   "text": "🚨 Завтра в 11:00 — Командный синк Autoteka",
+   "at": "2026-11-15T11:00:00+03:00",
+   "item_id": "plan-sync",
+   "urgent": true
+  },
+  {
+   "id": "rem-plan-review",
+   "kind": "review",
+   "text": "🗓 В понедельник в 15:00 — Код-ревью задачи AUT-1423",
+   "at": "2026-11-16T15:00:00+03:00",
+   "item_id": "plan-review",
+   "urgent": false
+  },
+  {
+   "id": "rem-plan-security-course",
+   "kind": "task",
+   "text": "📌 Обязательная задача «Пройти курс по информационной безопасности» — в четверг",
+   "at": "2026-11-19T00:00:00+03:00",
+   "item_id": "plan-security-course",
+   "urgent": false
+  },
+  {
+   "id": "rem-plan-first-pr",
+   "kind": "deadline",
+   "text": "📅 Срок сдачи первого PR — в пятницу",
+   "at": "2026-11-20T18:00:00+03:00",
+   "item_id": "plan-first-pr",
+   "urgent": false
+  },
+  {
+   "id": "rem-plan-feedback",
+   "kind": "meeting",
+   "text": "🗓 21.11 в 16:00 — Созвон по обратной связи за первую неделю",
+   "at": "2026-11-21T16:00:00+03:00",
+   "item_id": "plan-feedback",
+   "urgent": false
+  }
+ ]
 }

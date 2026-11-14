@@ -1,24 +1,23 @@
-import { useState, type FormEvent, type ReactNode } from 'react';
+import { useState, type FormEvent } from 'react';
 import { ApiError } from '../../api/client';
 import type { ActionCard } from '../../api/schemas';
 import { errorText, useExecuteAction } from '../../hooks/useBuddy';
-import { formatDate } from '../../lib/format';
 import { absenceDefaults, validateAbsence, type AbsenceFormValues, type FieldErrors } from '../../lib/validation';
-import { Icon } from '../ui/icons';
+import { formatDate } from '../../lib/format';
 import { Badge, Button, cn } from '../ui/primitives';
 
 const inputClass =
-  'h-10 w-full rounded-card border border-line bg-white px-2 text-body text-ink-900 transition-colors focus:border-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-50 disabled:bg-canvas disabled:text-ink-500';
+  'w-full rounded-lg border border-paper-200 bg-paper-0 px-2.5 py-1.5 text-sm text-ink-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100 disabled:bg-paper-50 disabled:text-ink-500';
 
-function Field({ label, error, children, htmlFor }: { label: string; error?: string; children: ReactNode; htmlFor: string }) {
+function Field({ label, error, children, htmlFor }: { label: string; error?: string; children: React.ReactNode; htmlFor: string }) {
   return (
     <div>
-      <label htmlFor={htmlFor} className="mb-1 block text-meta font-medium text-ink-500">
+      <label htmlFor={htmlFor} className="mb-1 block text-xs font-medium text-ink-700">
         {label}
       </label>
       {children}
       {error && (
-        <p role="alert" className="mt-1 text-meta text-danger-700">
+        <p role="alert" className="mt-1 text-[11px] text-danger-700">
           {error}
         </p>
       )}
@@ -33,8 +32,6 @@ export function AbsenceForm({ card, messageId }: { card: ActionCard; messageId: 
   const [serverError, setServerError] = useState<string | null>(null);
   const execute = useExecuteAction();
   const submitted = card.status === 'submitted' || execute.isSuccess;
-  // Номер заявки приходит в ответе сервиса; после перезагрузки он остаётся в карточке результата ниже.
-  const number = execute.data?.message?.result_card?.lines.find((line) => line.label === 'Номер заявки')?.value;
   const id = (name: string) => `absence-${messageId}-${name}`;
 
   const set = <K extends keyof AbsenceFormValues>(key: K, value: AbsenceFormValues[K]) => {
@@ -66,72 +63,59 @@ export function AbsenceForm({ card, messageId }: { card: ActionCard; messageId: 
   };
 
   return (
-    <form onSubmit={submit} noValidate aria-label={card.title} className="overflow-hidden rounded-card border border-line bg-white shadow-card">
-      <div className="flex flex-wrap items-center gap-2 border-b border-line bg-canvas px-4 py-2">
-        <Icon name="calendar" className="text-ink-500" />
-        <p className="text-body font-semibold text-ink-900">{card.title}</p>
-        <Badge mono className="bg-ink-900/5">
-          Отсутствия
-        </Badge>
-        <Badge tone={submitted ? 'ok' : 'warn'} className="ml-auto">
-          {submitted ? 'Отправлено' : 'Ждёт подтверждения'}
-        </Badge>
+    <form onSubmit={submit} noValidate aria-label={card.title} className="mt-3 rounded-xl border border-brand-100 bg-brand-50/60 p-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm font-semibold text-ink-900">{card.title}</p>
+        <Badge tone={submitted ? 'ok' : 'brand'}>{submitted ? 'Отправлено' : 'Ждёт подтверждения'}</Badge>
       </div>
+      <p className="mt-0.5 text-[11px] text-ink-500">{card.description}</p>
 
-      <div className="space-y-4 p-4">
-        <p className="text-meta text-ink-500">{card.description}</p>
-
-        <div className="grid grid-cols-4 gap-2">
-          <div className="col-span-2">
-            <Field label="Дата" error={errors.date} htmlFor={id('date')}>
-              <input id={id('date')} type="date" className={inputClass} value={values.date} disabled={submitted} onChange={(e) => set('date', e.target.value)} />
-            </Field>
-          </div>
-          <Field label="С" error={errors.time_from} htmlFor={id('from')}>
-            <input id={id('from')} type="time" className={inputClass} value={values.time_from} disabled={submitted} onChange={(e) => set('time_from', e.target.value)} />
-          </Field>
-          <Field label="До" error={errors.time_to} htmlFor={id('to')}>
-            <input id={id('to')} type="time" className={inputClass} value={values.time_to} disabled={submitted} onChange={(e) => set('time_to', e.target.value)} />
+      <div className="mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+        <div className="col-span-2 sm:col-span-1">
+          <Field label="Дата" error={errors.date} htmlFor={id('date')}>
+            <input id={id('date')} type="date" className={inputClass} value={values.date} disabled={submitted} onChange={(e) => set('date', e.target.value)} />
           </Field>
         </div>
-
+        <Field label="С" error={errors.time_from} htmlFor={id('from')}>
+          <input id={id('from')} type="time" className={inputClass} value={values.time_from} disabled={submitted} onChange={(e) => set('time_from', e.target.value)} />
+        </Field>
+        <Field label="До" error={errors.time_to} htmlFor={id('to')}>
+          <input id={id('to')} type="time" className={inputClass} value={values.time_to} disabled={submitted} onChange={(e) => set('time_to', e.target.value)} />
+        </Field>
+      </div>
+      <div className="mt-2.5">
         <Field label="Причина" error={errors.reason} htmlFor={id('reason')}>
           <input id={id('reason')} type="text" className={inputClass} value={values.reason} disabled={submitted} maxLength={300} onChange={(e) => set('reason', e.target.value)} />
         </Field>
-
-        <fieldset>
-          <legend className="mb-1 text-meta font-medium text-ink-500">Уведомить</legend>
-          <div className="flex flex-wrap gap-4 text-body text-ink-900">
-            {(['mentor', 'team_lead'] as const).map((who) => (
-              <label key={who} className={cn('inline-flex items-center gap-2', submitted && 'text-ink-500')}>
-                <input type="checkbox" className="h-4 w-4 accent-accent-500" checked={values.notify.includes(who)} disabled={submitted} onChange={() => toggleNotify(who)} />
-                {who === 'mentor' ? 'Наставника' : 'Руководителя'}
-              </label>
-            ))}
-          </div>
-        </fieldset>
-
-        {serverError && (
-          <p role="alert" className="rounded-tag bg-danger-50 px-2 py-2 text-meta text-danger-700">
-            {serverError}
-          </p>
-        )}
       </div>
 
-      <div className="flex min-h-14 flex-wrap items-center gap-4 border-t border-line px-4 py-2">
+      <fieldset className="mt-2.5">
+        <legend className="mb-1 text-xs font-medium text-ink-700">Уведомить</legend>
+        <div className="flex flex-wrap gap-3 text-sm text-ink-700">
+          {(['mentor', 'team_lead'] as const).map((who) => (
+            <label key={who} className={cn('inline-flex items-center gap-1.5', submitted && 'text-ink-500')}>
+              <input type="checkbox" className="h-4 w-4 rounded accent-brand-500" checked={values.notify.includes(who)} disabled={submitted} onChange={() => toggleNotify(who)} />
+              {who === 'mentor' ? 'Наставника' : 'Руководителя'}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      {serverError && (
+        <p role="alert" className="mt-3 rounded-lg bg-danger-50 px-2.5 py-2 text-xs text-danger-700">
+          {serverError}
+        </p>
+      )}
+
+      <div className="mt-3 flex flex-wrap items-center gap-3">
         {submitted ? (
-          <p className="flex items-center gap-2 text-meta font-medium text-ok-700">
-            <Icon name="check" strokeWidth="2.4" />
-            <span>
-              Заявка {number ? `${number} ` : ''}на {formatDate(values.date)} сохранена в сервисе «Отсутствия» и ждёт согласования.
-            </span>
-          </p>
+          <p className="text-xs text-ok-700">Заявка на {formatDate(values.date)} отправлена через сервис «Отсутствия».</p>
         ) : (
           <>
             <Button type="submit" variant="primary" loading={execute.isPending}>
               {card.submit_label}
             </Button>
-            <span className="font-mono text-meta text-ink-400">MCP · {card.tool}</span>
+            <span className="text-[11px] text-ink-400">Гоффи отправит заявку только после нажатия</span>
           </>
         )}
       </div>

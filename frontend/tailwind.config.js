@@ -1,9 +1,11 @@
 /** @type {import('tailwindcss').Config} */
-// Дизайн-токены AI-Buddy. Шкалы скруглений и кеглей заданы целиком (не через extend),
-// чтобы на экране физически не могло появиться больше трёх размеров каждого:
-// скругления 6 / 12 / 16 px, кегли 12 / 14 / 32 px (32 — только для крупных цифр).
+const token = (name) => `rgb(var(--${name}) / <alpha-value>)`;
+const scale = (name, steps) => Object.fromEntries(steps.map((s) => [s, token(`${name}-${s}`)]));
+
 export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
+  // Тема переключается классом .dark на <html>; цвета — CSS-переменные из src/index.css.
+  darkMode: 'class',
   theme: {
     borderRadius: {
       none: '0',
@@ -23,31 +25,36 @@ export default {
         mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace'],
       },
       colors: {
-        canvas: '#F5F5F7',
-        // Пастельные подложки Bento-плиток и фон ленты чата.
-        tint: { blue: '#F0F9FF', violet: '#F5F3FF', slate: '#F8FAFC' },
-        line: 'rgba(15, 23, 42, 0.07)',
-        ink: { 900: '#141414', 500: '#6E6E73', 400: '#9E9EA9' },
-        // Функциональные акценты: 500 — маркер, 50 — фон бейджа, 700 — текст на фоне бейджа.
-        accent: { 50: '#E5F6FF', 500: '#00AAFF', 600: '#0095E0', 700: '#006FA8' },
-        ok: { 50: '#E8F9EF', 500: '#00C257', 700: '#00813A' },
-        ai: { 50: '#F3EEFF', 100: '#E7DDFC', 500: '#8B5CF6', 700: '#6D28D9' },
-        danger: { 50: '#FFECEB', 500: '#FF3B30', 700: '#C4281F' },
-        warn: { 50: '#FFF5E5', 500: '#FF9500', 700: '#A85F00' },
+        ink: scale('ink', [900, 700, 500, 400, 300]),
+        paper: scale('paper', [0, 50, 100, 200]),
+        brand: scale('brand', [50, 100, 500, 600, 700]),
+        accent: scale('accent', [50, 500, 700]),
+        ok: scale('ok', [50, 500, 700]),
+        warn: scale('warn', [50, 500, 700]),
+        danger: scale('danger', [50, 500, 700]),
       },
+      borderRadius: { bento: '20px' },
       boxShadow: {
-        card: '0 2px 8px rgba(0, 0, 0, 0.03)',
-        float: '0 8px 32px rgba(15, 23, 42, 0.08)',
-        // Приподнятая карточка: тонкая контактная тень плюс мягкая рассеянная.
-        lift: '0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px -8px rgba(15, 23, 42, 0.14)',
-        hero: '0 1px 0 rgba(255, 255, 255, 0.08) inset, 0 16px 32px -12px rgba(20, 20, 20, 0.5)',
-        composer: '0 8px 30px rgba(0, 0, 0, 0.06)',
+        card: '0 1px 2px rgb(var(--shadow) / .08), 0 8px 28px rgb(var(--shadow) / .06)',
+        glow: '0 0 0 1px rgb(var(--brand-500) / .28), 0 10px 36px rgb(var(--brand-500) / .14)',
+        drawer: '-12px 0 40px rgb(var(--shadow) / .25)',
       },
       keyframes: {
-        'fade-up': { from: { opacity: '0', transform: 'translateY(4px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
-        shimmer: { from: { backgroundPosition: '100% 0' }, to: { backgroundPosition: '0 0' } },
+        'fade-up': { from: { opacity: '0', transform: 'translateY(10px) scale(.98)' }, to: { opacity: '1', transform: 'translateY(0) scale(1)' } },
+        pop: { '0%': { transform: 'scale(.4)' }, '60%': { transform: 'scale(1.25)' }, '80%': { transform: 'scale(.92)' }, '100%': { transform: 'scale(1)' } },
+        wink: { '0%, 92%, 100%': { transform: 'scaleY(1)' }, '95%': { transform: 'scaleY(.1)' } },
+        float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-3px)' } },
+        'pulse-ring': { '0%': { transform: 'scale(.9)', opacity: '.7' }, '100%': { transform: 'scale(1.9)', opacity: '0' } },
+        'slide-in': { from: { opacity: '0', transform: 'translateY(14px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
       },
-      animation: { 'fade-up': 'fade-up .18s ease-out both', shimmer: 'shimmer 1.4s ease-in-out infinite' },
+      animation: {
+        'fade-up': 'fade-up .32s cubic-bezier(.2,.9,.3,1.2) both',
+        pop: 'pop .45s cubic-bezier(.2,.9,.3,1.4) both',
+        wink: 'wink 4.5s ease-in-out infinite',
+        float: 'float 3.6s ease-in-out infinite',
+        'pulse-ring': 'pulse-ring 1.8s ease-out infinite',
+        'slide-in': 'slide-in .3s ease-out both',
+      },
     },
   },
   plugins: [],

@@ -23,8 +23,22 @@ export interface ChatErrorState {
   retryText: string;
 }
 
+export type Theme = 'light' | 'dark';
+
+/** Применяет тему к документу (класс .dark на <html>). */
+export function applyTheme(theme: Theme): void {
+  document.documentElement.classList.toggle('dark', theme === 'dark');
+}
+
+function systemTheme(): Theme {
+  return typeof window.matchMedia === 'function' && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
 export interface UiState {
   role: DemoRole;
+  theme: Theme;
+  /** Напоминания, для которых уже показано всплывающее уведомление. */
+  seenReminders: string[];
   activeInternId: string;
   inspectorOpen: boolean;
   inspectorTab: InspectorTab;
@@ -39,6 +53,8 @@ export interface UiState {
   toolCalls: Record<string, ToolCall>;
 
   setRole: (role: DemoRole) => void;
+  toggleTheme: () => void;
+  markRemindersSeen: (ids: string[]) => void;
   setActiveInternId: (id: string) => void;
   openInspector: (tab?: InspectorTab) => void;
   closeInspector: () => void;
@@ -68,6 +84,8 @@ export const useUi = create<UiState>()(
   persist(
     (set) => ({
       role: 'intern',
+      theme: systemTheme(),
+      seenReminders: [],
       activeInternId: 'u-intern-01',
       inspectorOpen: false,
       inspectorTab: 'mcp',
@@ -78,6 +96,13 @@ export const useUi = create<UiState>()(
         setApiRole(role);
         set({ role, ...sessionDefaults });
       },
+      toggleTheme: () =>
+        set((s) => {
+          const theme: Theme = s.theme === 'dark' ? 'light' : 'dark';
+          applyTheme(theme);
+          return { theme };
+        }),
+      markRemindersSeen: (ids) => set((s) => ({ seenReminders: [...new Set([...s.seenReminders, ...ids])] })),
       setActiveInternId: (activeInternId) => {
         setApiInternId(activeInternId);
         set({ activeInternId, ...sessionDefaults });
@@ -99,14 +124,17 @@ export const useUi = create<UiState>()(
       setCronResult: (cronResult) => set({ cronResult }),
       rememberToolCalls: (calls) =>
         set((s) => (calls.length === 0 ? {} : { toolCalls: { ...s.toolCalls, ...Object.fromEntries(calls.map((c) => [c.id, c])) } })),
-      resetSession: () => set({ ...sessionDefaults }),
+      resetSession: () => set({ ...sessionDefaults, seenReminders: [] }),
     }),
     {
       name: 'ai-buddy-ui',
-      partialize: (state) => ({ role: state.role }),
+      partialize: (state) => ({ role: state.role, theme: state.theme }),
       // После восстановления роли из localStorage синхронизируем её с API-клиентом.
       onRehydrateStorage: () => (state) => {
-        if (state) setApiRole(state.role);
+        if (state) {
+          setApiRole(state.role);
+          applyTheme(state.theme);
+        }
       },
     },
   ),

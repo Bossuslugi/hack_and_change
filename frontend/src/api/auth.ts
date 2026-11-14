@@ -50,7 +50,7 @@ export const DEMO_INTERNS: DemoInternProfile[] = [
     stage: 'Неделя 3',
     stack: 'Python/ML',
     mentorName: 'Елена Соколова',
-    token: 'demo-intern-token-2',
+    token: 'demo-intern-02-token',
   },
 ];
 

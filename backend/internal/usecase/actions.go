@@ -50,6 +50,11 @@ func (s *Service) Execute(ctx context.Context, p domain.Principal, tool string, 
 			s.markCardSubmitted(ctx, messageID, internID)
 		}
 		text, card, saving := s.describeAction(call)
+		if text == "" {
+			// «Тихое» действие (например, личная задача в календаре): чат не засоряем.
+			res.LatencyMS = float64(time.Since(started).Microseconds()) / 1000
+			return res, nil
+		}
 		msg := domain.ChatMessage{
 			ID: s.IDs.NewID("msg"), InternID: internID, Role: domain.MessageAssistant,
 			Text: text + checklistNote(updates, checklist), Intent: "action_confirmed", Engine: domain.EngineSmart,
@@ -131,6 +136,18 @@ func (s *Service) describeAction(call domain.MCPToolCall) (string, *domain.Resul
 			},
 			Footnote: "Имитация IAM · синтетические данные",
 		}, domain.SavingAccess
+	case mcp.ToolAddTask:
+		return "", nil, ""
+	case mcp.ToolCompleteItem:
+		report := str(r, "report")
+		if report == "" {
+			return "", nil, ""
+		}
+		text := fmt.Sprintf("Принял отчёт по «%s» — спасибо! Главное передам наставнику в брифе к 1:1.", str(r, "title"))
+		return text, &domain.ResultCard{
+			Type: "report_sent", Status: domain.CardStatusSuccess, Title: "Отчёт отправлен Гоффи",
+			Lines: []domain.CardLine{{Label: "Событие", Value: str(r, "title")}, {Label: "Отчёт", Value: report}},
+		}, ""
 	case mcp.ToolReviewDayOff:
 		number := str(r, "request_number")
 		decision := str(r, "decision")
@@ -175,7 +192,7 @@ func sameStrings(a, b []string) bool {
 	return true
 }
 
-// learnedTopics собирает то, что стажёр уже сделал и изучил сам через AI-Buddy.
+// learnedTopics собирает то, что стажёр уже сделал и изучил сам через Гоффи.
 func (s *Service) learnedTopics(ctx context.Context) ([]string, error) {
 	var topics []string
 	read, err := s.docsRead(ctx)
@@ -201,8 +218,17 @@ func (s *Service) learnedTopics(ctx context.Context) ([]string, error) {
 	for _, a := range absences {
 		topics = append(topics, fmt.Sprintf("Разобрался с оформлением отсутствий: заявка %s", a.Number))
 	}
+	planner, err := s.planner(ctx, s.internID)
+	if err != nil {
+		return nil, err
+	}
+	for _, it := range planner {
+		if it.Status == domain.PlannerDone && it.Report != "" {
+			topics = append(topics, fmt.Sprintf("Отчитался по «%s»: %s", it.Title, it.Report))
+		}
+	}
 	if len(topics) == 0 {
-		topics = append(topics, "Пока не обращался к AI-Buddy по процессам — стоит начать 1:1 с короткой вводной")
+		topics = append(topics, "Пока не обращался к Гоффи по процессам — стоит начать 1:1 с короткой вводной")
 	}
 	return topics, nil
 }

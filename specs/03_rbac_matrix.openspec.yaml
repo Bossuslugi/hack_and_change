@@ -1,4 +1,4 @@
-# OpenSpec · Матрица прав RBAC AI-Buddy
+# OpenSpec · Матрица прав RBAC Гоффи
 # Источник истины для internal/rbac. Модель: default deny + deny-overrides.
 # Роль берётся из имитации корпоративной авторизации (токен → сотрудник → роль),
 # клиент не может передать роль сам. Шлюз MCP проверяет КАЖДЫЙ вызов до обработчика.
@@ -44,8 +44,8 @@ policies:
     effect: deny
     roles: ["*"]
     incident: true
-    reason: "Выгрузка production-данных с ПДн и финансовых сведений запрещена всем ролям AI-Buddy"
-    safe_alternative: "Тестовый стенд с синтетическими данными (iam_access.request_repo_access, stand=test)"
+    reason: "Выгрузка production-данных с ПДн и финансовых сведений запрещена всем ролям Гоффи"
+    safe_alternative: "Тестовый стенд команды с синтетическими данными"
     description: "Чувствительные ПДн и финансы вне области задачи; каждая попытка — инцидент"
 
   - id: POL-KB-001
@@ -94,6 +94,24 @@ policies:
     effect: allow
     roles: [intern_backend, mentor, team_lead, system_cron]
 
+  - id: POL-CAL-001
+    operation: calendar.add_task
+    effect: allow
+    roles: [intern_backend]
+    constraints: [self_only]
+    description: "Стажёр добавляет личные задачи только себе"
+  - id: POL-CAL-002
+    operation: calendar.add_task
+    effect: allow
+    roles: [mentor, team_lead]
+    description: "Наставник и руководитель назначают стажёру обязательные задачи"
+  - id: POL-CAL-003
+    operation: calendar.complete_item
+    effect: allow
+    roles: [intern_backend]
+    constraints: [self_only]
+    description: "Отмечать выполнение и отправлять отчёт может только сам стажёр"
+
   # ---------- Операции REST API ----------
   - id: POL-API-001
     operation: api.workspace.read
@@ -103,7 +121,7 @@ policies:
     operation: api.chat.send
     effect: allow
     roles: [intern_backend]
-    description: "Чат AI-Buddy — инструмент стажёра"
+    description: "Чат Гоффи — инструмент стажёра"
   - id: POL-API-003
     operation: api.chat_history.read
     effect: allow

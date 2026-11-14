@@ -1,0 +1,157 @@
+{
+ "user_message": null,
+ "message": null,
+ "tool_calls": [
+  {
+   "id": "call-c55a6221646a",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "server": "calendar",
+   "tool": "calendar.add_task",
+   "arguments": {
+    "date": "2026-11-14",
+    "intern_id": "u-intern-01",
+    "title": "Настроить Go-окружение"
+   },
+   "result": {
+    "all_day": true,
+    "created_by": "u-intern-01",
+    "created_by_name": "Алексей Смирнов",
+    "description": "",
+    "duration_min": 0,
+    "id": "plan-5ec0f4fa6ec7",
+    "intern_id": "u-intern-01",
+    "is_synthetic": true,
+    "kind": "task",
+    "link": "",
+    "mandatory": false,
+    "report": "",
+    "starts_at": "2026-11-14T00:00:00+03:00",
+    "status": "planned",
+    "title": "Настроить Go-окружение"
+   },
+   "status": "success",
+   "rbac": {
+    "allowed": true,
+    "code": "ALLOWED",
+    "http_status": 200,
+    "role": "intern_backend",
+    "operation": "calendar.add_task",
+    "policy_id": "POL-CAL-001",
+    "reason": "Стажёр добавляет личные задачи только себе",
+    "incident": false
+   },
+   "duration_ms": 0,
+   "created_at": "2026-11-14T17:30:47.7153073+03:00"
+  }
+ ],
+ "rbac": {
+  "allowed": true,
+  "code": "ALLOWED",
+  "http_status": 200,
+  "role": "intern_backend",
+  "operation": "calendar.add_task",
+  "policy_id": "POL-CAL-001",
+  "reason": "Стажёр добавляет личные задачи только себе",
+  "incident": false
+ },
+ "checklist": [
+  {
+   "id": "access_repo",
+   "position": 1,
+   "week": 1,
+   "title": "Получить доступы к репозиторию команды и тестовому стенду",
+   "description": "Доступ к avito-autoteka-api и стенду с синтетическими данными. Гоффи оформит через IAM.",
+   "status": "completed",
+   "scenario": "S1",
+   "evidence": "Доступ к avito-autoteka-api выдан через IAM (Гоффи)",
+   "updated_at": "2026-11-14T17:30:46.772436+03:00",
+   "completed_at": "2026-11-14T17:30:46.772436+03:00"
+  },
+  {
+   "id": "meet_team",
+   "position": 2,
+   "week": 1,
+   "title": "Познакомиться с командой и наставником",
+   "description": "Вводная встреча с командой Autoteka, знакомство с наставником и руководителем.",
+   "status": "completed",
+   "evidence": "Вводная встреча проведена в первый день",
+   "updated_at": "2026-11-14T17:30:46.4556629+03:00"
+  },
+  {
+   "id": "local_env",
+   "position": 3,
+   "week": 1,
+   "title": "Настроить рабочее окружение",
+   "description": "Go, Docker, IDE и корпоративный VPN на рабочем ноутбуке.",
+   "status": "completed",
+   "evidence": "Окружение настроено по инструкции",
+   "updated_at": "2026-11-14T17:30:46.4556629+03:00"
+  },
+  {
+   "id": "team_processes",
+   "position": 4,
+   "week": 1,
+   "title": "Изучить процессы команды: фича-флаги и код-ревью",
+   "description": "Как команда катит задачи под фича-флагами и как проходит ревью. Спроси Гоффи.",
+   "status": "completed",
+   "scenario": "S2",
+   "evidence": "Инструкции изучены через Гоффи",
+   "updated_at": "2026-11-14T17:30:47.3843666+03:00",
+   "completed_at": "2026-11-14T17:30:47.3843666+03:00"
+  },
+  {
+   "id": "first_task",
+   "position": 5,
+   "week": 1,
+   "title": "Первая задача в спринте",
+   "description": "AUT-1423: добавить поле mileage_verified в сводку отчёта под фича-флагом.",
+   "status": "in_progress",
+   "scenario": "S2",
+   "evidence": "Задача взята в работу",
+   "updated_at": "2026-11-14T17:30:46.4556629+03:00"
+  },
+  {
+   "id": "absence_rules",
+   "position": 6,
+   "week": 2,
+   "title": "Разобраться с оформлением отсутствий",
+   "description": "Отгул, отпуск, больничный: как оформить через сервис «Отсутствия» и кого предупредить.",
+   "status": "completed",
+   "scenario": "S3",
+   "evidence": "Заявка #ABS-2026-84 оформлена через Гоффи",
+   "updated_at": "2026-11-14T17:30:47.6943427+03:00",
+   "completed_at": "2026-11-14T17:30:47.6943427+03:00"
+  },
+  {
+   "id": "first_one_on_one",
+   "position": 7,
+   "week": 2,
+   "title": "Провести первую встречу 1:1 с наставником",
+   "description": "Обсудить прогресс и вопросы, требующие участия сеньора. Гоффи подготовит бриф.",
+   "status": "pending",
+   "scenario": "S2",
+   "updated_at": "2026-11-14T17:30:46.4556629+03:00"
+  }
+ ],
+ "checklist_updates": [],
+ "progress": {
+  "completed": 5,
+  "in_progress": 1,
+  "total": 7,
+  "percent": 71
+ },
+ "next_step": {
+  "id": "first_task",
+  "position": 5,
+  "week": 1,
+  "title": "Первая задача в спринте",
+  "description": "AUT-1423: добавить поле mileage_verified в сводку отчёта под фича-флагом.",
+  "status": "in_progress",
+  "scenario": "S2",
+  "evidence": "Задача взята в работу",
+  "updated_at": "2026-11-14T17:30:46.4556629+03:00"
+ },
+ "latency_ms": 0
+}

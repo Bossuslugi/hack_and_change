@@ -1,4 +1,4 @@
-// Package httpapi — REST API AI-Buddy для фронтенда и MCP JSON-RPC endpoint.
+// Package httpapi — REST API Гоффи для фронтенда и MCP JSON-RPC endpoint.
 package httpapi
 
 import (

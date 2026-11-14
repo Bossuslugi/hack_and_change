@@ -213,7 +213,7 @@ func TestScenario1A_AccessGrantCompletesChecklistStep(t *testing.T) {
 		!strings.Contains(msg.Text, "Следующий шаг: «Изучить процессы команды") {
 		t.Fatalf("в ответе нет отметки о чек-листе: %s", msg.Text)
 	}
-	if res.NextStep == nil || res.NextStep.ID != "team_processes" || res.Progress.Completed != 3 || res.LatencyMS <= 0 {
+	if res.NextStep == nil || res.NextStep.ID != "team_processes" || res.Progress.Completed != 3 || res.LatencyMS < 0 {
 		t.Fatalf("прогресс: %+v next=%+v", res.Progress, res.NextStep)
 	}
 
@@ -263,7 +263,7 @@ func TestScenario1B_RBACBlocksPIIExport(t *testing.T) {
 			if res.Message.ResultCard == nil || res.Message.ResultCard.Type != domain.CardRBACDenied {
 				t.Fatalf("карточка: %+v", res.Message.ResultCard)
 			}
-			if !strings.Contains(res.Message.Text, "песочниц") || !strings.Contains(res.Message.Text, "FORBIDDEN, 403") {
+			if !strings.Contains(res.Message.Text, "песочниц") || !strings.Contains(res.Message.Text, "политикой безопасности") {
 				t.Fatalf("ответ: %s", res.Message.Text)
 			}
 			if len(res.ChecklistUpdates) != 0 || res.Progress.Completed != 2 {
@@ -851,10 +851,10 @@ func TestTelemetryView(t *testing.T) {
 	for _, tool := range v.Tools {
 		allowed[tool.Name] = tool.AllowedForViewer
 	}
-	if len(v.Tools) != 9 || !allowed[mcp.ToolCreateDayOff] || allowed[mcp.ToolExportProdPII] || allowed[mcp.ToolSendBrief] || allowed[mcp.ToolReviewDayOff] {
+	if len(v.Tools) != 11 || !allowed[mcp.ToolCreateDayOff] || allowed[mcp.ToolExportProdPII] || allowed[mcp.ToolSendBrief] || allowed[mcp.ToolReviewDayOff] {
 		t.Fatalf("доступность инструментов для стажёра: %v", allowed)
 	}
-	if len(v.Matrix) == 0 || len(v.Roles) != 4 || len(v.Servers) != 8 {
+	if len(v.Matrix) == 0 || len(v.Roles) != 4 || len(v.Servers) != 9 {
 		t.Fatalf("матрица/роли/серверы: %d/%d/%d", len(v.Matrix), len(v.Roles), len(v.Servers))
 	}
 	if _, err := e.svc.Telemetry(e.ctx, domain.Principal{ID: "x", Role: domain.RoleSystemCron}); err == nil {

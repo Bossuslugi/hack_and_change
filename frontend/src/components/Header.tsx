@@ -1,38 +1,12 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { api, DEMO_INTERNS, DEMO_ROLES, DEMO_USERS, type DemoRole } from '../api/auth';
 import type { Workspace } from '../api/schemas';
-import { useCron, useReset, useTelemetry } from '../hooks/useBuddy';
-import { internContext } from '../lib/format';
+import { useReset } from '../hooks/useBuddy';
 import { useUi } from '../store/ui';
-import { Icon, type IconName } from './ui/icons';
-import { Badge, Button, FOCUS, StatusDot, cn, type Tone } from './ui/primitives';
+import { GoffyAvatar } from './GoffyAvatar';
+import { Badge, Button, cn } from './ui/primitives';
 
-const ROLE_ICON: Record<DemoRole, IconName> = { intern: 'user', mentor: 'mentor', lead: 'chart' };
-
-/** Четыре круга палитры: знак продукта. */
-function BrandMark() {
-  return (
-    <svg viewBox="0 0 32 32" className="h-8 w-8 shrink-0" role="img" aria-label="Avito Start">
-      <circle cx="10" cy="10" r="6" fill="#00AAFF" />
-      <circle cx="22" cy="10" r="6" fill="#00C257" />
-      <circle cx="10" cy="22" r="6" fill="#8B5CF6" />
-      <circle cx="22" cy="22" r="6" fill="#FF3B30" />
-    </svg>
-  );
-}
-
-/** Индикатор у вкладки роли: что ждёт этой роли (готовый бриф, заявка на согласование). */
-function roleSignal(role: DemoRole, workspace?: Workspace): { tone: Tone; hint: string } | null {
-  if (!workspace) return null;
-  if (role === 'mentor' && workspace.metrics.briefs_prepared > 0) return { tone: 'ok', hint: 'бриф к 1:1 готов' };
-  if (role === 'lead') {
-    const pending = workspace.absences.filter((a) => a.status === 'pending_approval').length;
-    if (pending > 0) return { tone: 'warn', hint: `заявок на согласование: ${pending}` };
-  }
-  return null;
-}
-
-function RoleSwitcher({ workspace }: { workspace?: Workspace }) {
+function RoleSwitcher() {
   const role = useUi((s) => s.role);
   const setRole = useUi((s) => s.setRole);
 
@@ -43,37 +17,29 @@ function RoleSwitcher({ workspace }: { workspace?: Workspace }) {
   };
 
   return (
-    <div role="radiogroup" aria-label="Роль пользователя" className="inline-flex items-center gap-1 rounded-card bg-ink-900/5 p-1">
-      {DEMO_ROLES.map((r) => {
-        const user = DEMO_USERS[r];
-        const active = role === r;
-        const signal = roleSignal(r, workspace);
-        return (
-          <button
-            key={r}
-            type="button"
-            role="radio"
-            aria-checked={active}
-            aria-label={user.label}
-            title={signal ? `${user.label}: ${user.name} · ${signal.hint}` : `${user.label}: ${user.name}`}
-            onClick={() => choose(r)}
-            className={cn(
-              'inline-flex h-8 items-center gap-2 whitespace-nowrap rounded-tag px-3 text-meta font-semibold transition-all',
-              FOCUS,
-              active ? 'bg-ink-900 text-white shadow-card' : 'text-ink-500 hover:bg-white/70 hover:text-ink-900',
-            )}
-          >
-            <Icon name={ROLE_ICON[r]} className="h-3.5 w-3.5" />
-            {user.label}
-            {signal && <StatusDot tone={signal.tone} pulse={!active} />}
-          </button>
-        );
-      })}
+    <div role="radiogroup" aria-label="Роль пользователя" className="inline-flex rounded-2xl bg-paper-100 p-1">
+      {DEMO_ROLES.map((r) => (
+        <button
+          key={r}
+          type="button"
+          role="radio"
+          aria-checked={role === r}
+          title={`${DEMO_USERS[r].label}: ${DEMO_USERS[r].name}`}
+          onClick={() => choose(r)}
+          className={cn(
+            'rounded-xl px-3 py-1.5 text-sm font-medium transition-all duration-200',
+            'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand-500',
+            role === r ? 'bg-paper-0 text-ink-900 shadow-card' : 'text-ink-500 hover:text-ink-900',
+          )}
+        >
+          {DEMO_USERS[r].label}
+        </button>
+      ))}
     </div>
   );
 }
 
-/** Профиль стажёра: переключает демо-данные между Go- и ML-стажёром. */
+/** Профиль стажёра: переключает демо-данные между Go- и ML-стажёром (несколько команд). */
 function InternSwitcher() {
   const activeInternId = useUi((s) => s.activeInternId);
   const setActiveInternId = useUi((s) => s.setActiveInternId);
@@ -88,7 +54,7 @@ function InternSwitcher() {
   };
 
   return (
-    <div role="radiogroup" aria-label="Профиль стажёра" className="inline-flex shrink-0 items-center gap-1 rounded-card bg-ink-900/5 p-1">
+    <div role="radiogroup" aria-label="Профиль стажёра" className="inline-flex rounded-2xl bg-paper-100 p-1">
       {DEMO_INTERNS.map((intern) => {
         const active = activeInternId === intern.id;
         return (
@@ -101,14 +67,14 @@ function InternSwitcher() {
             title={`${intern.name}: ${intern.roleTitle} • ${intern.team} • ${intern.stage}`}
             onClick={() => choose(intern.id)}
             className={cn(
-              'inline-flex h-8 items-center gap-2 whitespace-nowrap rounded-tag px-2 text-meta font-medium transition-all',
-              FOCUS,
-              active ? 'bg-white text-ink-900 shadow-card' : 'text-ink-500 hover:text-ink-900',
+              'inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-sm font-medium transition-all duration-200',
+              'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand-500',
+              active ? 'bg-paper-0 text-ink-900 shadow-card' : 'text-ink-500 hover:text-ink-900',
             )}
           >
-            <span className={cn('h-2 w-2 rounded-full', intern.stack === 'Go' ? 'bg-accent-500' : 'bg-ai-500')} aria-hidden="true" />
+            <span className={cn('h-2 w-2 rounded-full', intern.stack === 'Go' ? 'bg-brand-500' : 'bg-accent-500')} aria-hidden="true" />
             {intern.name.split(' ')[0]}
-            <span className="font-mono font-normal text-ink-400">{intern.stack === 'Go' ? 'Go' : 'ML'}</span>
+            <span className="font-mono text-[11px] font-normal text-ink-400">{intern.stack === 'Go' ? 'Go' : 'ML'}</span>
           </button>
         );
       })}
@@ -116,97 +82,89 @@ function InternSwitcher() {
   );
 }
 
+/** Переключатель светлой и тёмной темы; выбор сохраняется в localStorage. */
+function ThemeToggle() {
+  const theme = useUi((s) => s.theme);
+  const toggle = useUi((s) => s.toggleTheme);
+  const dark = theme === 'dark';
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={dark}
+      aria-label="Тёмная тема"
+      title={dark ? 'Включить светлую тему' : 'Включить тёмную тему'}
+      onClick={() => {
+        toggle();
+        void api.trackEvent('ui.theme_switched', { theme: dark ? 'light' : 'dark' });
+      }}
+      className="grid h-9 w-9 place-items-center rounded-xl bg-paper-100 text-ink-700 transition-all duration-300 hover:text-brand-500 hover:shadow-glow focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-500"
+    >
+      <svg viewBox="0 0 24 24" className={cn('h-[18px] w-[18px] transition-transform duration-500', dark ? 'rotate-0' : 'rotate-90')} aria-hidden="true">
+        {dark ? (
+          <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" fill="currentColor" />
+        ) : (
+          <g fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <circle cx="12" cy="12" r="4" fill="currentColor" stroke="none" />
+            <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+          </g>
+        )}
+      </svg>
+    </button>
+  );
+}
+
 export function Header({ workspace }: { workspace?: Workspace }) {
+  const openInspector = useUi((s) => s.openInspector);
   const inspectorOpen = useUi((s) => s.inspectorOpen);
   const reset = useReset();
-  const cron = useCron();
-  const events = useTelemetry(false).data?.events.length;
 
   const toggleInspector = () => {
-    const ui = useUi.getState();
-    if (inspectorOpen) return ui.closeInspector();
-    ui.openInspector();
+    if (inspectorOpen) return useUi.getState().closeInspector();
+    openInspector();
     void api.trackEvent('ui.inspector_opened', {});
   };
 
   return (
-    <header className="glass relative z-30 grid min-h-16 shrink-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-6 border-x-0 border-t-0 border-b-line px-5 shadow-card">
-      <div className="flex min-w-0 items-center gap-3">
-        <BrandMark />
-        <div className="flex shrink-0 items-center gap-2">
-          <span className="whitespace-nowrap text-body font-extrabold tracking-tight text-ink-900">Avito Start</span>
-          <Badge tone="ai" mono className="whitespace-nowrap">
-            AI-Buddy
-          </Badge>
+    <header className="sticky top-0 z-20 border-b border-paper-200 bg-paper-0/70 backdrop-blur-xl transition-colors duration-300">
+      <div className="mx-auto flex max-w-[1600px] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5">
+        <div className="flex items-center gap-2.5">
+          <GoffyAvatar size="sm" className="h-9 w-9" />
+          <div className="leading-tight">
+            <p className="text-sm font-semibold text-ink-900">
+              Гоффи <span className="font-normal text-ink-400">· Avito Start</span>
+            </p>
+            <p className="text-[11px] text-ink-500">ИИ-наставник для стажёров · прототип</p>
+          </div>
         </div>
-        <InternSwitcher />
-        {workspace && (
-          <Badge className="hidden min-w-0 max-w-full 2xl:inline-flex" title={`${workspace.intern.name} · ${workspace.intern.program}`}>
-            <span className="truncate whitespace-nowrap" aria-label="Контекст стажёра">
-              {internContext(workspace.intern)}
-            </span>
-          </Badge>
-        )}
-      </div>
 
-      <RoleSwitcher workspace={workspace} />
-
-      <div className="flex min-w-0 items-center justify-end gap-2">
         {workspace && (
-          <Badge
-            mono
-            tone={workspace.engine.mode === 'llm' ? 'ok' : 'neutral'}
-            className="hidden whitespace-nowrap 2xl:inline-flex"
-            title={`Хранилище: ${workspace.storage.store} · кэш: ${workspace.storage.cache}`}
-          >
-            <StatusDot tone="ok" />
-            {workspace.engine.mode === 'llm' ? `LLM · ${workspace.engine.model}` : 'Smart Engine'}
-          </Badge>
+          <div className="hidden items-center gap-1.5 lg:flex" aria-label="Контекст стажёра">
+            <Badge>{workspace.intern.name}</Badge>
+            <Badge tone="brand">Команда {workspace.intern.team}</Badge>
+            <Badge tone="brand">{workspace.intern.stack}</Badge>
+            <Badge tone="accent">{workspace.intern.stage}</Badge>
+          </div>
         )}
-        {workspace?.permissions.cron && (
-          <Button
-            variant="ai"
-            size="compact"
-            onClick={() => cron.mutate()}
-            loading={cron.isPending}
-            aria-label="Симулировать ИИ-крон"
-            title="Проверить застрявшие задачи стажёра и собрать наставнику бриф к 1:1"
-          >
-            {!cron.isPending && <Icon name="bolt" />}
-            <span className="hidden 2xl:inline">Симулировать</span>
-            <span>ИИ-крон</span>
+
+        <div className="ml-auto flex flex-wrap items-center gap-2">
+          <InternSwitcher />
+          <RoleSwitcher />
+          <ThemeToggle />
+          <Button onClick={toggleInspector} aria-pressed={inspectorOpen} title="MCP · JSON-RPC · RBAC · Clickstream">
+            <svg viewBox="0 0 20 20" className="h-4 w-4" aria-hidden="true">
+              <path d="M3 5h14M3 10h9M3 15h12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" fill="none" />
+            </svg>
+            Инспектор жюри
           </Button>
-        )}
-        <button
-          type="button"
-          onClick={toggleInspector}
-          aria-pressed={inspectorOpen}
-          aria-label="Инспектор MCP & RBAC"
-          title="Под капотом: MCP · RBAC · Clickstream"
-          className={cn(
-            'inline-flex h-10 shrink-0 items-center gap-2 whitespace-nowrap rounded-card border px-3 text-meta font-semibold transition-all',
-            FOCUS,
-            inspectorOpen ? 'border-ink-900 bg-ink-900 text-white shadow-card' : 'border-line bg-white text-ink-900 hover:border-ink-400/60 hover:shadow-card',
-          )}
-        >
-          <StatusDot tone={inspectorOpen ? 'ok' : 'neutral'} pulse={inspectorOpen} />
-          Инспектор
-          {events !== undefined && (
-            <span className={cn('rounded-tag px-1 font-mono', inspectorOpen ? 'bg-white/15 text-white' : 'bg-ink-900/5 text-ink-500')}>{events}</span>
-          )}
-        </button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="shrink-0"
-          onClick={() => reset.mutate()}
-          loading={reset.isPending}
-          aria-label="Сбросить демо"
-          title="Вернуть демо-данные в исходное состояние"
-        >
-          {!reset.isPending && <Icon name="reset" />}
-        </Button>
+          <Button variant="ghost" onClick={() => reset.mutate()} loading={reset.isPending} title="Вернуть демо-данные в исходное состояние">
+            Сбросить демо
+          </Button>
+        </div>
       </div>
+      <p className="border-t border-warn-500/20 bg-warn-50/80 px-4 py-1 text-center text-[11px] text-warn-700">
+        Синтетические данные: сотрудники, инструкции и корпоративные сервисы — имитации. Инструкции не являются регламентами Авито.
+      </p>
     </header>
   );
 }

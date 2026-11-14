@@ -29,12 +29,13 @@ const (
 	KindEvent        Kind = "telemetry_events"
 	KindDocRead      Kind = "doc_progress"
 	KindOpenQuestion Kind = "open_questions"
+	KindPlanner      Kind = "planner_items"
 )
 
 // AllKinds — все виды записей в порядке создания таблиц.
 var AllKinds = []Kind{
 	KindIntern, KindChecklist, KindSprintTask, KindMessage, KindToolCall, KindAbsence,
-	KindAccessGrant, KindNotification, KindBrief, KindEvent, KindDocRead, KindOpenQuestion,
+	KindAccessGrant, KindNotification, KindBrief, KindEvent, KindDocRead, KindOpenQuestion, KindPlanner,
 }
 
 // Record — запись хранилища: индексируемые поля + JSON-документ.
@@ -185,17 +186,19 @@ func SaveChecklistItem(ctx context.Context, s Store, internID string, item Check
 
 // SeedData — синтетические демо-данные.
 type SeedData struct {
-	Employees []Employee
-	Intern    InternProfile
-	Interns   []InternProfile
-	Checklist []ChecklistItem
+	Employees  []Employee
+	Intern     InternProfile
+	Interns    []InternProfile
+	Checklist  []ChecklistItem
 	Checklists map[string][]ChecklistItem
-	Task      SprintTask
-	Tasks     map[string]SprintTask
-	Docs      []KnowledgeDoc
-	Flags     []FeatureFlag
+	Task       SprintTask
+	Tasks      map[string]SprintTask
+	Docs       []KnowledgeDoc
+	Flags      []FeatureFlag
 	// Repositories — каталог репозиториев: имя → команда-владелец.
 	Repositories map[string]string
+	// Planner — события календаря и задачи первых недель относительно момента загрузки.
+	Planner func(now time.Time, intern InternProfile) []PlannerItem
 }
 
 // Records превращает seed в записи хранилища.
@@ -238,6 +241,17 @@ func (d SeedData) Records(now time.Time) ([]Record, error) {
 			return nil, err
 		}
 		out = append(out, rec)
+
+		// Календарь первых недель для данного стажёра
+		if d.Planner != nil {
+			for _, item := range d.Planner(now, in) {
+				rec, err := NewRecord(KindPlanner, item.ID, in.ID, now, item)
+				if err != nil {
+					return nil, err
+				}
+				out = append(out, rec)
+			}
+		}
 	}
 	return out, nil
 }

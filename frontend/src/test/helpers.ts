@@ -7,13 +7,19 @@ import chatProcess from './fixtures/chat_process.json';
 import cron from './fixtures/cron.json';
 import errorForbidden from './fixtures/error_forbidden.json';
 import executeAbsence from './fixtures/execute_absence.json';
+import executeAddTask from './fixtures/execute_add_task.json';
+import executeAssignTask from './fixtures/execute_assign_task.json';
+import executeReport from './fixtures/execute_report.json';
 import executeDuplicate from './fixtures/execute_duplicate.json';
 import executeForbidden from './fixtures/execute_forbidden.json';
 import flag from './fixtures/flag.json';
+import reviewAbsence from './fixtures/review_absence.json';
 import telemetry from './fixtures/telemetry.json';
 import workspaceInitial from './fixtures/workspace_initial.json';
 import workspaceIntern from './fixtures/workspace_intern.json';
+import workspaceIntern2 from './fixtures/workspace_intern2.json';
 import workspaceLead from './fixtures/workspace_lead.json';
+import workspaceLeadPending from './fixtures/workspace_lead_pending.json';
 import workspaceMentor from './fixtures/workspace_mentor.json';
 
 export const fixtures = {
@@ -24,13 +30,19 @@ export const fixtures = {
   cron,
   errorForbidden,
   executeAbsence,
+  executeAddTask,
+  executeAssignTask,
+  executeReport,
   executeDuplicate,
   executeForbidden,
   flag,
+  reviewAbsence,
   telemetry,
   workspaceInitial,
   workspaceIntern,
+  workspaceIntern2,
   workspaceLead,
+  workspaceLeadPending,
   workspaceMentor,
 };
 

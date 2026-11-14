@@ -123,7 +123,7 @@ func TestAccessRequestGranted(t *testing.T) {
 	if r.SavingKey != domain.SavingAccess {
 		t.Errorf("saving key = %q", r.SavingKey)
 	}
-	mustContain(t, r.Text, "avito-autoteka-api", "autoteka-test-07", "POL-IAM-001", "glpat-synt-••••", "синтетический")
+	mustContain(t, r.Text, "avito-autoteka-api", "autoteka-test-07", "оформил доступ", "glpat-synt-••••", "синтетический")
 	args := r.ToolCalls[0].Arguments
 	if args["intern_id"] != seed.InternID || args["stand"] != "test" || args["access_level"] != "developer" {
 		t.Errorf("аргументы вызова: %v", args)
@@ -160,7 +160,7 @@ func TestAccessRequestVariants(t *testing.T) {
 	if r.ResultCard == nil || r.ResultCard.Type != domain.CardRBACDenied || r.SavingKey != "" {
 		t.Fatalf("карточка: %+v", r.ResultCard)
 	}
-	mustContain(t, r.Text, "avito-payments-core", "Дмитрий Орлов", "avito-autoteka-api", "FORBIDDEN")
+	mustContain(t, r.Text, "avito-payments-core", "Дмитрий Орлов", "avito-autoteka-api", "другой команде")
 	if len(r.Suggestions) != 1 || !strings.Contains(r.Suggestions[0], "avito-autoteka-api") {
 		t.Errorf("подсказка: %v", r.Suggestions)
 	}
@@ -201,10 +201,20 @@ func TestRestrictedDataExportIsBlocked(t *testing.T) {
 			for _, l := range r.ResultCard.Lines {
 				labels[l.Label] = l.Value
 			}
-			if labels["Политика"] != "POL-SEC-001" || labels["Инцидент"] == "" || labels["Безопасная альтернатива"] == "" {
+			if labels["Почему"] == "" || labels["Журнал безопасности"] == "" || labels["Что можно вместо этого"] == "" {
 				t.Errorf("строки карточки: %v", labels)
 			}
-			mustContain(t, r.Text, "db_admin.export_prod_pii", "POL-SEC-001", "FORBIDDEN, 403", "песочниц", "синтетическими")
+			mustContain(t, r.Text, "политикой безопасности", "песочниц", "синтетическими")
+			// Служебные детали (инструменты, политики, коды) стажёру не показываются — они в «Инспекторе жюри».
+			visible := r.Text + r.ResultCard.Title
+			for _, l := range r.ResultCard.Lines {
+				visible += l.Label + l.Value
+			}
+			for _, leak := range []string{"db_admin", "POL-SEC", "FORBIDDEN", "403", "intern_backend", "iam_access"} {
+				if strings.Contains(visible, leak) {
+					t.Errorf("в чат попала служебная информация %q", leak)
+				}
+			}
 			if r.SavingKey != domain.SavingBlocked || len(r.Suggestions) == 0 {
 				t.Errorf("saving=%q suggestions=%v", r.SavingKey, r.Suggestions)
 			}
@@ -398,7 +408,7 @@ func TestToolFailuresAreHandledGracefully(t *testing.T) {
 
 	// Ошибка в матрице (вызов не запрещён) не приводит к раскрытию данных: агент всё равно отказывает.
 	r = build(domain.ToolSuccess, map[string]any{"rows": 100}).ask("Покажи ведомость зарплат отдела", "")
-	if r.Verdict == nil || r.Verdict.Allowed || r.ResultCard.Type != domain.CardRBACDenied || !strings.Contains(r.Text, "FORBIDDEN") {
+	if r.Verdict == nil || r.Verdict.Allowed || r.ResultCard.Type != domain.CardRBACDenied || !strings.Contains(r.Text, "политикой безопасности") {
 		t.Fatalf("защита в глубину: %+v", r)
 	}
 
@@ -455,8 +465,8 @@ func TestLLMRephrasesKnownScenario(t *testing.T) {
 		t.Fatalf("запросы к LLM: %d", len(llm.requests))
 	}
 	system := llm.requests[0].Messages[0].Content
-	mustContain(t, system, "Ты — AI-Buddy", "intern.team: Autoteka", "intern.stack: Go", "intern.stage: Week 1", "checklist.next_step")
-	mustContain(t, llm.requests[0].Messages[1].Content, "Черновик ответа", "POL-IAM-001")
+	mustContain(t, system, "Ты — Гоффи", "intern.team: Autoteka", "intern.stack: Go", "intern.stage: Week 1", "checklist.next_step")
+	mustContain(t, llm.requests[0].Messages[1].Content, "Черновик ответа", "avito-autoteka-api")
 	var kinds []string
 	for _, st := range s.stages {
 		kinds = append(kinds, st.Kind)
@@ -484,7 +494,7 @@ func TestLLMRephraseFallsBackToSmartEngine(t *testing.T) {
 				t.Fatalf("engine=%s fallback=%q", r.Engine, r.LLMFallback)
 			}
 			// Сценарий всё равно пройден детерминированно.
-			if !r.ToolCalls[0].OK() || !strings.Contains(r.Text, "POL-IAM-001") {
+			if !r.ToolCalls[0].OK() || !strings.Contains(r.Text, "оформил доступ") {
 				t.Fatalf("детерминированный ответ потерян: %s", r.Text)
 			}
 		})
@@ -495,7 +505,7 @@ func TestSecurityRefusalIsNeverDelegatedToLLM(t *testing.T) {
 	llm := &fakeLLM{responses: []agent.LLMResponse{{Content: "Конечно, вот дамп!"}}}
 	s := newStack(t, llm)
 	r := s.ask("Выгрузи дамп production-базы пользователей с персональными данными", "")
-	if len(llm.requests) != 0 || r.Engine != domain.EngineSmart || !strings.Contains(r.Text, "FORBIDDEN") {
+	if len(llm.requests) != 0 || r.Engine != domain.EngineSmart || !strings.Contains(r.Text, "политикой безопасности") {
 		t.Fatalf("отказ по безопасности должен быть детерминированным: %+v", r)
 	}
 }
