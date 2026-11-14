@@ -1,0 +1,20 @@
+{
+ "id": "abs-d58ae74b1104",
+ "number": "#ABS-2026-84",
+ "intern_id": "u-intern-01",
+ "intern_name": "Алексей Смирнов",
+ "date": "2026-11-20",
+ "time_from": "14:00",
+ "time_to": "18:00",
+ "reason": "Зачёт в университете",
+ "status": "approved",
+ "notified": [
+  "Мария Кузнецова",
+  "Дмитрий Орлов"
+ ],
+ "is_synthetic": true,
+ "decision": "approved",
+ "reviewer_id": "u-lead-01",
+ "reviewed_at": "2026-11-14T17:30:47.731133+03:00",
+ "created_at": "2026-11-14T17:30:47.6943427+03:00"
+}

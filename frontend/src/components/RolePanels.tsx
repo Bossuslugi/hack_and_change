@@ -1,6 +1,5 @@
 import type { Brief, Notification, Workspace } from '../api/schemas';
-import { errorText, useCron, useExecuteAction, useSetFlag } from '../hooks/useBuddy';
-import { useUi } from '../store/ui';
+import { useCron, useReviewAbsence, useSetFlag } from '../hooks/useBuddy';
 import { ABSENCE_STATUS_LABEL, formatDate, formatDateTime } from '../lib/format';
 import { Badge, Button, Card, CardTitle, EmptyState, cn } from './ui/primitives';
 
@@ -102,16 +101,8 @@ function Notifications({ items }: { items: Notification[] }) {
 }
 
 function Absences({ workspace }: { workspace: Workspace }) {
-  const approve = useExecuteAction();
-  const canApprove = workspace.permissions.absence_approve === true;
-  const onApprove = (number: string) =>
-    approve.mutate(
-      { tool: 'absences.approve_day_off', args: { request_number: number } },
-      {
-        onSuccess: () => useUi.getState().showToast({ kind: 'success', text: `Отгул ${number} согласован — стажёр получит уведомление` }),
-        onError: (e) => useUi.getState().showToast({ kind: 'error', text: errorText(e) }),
-      },
-    );
+  const review = useReviewAbsence();
+  const canReview = workspace.permissions.absence_approve === true;
   return (
     <Card className="p-4">
       <CardTitle aside={<Badge>{workspace.absences.length}</Badge>}>Заявки на отсутствие</CardTitle>
@@ -142,11 +133,30 @@ function Absences({ workspace }: { workspace: Workspace }) {
                     <td className="py-2 pr-3 text-ink-700">{a.reason}</td>
                     <td className="py-2">
                       <span className="flex flex-wrap items-center gap-2">
-                        <Badge tone={a.status === 'approved' ? 'ok' : 'warn'}>{ABSENCE_STATUS_LABEL[a.status] ?? a.status}</Badge>
-                        {canApprove && a.status !== 'approved' && (
-                          <Button size="sm" variant="primary" loading={approve.isPending} onClick={() => onApprove(a.number)}>
-                            Согласовать
-                          </Button>
+                        <Badge tone={a.status === 'approved' ? 'ok' : a.status === 'rejected' ? 'danger' : 'warn'}>
+                          {ABSENCE_STATUS_LABEL[a.status] ?? a.status}
+                        </Badge>
+                        {canReview && a.status === 'pending_approval' && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="primary"
+                              loading={review.isPending}
+                              aria-label={`Согласовать отгул ${a.number}`}
+                              onClick={() => review.mutate({ id: a.id, decision: 'approved' })}
+                            >
+                              Согласовать
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="danger"
+                              disabled={review.isPending}
+                              aria-label={`Отклонить отгул ${a.number}`}
+                              onClick={() => review.mutate({ id: a.id, decision: 'rejected' })}
+                            >
+                              Отклонить
+                            </Button>
+                          </>
                         )}
                       </span>
                     </td>

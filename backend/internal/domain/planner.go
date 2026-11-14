@@ -18,9 +18,8 @@ const (
 	PlannerPlanned = "planned"
 	PlannerDone    = "done"
 
-	AbsenceStatusApproved = "approved"
-
 	NotificationAbsenceApproved = "absence_approved"
+	NotificationAbsenceRejected = "absence_rejected"
 	NotificationTaskAssigned    = "task_assigned"
 )
 
@@ -175,10 +174,10 @@ func BuildReminders(items []PlannerItem, notes []Notification, now time.Time) []
 		out = append(out, r)
 	}
 	for _, n := range notes {
-		if n.Kind != NotificationAbsenceApproved && n.Kind != NotificationTaskAssigned {
+		if n.Kind != NotificationAbsenceApproved && n.Kind != NotificationAbsenceRejected && n.Kind != NotificationTaskAssigned {
 			continue
 		}
-		out = append(out, Reminder{ID: "rem-" + n.ID, Kind: n.Kind, Text: "🔔 " + n.Body, At: n.CreatedAt, Urgent: n.Kind == NotificationAbsenceApproved})
+		out = append(out, Reminder{ID: "rem-" + n.ID, Kind: n.Kind, Text: "🔔 " + n.Body, At: n.CreatedAt, Urgent: n.Kind != NotificationTaskAssigned})
 	}
 	sort.SliceStable(out, func(i, j int) bool {
 		if out[i].Urgent != out[j].Urgent {

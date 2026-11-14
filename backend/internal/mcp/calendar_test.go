@@ -145,55 +145,43 @@ func TestCalendarCompleteItem(t *testing.T) {
 	}
 }
 
-func TestAbsenceApproval(t *testing.T) {
+// Согласование отгула — инструмент absences.review_day_off; стажёр получает уведомление для ленты напоминаний.
+func TestAbsenceReviewNotifiesIntern(t *testing.T) {
 	f := newFixture(t)
 	lead := f.principal(t, seed.TeamLeadID)
 	if call := f.exec(f.intern(t), ToolCreateDayOff, dayOffArgs()); !call.OK() {
 		t.Fatalf("создание отгула: %+v", call)
 	}
-	args := map[string]any{"request_number": "#ABS-2026-84"}
+	args := map[string]any{"id": "#ABS-2026-84", "decision": domain.AbsenceStatusApproved}
 
 	// Согласовать может только руководитель.
 	for _, id := range []string{seed.InternID, seed.MentorID, seed.CronID} {
-		if call := f.exec(f.principal(t, id), ToolApproveDayOff, args); call.Status != domain.ToolForbidden {
+		if call := f.exec(f.principal(t, id), ToolReviewDayOff, args); call.Status != domain.ToolForbidden {
 			t.Fatalf("%s не должен согласовывать отгул: %+v", id, call)
 		}
 	}
-	call := f.exec(lead, ToolApproveDayOff, args)
-	if !call.OK() || call.Result["status"] != domain.AbsenceStatusApproved || call.RBAC.PolicyID != "POL-ABS-002" {
+	call := f.exec(lead, ToolReviewDayOff, args)
+	if !call.OK() || call.Result["status"] != domain.AbsenceStatusApproved {
 		t.Fatalf("согласование: %+v", call)
-	}
-	saved, _ := domain.Load[domain.AbsenceRequest](context.Background(), f.store.Store, domain.KindAbsence, seed.InternID)
-	if len(saved) != 1 || saved[0].Status != domain.AbsenceStatusApproved {
-		t.Fatalf("статус заявки: %+v", saved)
 	}
 	inbox := f.notifications(t, seed.InternID)
 	if len(inbox) != 1 || inbox[0].Kind != domain.NotificationAbsenceApproved || inbox[0].Body != "Руководитель согласовал твой отгул #ABS-2026-84 на 13.11.2026" {
 		t.Fatalf("уведомление стажёру: %+v", inbox)
 	}
 
-	if again := f.exec(lead, ToolApproveDayOff, args); again.Status != domain.ToolInvalid || !strings.Contains(again.Error, "уже согласована") {
-		t.Fatalf("повторное согласование: %+v", again)
-	}
-	if missing := f.exec(lead, ToolApproveDayOff, map[string]any{"request_number": "#ABS-2026-99"}); missing.Status != domain.ToolInvalid || !strings.Contains(missing.Error, "не найдена") {
-		t.Fatalf("несуществующая заявка: %+v", missing)
-	}
-	if bad := f.exec(lead, ToolApproveDayOff, map[string]any{"request_number": "84"}); bad.Status != domain.ToolInvalid {
-		t.Fatalf("формат номера: %+v", bad)
+	// Отклонение — отдельный вид уведомления.
+	rejected := f.exec(lead, ToolReviewDayOff, map[string]any{"id": "#ABS-2026-84", "decision": domain.AbsenceStatusRejected, "comment": "Релиз"})
+	inbox = f.notifications(t, seed.InternID)
+	if !rejected.OK() || len(inbox) != 2 || inbox[1].Kind != domain.NotificationAbsenceRejected || !strings.Contains(inbox[1].Body, "отклонил твой отгул #ABS-2026-84") {
+		t.Fatalf("отклонение: %+v / %+v", rejected, inbox)
 	}
 
-	for _, br := range []func(*faultyStore){
-		func(s *faultyStore) { s.failList[domain.KindAbsence] = true },
-		func(s *faultyStore) { s.failPut[domain.KindAbsence] = true },
-		func(s *faultyStore) { s.failPut[domain.KindNotification] = true },
-	} {
-		g := newFixture(t)
-		if call := g.exec(g.intern(t), ToolCreateDayOff, dayOffArgs()); !call.OK() {
-			t.Fatal(call.Error)
-		}
-		br(g.store)
-		if call := g.exec(g.principal(t, seed.TeamLeadID), ToolApproveDayOff, args); call.ErrorCode != CodeInternal {
-			t.Fatalf("сбой хранилища: %+v", call)
-		}
+	g := newFixture(t)
+	if call := g.exec(g.intern(t), ToolCreateDayOff, dayOffArgs()); !call.OK() {
+		t.Fatal(call.Error)
+	}
+	g.store.failPut[domain.KindNotification] = true
+	if call := g.exec(g.principal(t, seed.TeamLeadID), ToolReviewDayOff, args); call.ErrorCode != CodeInternal {
+		t.Fatalf("сбой уведомления: %+v", call)
 	}
 }

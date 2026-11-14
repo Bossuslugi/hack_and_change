@@ -14,7 +14,7 @@
   "architecture_question": "Где в avito-autoteka-api проходит граница между слоем сборки отчёта и агрегатором источников: на каком слое вычислять mileage_verified, чтобы не сломать контракт /v1/report/summary для существующих клиентов?"
  },
  "proactive_message": {
-  "id": "msg-72e34a1a5552",
+  "id": "msg-4227a0e32be6",
   "intern_id": "u-intern-01",
   "role": "assistant",
   "text": "Алексей, привет! Вижу, что задача **AUT-1423** («Добавить поле mileage_verified в ответ ручки /v1/report/summary под фича-флагом») в работе уже 3-й день, а коммитов пока нет. На первой неделе это нормально — давай помогу сдвинуться:\n- подскажу, с чего начать и как разбить задачу на шаги;\n- напомню, как катить изменения под фича-флагом и проходить ревью.\n\nАрхитектурный вопрос по задаче я уже передал наставнику (Мария Кузнецова) в брифе к 1:1 — он придёт на встречу подготовленным.",
@@ -29,13 +29,13 @@
   ],
   "proactive": true,
   "tool_call_ids": [
-   "call-42ff5e854089",
-   "call-eedf50cfcf1c"
+   "call-82203272a04f",
+   "call-703020f7c564"
   ],
-  "created_at": "2026-11-14T11:34:53.089204+03:00"
+  "created_at": "2026-11-14T17:30:47.7381137+03:00"
  },
  "brief": {
-  "id": "brief-7e3581fba822",
+  "id": "brief-a978082d23dc",
   "intern_id": "u-intern-01",
   "intern_name": "Алексей Смирнов",
   "mentor_id": "u-mentor-01",
@@ -54,11 +54,11 @@
    "Прогресс чек-листа адаптации: 5 из 7 шагов"
   ],
   "open_questions": [],
-  "created_at": "2026-11-14T11:34:53.089204+03:00"
+  "created_at": "2026-11-14T17:30:47.7381137+03:00"
  },
  "tool_calls": [
   {
-   "id": "call-42ff5e854089",
+   "id": "call-82203272a04f",
    "intern_id": "u-intern-01",
    "actor_id": "svc-ai-cron",
    "actor_role": "system_cron",
@@ -91,10 +91,10 @@
     "incident": false
    },
    "duration_ms": 0,
-   "created_at": "2026-11-14T11:34:53.088675+03:00"
+   "created_at": "2026-11-14T17:30:47.737782+03:00"
   },
   {
-   "id": "call-eedf50cfcf1c",
+   "id": "call-703020f7c564",
    "intern_id": "u-intern-01",
    "actor_id": "svc-ai-cron",
    "actor_role": "system_cron",
@@ -120,7 +120,7 @@
     "task_key": "AUT-1423"
    },
    "result": {
-    "brief_id": "brief-7e3581fba822",
+    "brief_id": "brief-a978082d23dc",
     "delivered_to": "Мария Кузнецова"
    },
    "status": "success",
@@ -135,7 +135,7 @@
     "incident": false
    },
    "duration_ms": 0,
-   "created_at": "2026-11-14T11:34:53.089204+03:00"
+   "created_at": "2026-11-14T17:30:47.7381137+03:00"
   }
  ],
  "checklist": [
@@ -148,8 +148,8 @@
    "status": "completed",
    "scenario": "S1",
    "evidence": "Доступ к avito-autoteka-api выдан через IAM (Гоффи)",
-   "updated_at": "2026-11-14T11:34:52.1236785+03:00",
-   "completed_at": "2026-11-14T11:34:52.1236785+03:00"
+   "updated_at": "2026-11-14T17:30:46.772436+03:00",
+   "completed_at": "2026-11-14T17:30:46.772436+03:00"
   },
   {
    "id": "meet_team",
@@ -159,7 +159,7 @@
    "description": "Вводная встреча с командой Autoteka, знакомство с наставником и руководителем.",
    "status": "completed",
    "evidence": "Вводная встреча проведена в первый день",
-   "updated_at": "2026-11-14T11:34:51.8074128+03:00"
+   "updated_at": "2026-11-14T17:30:46.4556629+03:00"
   },
   {
    "id": "local_env",
@@ -169,7 +169,7 @@
    "description": "Go, Docker, IDE и корпоративный VPN на рабочем ноутбуке.",
    "status": "completed",
    "evidence": "Окружение настроено по инструкции",
-   "updated_at": "2026-11-14T11:34:51.8074128+03:00"
+   "updated_at": "2026-11-14T17:30:46.4556629+03:00"
   },
   {
    "id": "team_processes",
@@ -180,8 +180,8 @@
    "status": "completed",
    "scenario": "S2",
    "evidence": "Инструкции изучены через Гоффи",
-   "updated_at": "2026-11-14T11:34:52.7465635+03:00",
-   "completed_at": "2026-11-14T11:34:52.7465635+03:00"
+   "updated_at": "2026-11-14T17:30:47.3843666+03:00",
+   "completed_at": "2026-11-14T17:30:47.3843666+03:00"
   },
   {
    "id": "first_task",
@@ -192,7 +192,7 @@
    "status": "in_progress",
    "scenario": "S2",
    "evidence": "Задача взята в работу",
-   "updated_at": "2026-11-14T11:34:51.8074128+03:00"
+   "updated_at": "2026-11-14T17:30:46.4556629+03:00"
   },
   {
    "id": "absence_rules",
@@ -203,8 +203,8 @@
    "status": "completed",
    "scenario": "S3",
    "evidence": "Заявка #ABS-2026-84 оформлена через Гоффи",
-   "updated_at": "2026-11-14T11:34:53.0632946+03:00",
-   "completed_at": "2026-11-14T11:34:53.0632946+03:00"
+   "updated_at": "2026-11-14T17:30:47.6943427+03:00",
+   "completed_at": "2026-11-14T17:30:47.6943427+03:00"
   },
   {
    "id": "first_one_on_one",
@@ -215,7 +215,7 @@
    "status": "in_progress",
    "scenario": "S2",
    "evidence": "Бриф к 1:1 отправлен наставнику",
-   "updated_at": "2026-11-14T11:34:53.089204+03:00"
+   "updated_at": "2026-11-14T17:30:47.7381137+03:00"
   }
  ],
  "progress": {

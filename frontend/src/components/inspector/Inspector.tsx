@@ -10,7 +10,72 @@ const TABS: Array<{ id: InspectorTab; label: string }> = [
   { id: 'rbac', label: 'RBAC' },
   { id: 'clickstream', label: 'Clickstream' },
   { id: 'registry', label: 'Реестр' },
+  { id: 'sdd', label: 'SDD' },
 ];
+
+const SPECS = [
+  { id: 'avito-start-ai-buddy', file: '01_agent_behavior.openspec.yaml', scope: 'Промпт, интенты, отказы, эффекты на чек-лист, веса метрик' },
+  { id: 'avito-start-ai-buddy-mcp', file: '02_mcp_tools.openspec.yaml', scope: 'Контракты MCP-инструментов (JSON Schema)' },
+  { id: 'avito-start-ai-buddy-rbac', file: '03_rbac_matrix.openspec.yaml', scope: 'Роли, ограничения и политики RBAC' },
+];
+
+/** Спецификации, скиллы агента и активные флаги: чем управляется поведение Гоффи в эту минуту. */
+function SpecsAndFlags({ workspace }: { workspace?: Workspace }) {
+  const flags = workspace?.feature_flags ?? [];
+  const skills = workspace?.skills ?? [];
+  const title = 'mb-2 text-xs font-semibold uppercase tracking-wide text-ink-400';
+  const card = 'rounded-xl border border-paper-200 bg-paper-0 px-3 py-2.5';
+  return (
+    <div className="space-y-4">
+      {skills.length > 0 && (
+        <div>
+          <h3 className={title}>Модульные скиллы агента (Skills)</h3>
+          <ul className="space-y-2">
+            {skills.map((skill) => (
+              <li key={skill.id} className={card} data-testid="skill">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-mono text-xs font-medium text-ink-900">{skill.id}</span>
+                  <Badge tone={skill.active ? 'ok' : 'neutral'}>{skill.active ? 'active' : 'disabled'}</Badge>
+                </div>
+                <p className="mt-1 text-xs font-medium text-ink-700">{skill.name}</p>
+                <p className="mt-0.5 text-xs text-ink-500">{skill.description}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <div>
+        <h3 className={title}>Применённые спецификации</h3>
+        <ul className="space-y-2">
+          {SPECS.map((spec) => (
+            <li key={spec.id} className={card}>
+              <p className="font-mono text-xs font-medium text-ink-900">spec_id: {spec.id}</p>
+              <p className="mt-1 text-xs text-ink-500">{spec.scope}</p>
+              <p className="mt-1 font-mono text-[11px] text-ink-400">specs/{spec.file}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        <h3 className={title}>Feature flags</h3>
+        <ul className="divide-y divide-paper-200 rounded-xl border border-paper-200 bg-paper-0">
+          {flags.map((flag) => (
+            <li key={flag.key} className="flex items-center justify-between gap-2 px-3 py-2" title={flag.description}>
+              <div className="min-w-0">
+                <span className="block truncate font-mono text-xs text-ink-900">{flag.key}</span>
+                <span className="text-[11px] text-ink-400">{flag.description}</span>
+              </div>
+              <div className="flex shrink-0 items-center gap-1.5">
+                <Badge>{flag.kind === 'runtime' ? 'runtime' : 'compile-time'}</Badge>
+                <span className={cn('font-mono text-xs font-medium', flag.enabled ? 'text-ok-700' : 'text-ink-400')}>{String(flag.enabled)}</span>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
 
 const STATUS_TONE = { success: 'ok', forbidden: 'danger', invalid: 'warn', error: 'danger' } as const;
 const SEVERITY_TONE = { info: 'neutral', warn: 'warn', security: 'danger' } as const;
@@ -105,7 +170,7 @@ function Matrix({ data }: { data: Telemetry }) {
   );
 }
 
-function TabContent({ tab, data }: { tab: InspectorTab; data: Telemetry }) {
+function TabContent({ tab, data }: { tab: Exclude<InspectorTab, 'sdd'>; data: Telemetry }) {
   if (tab === 'mcp') {
     return data.tool_calls.length === 0 ? (
       <EmptyState title="Вызовов MCP пока нет" hint="Запусти любой сценарий в чате — здесь появится аудит вызовов инструментов." />
@@ -193,6 +258,7 @@ export function Inspector({ workspace }: { workspace?: Workspace }) {
     rbac: data?.events.filter((e) => e.kind === 'rbac').length,
     clickstream: data?.events.filter((e) => e.kind !== 'rbac' && e.kind !== 'mcp').length,
     registry: data?.tools.length,
+    sdd: undefined,
   };
 
   return (
@@ -248,7 +314,7 @@ export function Inspector({ workspace }: { workspace?: Workspace }) {
             </Button>
           </div>
         )}
-        {data && <TabContent tab={tab} data={data} />}
+        {tab === 'sdd' ? <SpecsAndFlags workspace={workspace} /> : data && <TabContent tab={tab} data={data} />}
       </div>
     </aside>
   );

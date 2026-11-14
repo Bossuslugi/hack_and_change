@@ -108,7 +108,7 @@ func TestSeedPlanner(t *testing.T) {
 	// Понедельник, пятница и воскресенье: дедлайн первого PR всегда в ближайшую будущую пятницу.
 	for _, day := range []int{9, 13, 15} {
 		now := time.Date(2026, 11, day, 10, 7, 30, 0, time.UTC)
-		items := Planner(now)
+		items := Planner(now, Data().Intern)
 		ids := map[string]domain.PlannerItem{}
 		for _, it := range items {
 			if ids[it.ID].ID != "" || !it.IsSynthetic || it.InternID != InternID || it.Status != domain.PlannerPlanned || it.Title == "" {

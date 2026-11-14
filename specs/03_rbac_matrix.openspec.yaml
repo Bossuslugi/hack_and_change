@@ -94,12 +94,6 @@ policies:
     effect: allow
     roles: [intern_backend, mentor, team_lead, system_cron]
 
-  - id: POL-ABS-002
-    operation: absences.approve_day_off
-    effect: allow
-    roles: [team_lead]
-    description: "Отгул согласует только руководитель"
-
   - id: POL-CAL-001
     operation: calendar.add_task
     effect: allow

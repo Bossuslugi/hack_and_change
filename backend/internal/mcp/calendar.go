@@ -10,11 +10,10 @@ import (
 	"aibuddy/backend/internal/domain"
 )
 
-// Имена инструментов календаря и согласования отгула.
+// Имена инструментов календаря.
 const (
-	ToolApproveDayOff = "absences.approve_day_off"
-	ToolAddTask       = "calendar.add_task"
-	ToolCompleteItem  = "calendar.complete_item"
+	ToolAddTask      = "calendar.add_task"
+	ToolCompleteItem = "calendar.complete_item"
 )
 
 // Calendar — имитация корпоративного календаря: встречи, дедлайны, задачи адаптации.
@@ -80,29 +79,10 @@ func (s *Calendar) CompleteItem(ctx context.Context, c Call) (map[string]any, er
 	return toMap(done), nil
 }
 
-// ApproveDayOff согласует заявку на отгул и уведомляет сотрудника.
-func (s *Absences) ApproveDayOff(ctx context.Context, c Call) (map[string]any, error) {
-	number := argString(c.Args, "request_number")
-	all, err := domain.Load[domain.AbsenceRequest](ctx, s.store, domain.KindAbsence, "")
-	if err != nil {
-		return nil, err
+// ReviewNotice — короткое уведомление стажёру о решении по отгулу (попадает в ленту напоминаний).
+func ReviewNotice(a domain.AbsenceRequest) (kind, body string) {
+	if a.Status == domain.AbsenceStatusApproved {
+		return domain.NotificationAbsenceApproved, fmt.Sprintf("Руководитель согласовал твой отгул %s на %s", a.Number, humanDate(a.Date))
 	}
-	for _, a := range all {
-		if a.Number != number {
-			continue
-		}
-		if a.Status == domain.AbsenceStatusApproved {
-			return nil, Errorf(CodeInvalidArgs, "заявка %s уже согласована", number)
-		}
-		a.Status = domain.AbsenceStatusApproved
-		if err := domain.Save(ctx, s.store, domain.KindAbsence, a.ID, a.InternID, c.Now, a); err != nil {
-			return nil, err
-		}
-		body := fmt.Sprintf("Руководитель согласовал твой отгул %s на %s", a.Number, humanDate(a.Date))
-		if _, err := s.notifications.Send(ctx, a.InternID, "Отгул согласован", body, domain.NotificationAbsenceApproved, c.Now); err != nil {
-			return nil, err
-		}
-		return map[string]any{"request_number": a.Number, "status": a.Status, "intern_id": a.InternID}, nil
-	}
-	return nil, Errorf(CodeInvalidArgs, "заявка %s не найдена", number)
+	return domain.NotificationAbsenceRejected, fmt.Sprintf("Руководитель отклонил твой отгул %s на %s", a.Number, humanDate(a.Date))
 }

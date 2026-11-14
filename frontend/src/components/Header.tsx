@@ -1,4 +1,5 @@
-import { api, DEMO_ROLES, DEMO_USERS, type DemoRole } from '../api/auth';
+import { useQueryClient } from '@tanstack/react-query';
+import { api, DEMO_INTERNS, DEMO_ROLES, DEMO_USERS, type DemoRole } from '../api/auth';
 import type { Workspace } from '../api/schemas';
 import { useReset } from '../hooks/useBuddy';
 import { useUi } from '../store/ui';
@@ -34,6 +35,49 @@ function RoleSwitcher() {
           {DEMO_USERS[r].label}
         </button>
       ))}
+    </div>
+  );
+}
+
+/** Профиль стажёра: переключает демо-данные между Go- и ML-стажёром (несколько команд). */
+function InternSwitcher() {
+  const activeInternId = useUi((s) => s.activeInternId);
+  const setActiveInternId = useUi((s) => s.setActiveInternId);
+  const queryClient = useQueryClient();
+
+  const choose = (id: string) => {
+    if (id === activeInternId) return;
+    setActiveInternId(id);
+    void api.trackEvent('ui.intern_switched', { intern_id: id });
+    void queryClient.invalidateQueries({ queryKey: ['workspace'] });
+    void queryClient.invalidateQueries({ queryKey: ['telemetry'] });
+  };
+
+  return (
+    <div role="radiogroup" aria-label="Профиль стажёра" className="inline-flex rounded-2xl bg-paper-100 p-1">
+      {DEMO_INTERNS.map((intern) => {
+        const active = activeInternId === intern.id;
+        return (
+          <button
+            key={intern.id}
+            type="button"
+            role="radio"
+            aria-checked={active}
+            aria-label={`${intern.name} (${intern.team})`}
+            title={`${intern.name}: ${intern.roleTitle} • ${intern.team} • ${intern.stage}`}
+            onClick={() => choose(intern.id)}
+            className={cn(
+              'inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-sm font-medium transition-all duration-200',
+              'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand-500',
+              active ? 'bg-paper-0 text-ink-900 shadow-card' : 'text-ink-500 hover:text-ink-900',
+            )}
+          >
+            <span className={cn('h-2 w-2 rounded-full', intern.stack === 'Go' ? 'bg-brand-500' : 'bg-accent-500')} aria-hidden="true" />
+            {intern.name.split(' ')[0]}
+            <span className="font-mono text-[11px] font-normal text-ink-400">{intern.stack === 'Go' ? 'Go' : 'ML'}</span>
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -104,6 +148,7 @@ export function Header({ workspace }: { workspace?: Workspace }) {
         )}
 
         <div className="ml-auto flex flex-wrap items-center gap-2">
+          <InternSwitcher />
           <RoleSwitcher />
           <ThemeToggle />
           <Button onClick={toggleInspector} aria-pressed={inspectorOpen} title="MCP · JSON-RPC · RBAC · Clickstream">

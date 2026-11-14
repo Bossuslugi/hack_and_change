@@ -186,46 +186,71 @@ func SaveChecklistItem(ctx context.Context, s Store, internID string, item Check
 
 // SeedData — синтетические демо-данные.
 type SeedData struct {
-	Employees []Employee
-	Intern    InternProfile
-	Checklist []ChecklistItem
-	Task      SprintTask
-	Docs      []KnowledgeDoc
-	Flags     []FeatureFlag
+	Employees  []Employee
+	Intern     InternProfile
+	Interns    []InternProfile
+	Checklist  []ChecklistItem
+	Checklists map[string][]ChecklistItem
+	Task       SprintTask
+	Tasks      map[string]SprintTask
+	Docs       []KnowledgeDoc
+	Flags      []FeatureFlag
 	// Repositories — каталог репозиториев: имя → команда-владелец.
 	Repositories map[string]string
 	// Planner — события календаря и задачи первых недель относительно момента загрузки.
-	Planner func(now time.Time) []PlannerItem
+	Planner func(now time.Time, intern InternProfile) []PlannerItem
 }
 
 // Records превращает seed в записи хранилища.
 func (d SeedData) Records(now time.Time) ([]Record, error) {
 	var out []Record
-	rec, err := NewRecord(KindIntern, d.Intern.ID, d.Intern.ID, now, d.Intern)
-	if err != nil {
-		return nil, err
+	interns := d.Interns
+	if len(interns) == 0 {
+		interns = []InternProfile{d.Intern}
 	}
-	out = append(out, rec)
-	for _, it := range d.Checklist {
-		it.UpdatedAt = now
-		rec, err := NewRecord(KindChecklist, ChecklistRecordID(d.Intern.ID, it.ID), d.Intern.ID, now, it)
+	for _, in := range interns {
+		rec, err := NewRecord(KindIntern, in.ID, in.ID, now, in)
 		if err != nil {
 			return nil, err
 		}
 		out = append(out, rec)
-	}
-	rec, err = NewRecord(KindSprintTask, d.Intern.ID, d.Intern.ID, now, d.Task)
-	if err != nil {
-		return nil, err
-	}
-	out = append(out, rec)
-	if d.Planner != nil {
-		for _, item := range d.Planner(now) {
-			rec, err := NewRecord(KindPlanner, item.ID, d.Intern.ID, now, item)
+
+		// Чек-лист для данного стажёра
+		items := d.Checklist
+		if d.Checklists != nil && len(d.Checklists[in.ID]) > 0 {
+			items = d.Checklists[in.ID]
+		}
+		for _, it := range items {
+			it.UpdatedAt = now
+			rec, err := NewRecord(KindChecklist, ChecklistRecordID(in.ID, it.ID), in.ID, now, it)
 			if err != nil {
 				return nil, err
 			}
 			out = append(out, rec)
+		}
+
+		// Спринт-задача для данного стажёра
+		task := d.Task
+		if d.Tasks != nil {
+			if t, ok := d.Tasks[in.ID]; ok {
+				task = t
+			}
+		}
+		rec, err = NewRecord(KindSprintTask, in.ID, in.ID, now, task)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, rec)
+
+		// Календарь первых недель для данного стажёра
+		if d.Planner != nil {
+			for _, item := range d.Planner(now, in) {
+				rec, err := NewRecord(KindPlanner, item.ID, in.ID, now, item)
+				if err != nil {
+					return nil, err
+				}
+				out = append(out, rec)
+			}
 		}
 	}
 	return out, nil

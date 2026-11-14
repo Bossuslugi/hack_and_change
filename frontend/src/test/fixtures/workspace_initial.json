@@ -31,7 +31,7 @@
    "description": "Доступ к avito-autoteka-api и стенду с синтетическими данными. Гоффи оформит через IAM.",
    "status": "pending",
    "scenario": "S1",
-   "updated_at": "2026-11-14T11:34:51.8074128+03:00"
+   "updated_at": "2026-11-14T17:30:46.4556629+03:00"
   },
   {
    "id": "meet_team",
@@ -41,7 +41,7 @@
    "description": "Вводная встреча с командой Autoteka, знакомство с наставником и руководителем.",
    "status": "completed",
    "evidence": "Вводная встреча проведена в первый день",
-   "updated_at": "2026-11-14T11:34:51.8074128+03:00"
+   "updated_at": "2026-11-14T17:30:46.4556629+03:00"
   },
   {
    "id": "local_env",
@@ -51,7 +51,7 @@
    "description": "Go, Docker, IDE и корпоративный VPN на рабочем ноутбуке.",
    "status": "completed",
    "evidence": "Окружение настроено по инструкции",
-   "updated_at": "2026-11-14T11:34:51.8074128+03:00"
+   "updated_at": "2026-11-14T17:30:46.4556629+03:00"
   },
   {
    "id": "team_processes",
@@ -61,7 +61,7 @@
    "description": "Как команда катит задачи под фича-флагами и как проходит ревью. Спроси Гоффи.",
    "status": "pending",
    "scenario": "S2",
-   "updated_at": "2026-11-14T11:34:51.8074128+03:00"
+   "updated_at": "2026-11-14T17:30:46.4556629+03:00"
   },
   {
    "id": "first_task",
@@ -72,7 +72,7 @@
    "status": "in_progress",
    "scenario": "S2",
    "evidence": "Задача взята в работу",
-   "updated_at": "2026-11-14T11:34:51.8074128+03:00"
+   "updated_at": "2026-11-14T17:30:46.4556629+03:00"
   },
   {
    "id": "absence_rules",
@@ -82,7 +82,7 @@
    "description": "Отгул, отпуск, больничный: как оформить через сервис «Отсутствия» и кого предупредить.",
    "status": "pending",
    "scenario": "S3",
-   "updated_at": "2026-11-14T11:34:51.8074128+03:00"
+   "updated_at": "2026-11-14T17:30:46.4556629+03:00"
   },
   {
    "id": "first_one_on_one",
@@ -92,7 +92,7 @@
    "description": "Обсудить прогресс и вопросы, требующие участия сеньора. Гоффи подготовит бриф.",
    "status": "pending",
    "scenario": "S2",
-   "updated_at": "2026-11-14T11:34:51.8074128+03:00"
+   "updated_at": "2026-11-14T17:30:46.4556629+03:00"
   }
  ],
  "progress": {
@@ -109,7 +109,7 @@
   "description": "Доступ к avito-autoteka-api и стенду с синтетическими данными. Гоффи оформит через IAM.",
   "status": "pending",
   "scenario": "S1",
-  "updated_at": "2026-11-14T11:34:51.8074128+03:00"
+  "updated_at": "2026-11-14T17:30:46.4556629+03:00"
  },
  "sprint_task": {
   "key": "AUT-1423",
@@ -122,12 +122,62 @@
   "repository": "avito-autoteka-api",
   "architecture_question": "Где в avito-autoteka-api проходит граница между слоем сборки отчёта и агрегатором источников: на каком слое вычислять mileage_verified, чтобы не сломать контракт /v1/report/summary для существующих клиентов?"
  },
+ "skills": [
+  {
+   "id": "skill.onboarding_navigator",
+   "name": "Навигатор онбординга",
+   "description": "Ведение стажёра по чек-листу адаптации, рекомендации следующего шага и автозакрытие этапов",
+   "active": true
+  },
+  {
+   "id": "skill.contextual_playbook_rag",
+   "name": "Контекстный Playbook RAG",
+   "description": "Поиск по синтетической базе знаний команды с маркировкой источников и учётом стека",
+   "active": true
+  },
+  {
+   "id": "skill.rbac_security_guard",
+   "name": "RBAC Security Guard",
+   "description": "Блокировка доступа к ПДн, продакшн-дампам и финансам по политике POL-SEC-001 с предложением песочницы",
+   "active": true
+  },
+  {
+   "id": "skill.absence_workflow_automation",
+   "name": "Автоматизация отгулов и отсутствий",
+   "description": "Сквозное интерактивное оформление отгулов и двухстороннее согласование руководителем",
+   "active": true
+  },
+  {
+   "id": "skill.proactive_mentor_sync",
+   "name": "Проактивная синхронизация с ментором",
+   "description": "Фоновый ИИ-крон, обнаружение пробуксовок стажёра и автогенерация повестки встречи 1:1",
+   "active": true
+  }
+ ],
  "feature_flags": [
+  {
+   "key": "proactive_ai_cron",
+   "enabled": true,
+   "kind": "runtime",
+   "description": "ИИ-крон: проактивные сообщения стажёру и бриф наставнику"
+  },
+  {
+   "key": "strict_rbac_guard",
+   "enabled": true,
+   "kind": "runtime",
+   "description": "Строгая RBAC-защита: немедленная блокировка выгрузки ПДн (POL-SEC-001)"
+  },
+  {
+   "key": "mentor_auto_brief",
+   "enabled": true,
+   "kind": "runtime",
+   "description": "Автогенерация Structured 1:1 Brief наставнику при пробуксовке стажёра"
+  },
   {
    "key": "ai_buddy.proactive_cron",
    "enabled": true,
    "kind": "runtime",
-   "description": "ИИ-крон: проактивные сообщения стажёру и бриф наставнику"
+   "description": "ИИ-крон: фоновый запуск проверок (системный алиас)"
   },
   {
    "key": "ai_buddy.absence_action_card",
@@ -142,16 +192,28 @@
    "description": "Формулировка ответов внешней LLM (если задан LLM_API_KEY)"
   },
   {
+   "key": "sdd_spec_enforcement",
+   "enabled": true,
+   "kind": "compile_time",
+   "description": "Валидация контрактов OpenSpec в runtime через embed.FS"
+  },
+  {
+   "key": "synthetic_data_watermark",
+   "enabled": true,
+   "kind": "compile_time",
+   "description": "Водяные знаки синтетических данных и маскирование токенов"
+  },
+  {
+   "key": "mcp_jsonrpc_v2",
+   "enabled": true,
+   "kind": "compile_time",
+   "description": "Поддержка протокола MCP JSON-RPC 2.0"
+  },
+  {
    "key": "ai_buddy.mcp_jsonrpc",
    "enabled": true,
    "kind": "compile_time",
-   "description": "MCP JSON-RPC endpoint POST /mcp"
-  },
-  {
-   "key": "ai_buddy.synthetic_data_only",
-   "enabled": true,
-   "kind": "compile_time",
-   "description": "Только синтетические данные и имитации сервисов"
+   "description": "MCP JSON-RPC endpoint POST /mcp (системный алиас)"
   }
  ],
  "metrics": {
@@ -192,7 +254,7 @@
    ],
    "proactive": false,
    "tool_call_ids": [],
-   "created_at": "2026-11-14T11:34:51.8074128+03:00"
+   "created_at": "2026-11-14T17:30:46.4556629+03:00"
   }
  ],
  "notifications": [],
@@ -232,7 +294,7 @@
    "kind": "meeting",
    "title": "Созвон 1:1 с наставником",
    "description": "Первая встреча 1:1: прогресс по чек-листу и вопросы, где нужен опыт сеньора. Гоффи заранее отправит наставнику бриф.",
-   "starts_at": "2026-11-14T14:34:00+03:00",
+   "starts_at": "2026-11-14T20:30:00+03:00",
    "duration_min": 30,
    "all_day": false,
    "link": "https://meet.avito.example/autoteka-1on1",
@@ -334,7 +396,7 @@
    "id": "rem-plan-1on1",
    "kind": "meeting",
    "text": "🚨 Через 3 часа — Созвон 1:1 с наставником",
-   "at": "2026-11-14T14:34:00+03:00",
+   "at": "2026-11-14T20:30:00+03:00",
    "item_id": "plan-1on1",
    "urgent": true
   },
@@ -368,6 +430,14 @@
    "text": "📅 Срок сдачи первого PR — в пятницу",
    "at": "2026-11-20T18:00:00+03:00",
    "item_id": "plan-first-pr",
+   "urgent": false
+  },
+  {
+   "id": "rem-plan-feedback",
+   "kind": "meeting",
+   "text": "🗓 21.11 в 16:00 — Созвон по обратной связи за первую неделю",
+   "at": "2026-11-21T16:00:00+03:00",
+   "item_id": "plan-feedback",
    "urgent": false
   }
  ]

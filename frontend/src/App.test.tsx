@@ -26,7 +26,6 @@ function backend(overrides: Route = () => undefined) {
     'absences.create_day_off': fixtures.executeAbsence,
     'calendar.add_task': fixtures.executeAddTask,
     'calendar.complete_item': fixtures.executeReport,
-    'absences.approve_day_off': fixtures.executeApprove,
   };
   const apply = (result: ChatFixture) => {
     const messages = [...(intern.messages as unknown[]), result.user_message, result.message].filter(Boolean);
@@ -36,7 +35,9 @@ function backend(overrides: Route = () => undefined) {
     const custom = overrides(call);
     if (custom) return custom;
     const { method, path, token } = call;
+    if (path === '/api/v1/absences/review') return json(fixtures.reviewAbsence);
     if (method === 'GET' && path === '/api/v1/workspace') {
+      if (token === 'demo-intern-02-token') return json(fixtures.workspaceIntern2);
       if (token === 'demo-mentor-token') return json(fixtures.workspaceMentor);
       if (token === 'demo-lead-token') return json(fixtures.workspaceLead);
       return json(intern);
@@ -90,6 +91,7 @@ beforeEach(() => {
   // Фиксируем «сегодня» = день, когда сняты фикстуры: календарь и форма отгула зависят от даты.
   vi.useFakeTimers({ toFake: ['Date'] });
   vi.setSystemTime(new Date(2026, 10, 14, 10, 0, 0));
+  useUi.getState().setActiveInternId('u-intern-01');
   useUi.setState({ role: 'intern', theme: 'light', inspectorOpen: false, inspectorTab: 'mcp', toast: null });
   useUi.getState().resetSession();
   applyTheme('light');
@@ -548,21 +550,22 @@ describe('роли наставника и руководителя', () => {
   });
 
   it('руководитель согласует отгул, видит инциденты и переключает runtime-флаги', async () => {
-    const pending = structuredClone(fixtures.workspaceLead) as { absences: Array<{ status: string }> };
-    pending.absences[0]!.status = 'pending_approval';
     const { calls } = backend(({ method, path, token }) =>
-      method === 'GET' && path === '/api/v1/workspace' && token === 'demo-lead-token' ? json(pending) : undefined,
+      method === 'GET' && path === '/api/v1/workspace' && token === 'demo-lead-token' ? json(fixtures.workspaceLeadPending) : undefined,
     );
     const user = userEvent.setup();
     useUi.getState().setRole('lead');
     renderApp();
 
     expect(await screen.findByText(/Кабинет руководителя · Дмитрий Орлов/)).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Согласовать' }));
+    await user.click(screen.getByRole('button', { name: 'Согласовать отгул #ABS-2026-84' }));
     await waitFor(() =>
-      expect(executeCalls(calls)[0]).toMatchObject({ token: 'demo-lead-token', body: { tool: 'absences.approve_day_off', arguments: { request_number: '#ABS-2026-84' } } }),
+      expect(calls.find((c) => c.path === '/api/v1/absences/review')).toMatchObject({
+        token: 'demo-lead-token',
+        body: { id: fixtures.reviewAbsence.id, decision: 'approved' },
+      }),
     );
-    expect(await screen.findByText(/Отгул #ABS-2026-84 согласован/)).toBeInTheDocument();
+    expect(await screen.findByText('Заявка #ABS-2026-84 согласована')).toBeInTheDocument();
 
     const incident = screen.getAllByTestId('incident')[0]!;
     expect(within(incident).getByText('db_admin.export_prod_pii')).toBeInTheDocument();
@@ -576,33 +579,80 @@ describe('роли наставника и руководителя', () => {
     expect(screen.getByRole('switch', { name: 'ai_buddy.mcp_jsonrpc' })).toBeDisabled();
   });
 
-  it('согласованный отгул показан без кнопки; ошибки согласования и флага видны', async () => {
-    const pending = structuredClone(fixtures.workspaceLead) as { absences: Array<{ status: string }> };
+  it('руководитель отклоняет отгул', async () => {
+    const rejected = { ...fixtures.reviewAbsence, status: 'rejected', decision: 'rejected' };
+    let reviewed = false;
+    const after = structuredClone(fixtures.workspaceLeadPending) as { absences: Array<{ status: string }> };
+    after.absences[0]!.status = 'rejected';
+    const { calls } = backend(({ method, path, token }) => {
+      if (path === '/api/v1/absences/review') {
+        reviewed = true;
+        return json(rejected);
+      }
+      if (method === 'GET' && path === '/api/v1/workspace' && token === 'demo-lead-token') return json(reviewed ? after : fixtures.workspaceLeadPending);
+      return undefined;
+    });
+    const user = userEvent.setup();
+    useUi.getState().setRole('lead');
+    renderApp();
+    await user.click(await screen.findByRole('button', { name: 'Отклонить отгул #ABS-2026-84' }));
+    await waitFor(() => expect(calls.find((c) => c.path === '/api/v1/absences/review')?.body).toMatchObject({ decision: 'rejected' }));
+    expect(await screen.findByText('Заявка #ABS-2026-84 отклонена')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText('Отклонено')).toBeInTheDocument());
+  });
+
+  it('рассмотренный отгул показан без кнопок; ошибки согласования и флага видны', async () => {
     backend(({ method, path }) => {
-      if (method === 'PUT' || path === '/api/v1/mcp/execute') return json(fixtures.errorForbidden, 403);
+      if (method === 'PUT' || path === '/api/v1/absences/review') return json(fixtures.errorForbidden, 403);
       return undefined;
     });
     const user = userEvent.setup();
     useUi.getState().setRole('lead');
     const view = renderApp();
-    expect(await screen.findByText('Согласовано')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Согласовать' })).not.toBeInTheDocument();
+    expect(await screen.findByText('Согласовано руководителем')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Согласовать отгул/ })).not.toBeInTheDocument();
 
     const flag = screen.getByRole('switch', { name: 'ai_buddy.absence_action_card' });
     await user.click(flag);
     expect(await screen.findByText(/default deny/)).toBeInTheDocument();
     await waitFor(() => expect(screen.getByRole('switch', { name: 'ai_buddy.absence_action_card' })).toBeChecked());
     view.unmount();
+    useUi.getState().hideToast();
 
-    pending.absences[0]!.status = 'pending_approval';
     backend(({ method, path, token }) => {
-      if (path === '/api/v1/mcp/execute') return json(fixtures.errorForbidden, 403);
-      if (method === 'GET' && path === '/api/v1/workspace' && token === 'demo-lead-token') return json(pending);
+      if (path === '/api/v1/absences/review') return json(fixtures.errorForbidden, 403);
+      if (method === 'GET' && path === '/api/v1/workspace' && token === 'demo-lead-token') return json(fixtures.workspaceLeadPending);
       return undefined;
     });
     renderApp();
-    await user.click(await screen.findByRole('button', { name: 'Согласовать' }));
+    await user.click(await screen.findByRole('button', { name: 'Согласовать отгул #ABS-2026-84' }));
     expect(await screen.findByTestId('toast')).toHaveTextContent(/default deny/);
+  });
+});
+
+describe('несколько стажёров и команд', () => {
+  it('переключатель профиля загружает рабочее пространство второго стажёра', async () => {
+    const { calls } = backend();
+    const user = userEvent.setup();
+    renderApp();
+    await screen.findByText('Команда Autoteka');
+    const switcher = screen.getByRole('radiogroup', { name: 'Профиль стажёра' });
+    expect(within(switcher).getByRole('radio', { name: /Алексей Смирнов/ })).toBeChecked();
+
+    await user.click(within(switcher).getByRole('radio', { name: /Мария Козлова/ }));
+    const second = fixtures.workspaceIntern2.intern;
+    expect(await screen.findByText(`Команда ${second.team}`)).toBeInTheDocument();
+    expect(within(switcher).getByRole('radio', { name: /Мария Козлова/ })).toBeChecked();
+    // Запрос идёт с токеном и идентификатором выбранного стажёра.
+    const request = calls.filter((c) => c.path === '/api/v1/workspace').pop();
+    expect(request).toMatchObject({ token: 'demo-intern-02-token', internId: 'u-intern-02' });
+    expect(calls.some((c) => c.path === '/api/v1/events' && (c.body as { name: string }).name === 'ui.intern_switched')).toBe(true);
+    // Календарь и напоминания — свои у каждого стажёра.
+    expect(screen.getByRole('grid', { name: 'Календарь на две недели' })).toBeInTheDocument();
+
+    await user.click(within(switcher).getByRole('radio', { name: /Мария Козлова/ })); // повторный клик — без запроса
+    await user.click(within(switcher).getByRole('radio', { name: /Алексей Смирнов/ }));
+    expect(await screen.findByText('Команда Autoteka')).toBeInTheDocument();
   });
 });
 
@@ -707,6 +757,11 @@ describe('инспектор жюри', () => {
     await user.click(within(drawer).getByRole('tab', { name: /Реестр/ }));
     expect(within(drawer).getAllByText('запрещён роли').length).toBeGreaterThanOrEqual(1);
     expect(within(drawer).getByText('с подтверждением')).toBeInTheDocument();
+
+    await user.click(within(drawer).getByRole('tab', { name: /SDD/ }));
+    expect(within(drawer).getAllByTestId('skill')).toHaveLength(fixtures.workspaceInitial.skills.length);
+    expect(within(drawer).getByText('spec_id: avito-start-ai-buddy-rbac')).toBeInTheDocument();
+    expect(within(drawer).getByText('ai_buddy.mcp_jsonrpc')).toBeInTheDocument();
 
     await user.keyboard('{Escape}');
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();

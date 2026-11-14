@@ -1,7 +1,7 @@
 {
  "events": [
   {
-   "id": "evt-b1a3b3aad8ca",
+   "id": "evt-6f06ccab34c8",
    "intern_id": "u-intern-01",
    "actor_id": "svc-ai-cron",
    "actor_role": "system_cron",
@@ -9,17 +9,17 @@
    "name": "cron.run",
    "severity": "info",
    "payload": {
-    "brief_id": "brief-7e3581fba822",
+    "brief_id": "brief-a978082d23dc",
     "deduplicated": false,
     "reason": "Задача AUT-1423 без коммитов 3 дн.: стажёру отправлено проактивное сообщение, наставнику — бриф к 1:1",
     "requested_by": "u-intern-01",
     "saving_key": "brief_prepared",
     "triggered": true
    },
-   "created_at": "2026-11-14T11:34:53.089204+03:00"
+   "created_at": "2026-11-14T17:30:47.7381137+03:00"
   },
   {
-   "id": "evt-24c2e885ad17",
+   "id": "evt-44e56ca5d107",
    "intern_id": "u-intern-01",
    "actor_id": "svc-ai-cron",
    "actor_role": "system_cron",
@@ -31,10 +31,10 @@
     "item": "first_one_on_one",
     "status": "in_progress"
    },
-   "created_at": "2026-11-14T11:34:53.089204+03:00"
+   "created_at": "2026-11-14T17:30:47.7381137+03:00"
   },
   {
-   "id": "evt-096d0fde29c6",
+   "id": "evt-a31f1ef5a27e",
    "intern_id": "u-intern-01",
    "actor_id": "svc-ai-cron",
    "actor_role": "system_cron",
@@ -47,12 +47,12 @@
     "server": "mentor",
     "status": "success",
     "tool": "mentor.send_1on1_brief",
-    "tool_call_id": "call-eedf50cfcf1c"
+    "tool_call_id": "call-703020f7c564"
    },
-   "created_at": "2026-11-14T11:34:53.089204+03:00"
+   "created_at": "2026-11-14T17:30:47.7381137+03:00"
   },
   {
-   "id": "evt-5beb4d890182",
+   "id": "evt-d820816c93bc",
    "intern_id": "u-intern-01",
    "actor_id": "svc-ai-cron",
    "actor_role": "system_cron",
@@ -67,12 +67,12 @@
     "policy_id": "POL-MNT-001",
     "reason": "Бриф наставнику формирует ИИ-крон; стажёр отправить его не может",
     "role": "system_cron",
-    "tool_call_id": "call-eedf50cfcf1c"
+    "tool_call_id": "call-703020f7c564"
    },
-   "created_at": "2026-11-14T11:34:53.089204+03:00"
+   "created_at": "2026-11-14T17:30:47.7381137+03:00"
   },
   {
-   "id": "evt-ace0e7c631e1",
+   "id": "evt-e1c8f016ee9a",
    "intern_id": "u-intern-01",
    "actor_id": "svc-ai-cron",
    "actor_role": "system_cron",
@@ -85,12 +85,12 @@
     "server": "tracker",
     "status": "success",
     "tool": "tracker.get_task_activity",
-    "tool_call_id": "call-42ff5e854089"
+    "tool_call_id": "call-82203272a04f"
    },
-   "created_at": "2026-11-14T11:34:53.088675+03:00"
+   "created_at": "2026-11-14T17:30:47.737782+03:00"
   },
   {
-   "id": "evt-0b9894210afb",
+   "id": "evt-db9a8121bcf8",
    "intern_id": "u-intern-01",
    "actor_id": "svc-ai-cron",
    "actor_role": "system_cron",
@@ -105,64 +105,29 @@
     "policy_id": "POL-TRK-002",
     "reason": "Разрешено политикой POL-TRK-002 для роли «ИИ-крон (сервисный аккаунт)»",
     "role": "system_cron",
-    "tool_call_id": "call-42ff5e854089"
+    "tool_call_id": "call-82203272a04f"
    },
-   "created_at": "2026-11-14T11:34:53.088675+03:00"
+   "created_at": "2026-11-14T17:30:47.737782+03:00"
   },
   {
-   "id": "evt-70306c9b00d0",
-   "intern_id": "u-intern-01",
-   "actor_id": "u-lead-01",
-   "actor_role": "team_lead",
-   "kind": "mcp",
-   "name": "mcp.call",
-   "severity": "info",
-   "payload": {
-    "duration_ms": 0,
-    "error_code": "",
-    "server": "absences",
-    "status": "success",
-    "tool": "absences.approve_day_off",
-    "tool_call_id": "call-c61b3921ee06"
-   },
-   "created_at": "2026-11-14T11:34:53.0865318+03:00"
-  },
-  {
-   "id": "evt-2e6721f2a078",
-   "intern_id": "u-intern-01",
-   "actor_id": "u-lead-01",
-   "actor_role": "team_lead",
-   "kind": "rbac",
-   "name": "rbac.decision",
-   "severity": "info",
-   "payload": {
-    "allowed": true,
-    "code": "ALLOWED",
-    "constraint": "",
-    "operation": "absences.approve_day_off",
-    "policy_id": "POL-ABS-002",
-    "reason": "Отгул согласует только руководитель",
-    "role": "team_lead",
-    "tool_call_id": "call-c61b3921ee06"
-   },
-   "created_at": "2026-11-14T11:34:53.0865318+03:00"
-  },
-  {
-   "id": "evt-48b6e70c1ec4",
+   "id": "evt-2ea2b669fb39",
    "intern_id": "u-intern-01",
    "actor_id": "u-lead-01",
    "actor_role": "team_lead",
    "kind": "clickstream",
-   "name": "ui.action_confirmed",
+   "name": "absence.reviewed",
    "severity": "info",
    "payload": {
-    "message_id": "",
-    "tool": "absences.approve_day_off"
+    "comment": "",
+    "decision": "approved",
+    "id": "abs-d58ae74b1104",
+    "number": "#ABS-2026-84",
+    "reviewer_id": "u-lead-01"
    },
-   "created_at": "2026-11-14T11:34:53.0865318+03:00"
+   "created_at": "2026-11-14T17:30:47.731133+03:00"
   },
   {
-   "id": "evt-dd0ac96fe2e9",
+   "id": "evt-d1f3aa0bf197",
    "intern_id": "u-intern-01",
    "actor_id": "u-intern-01",
    "actor_role": "intern_backend",
@@ -174,10 +139,10 @@
     "engine": "smart",
     "tool": "calendar.complete_item"
    },
-   "created_at": "2026-11-14T11:34:53.0844246+03:00"
+   "created_at": "2026-11-14T17:30:47.7219527+03:00"
   },
   {
-   "id": "evt-dc8b1b87a057",
+   "id": "evt-9613d9cb4a44",
    "intern_id": "u-intern-01",
    "actor_id": "u-intern-01",
    "actor_role": "intern_backend",
@@ -190,12 +155,12 @@
     "server": "calendar",
     "status": "success",
     "tool": "calendar.complete_item",
-    "tool_call_id": "call-3a99923aff43"
+    "tool_call_id": "call-0123e6b6ef9c"
    },
-   "created_at": "2026-11-14T11:34:53.0844246+03:00"
+   "created_at": "2026-11-14T17:30:47.7219527+03:00"
   },
   {
-   "id": "evt-195bc9086105",
+   "id": "evt-740dd8f0f510",
    "intern_id": "u-intern-01",
    "actor_id": "u-intern-01",
    "actor_role": "intern_backend",
@@ -210,12 +175,12 @@
     "policy_id": "POL-CAL-003",
     "reason": "Отмечать выполнение и отправлять отчёт может только сам стажёр",
     "role": "intern_backend",
-    "tool_call_id": "call-3a99923aff43"
+    "tool_call_id": "call-0123e6b6ef9c"
    },
-   "created_at": "2026-11-14T11:34:53.0844246+03:00"
+   "created_at": "2026-11-14T17:30:47.7219527+03:00"
   },
   {
-   "id": "evt-6bef33deb0fe",
+   "id": "evt-0eb4944faa7d",
    "intern_id": "u-intern-01",
    "actor_id": "u-intern-01",
    "actor_role": "intern_backend",
@@ -226,10 +191,10 @@
     "message_id": "",
     "tool": "calendar.complete_item"
    },
-   "created_at": "2026-11-14T11:34:53.0844246+03:00"
+   "created_at": "2026-11-14T17:30:47.7219527+03:00"
   },
   {
-   "id": "evt-2e6232feca4f",
+   "id": "evt-5f5df3bc5452",
    "intern_id": "u-intern-01",
    "actor_id": "u-mentor-01",
    "actor_role": "mentor",
@@ -242,12 +207,12 @@
     "server": "calendar",
     "status": "success",
     "tool": "calendar.add_task",
-    "tool_call_id": "call-764e62a10760"
+    "tool_call_id": "call-345ca7e98fbd"
    },
-   "created_at": "2026-11-14T11:34:53.081927+03:00"
+   "created_at": "2026-11-14T17:30:47.7187319+03:00"
   },
   {
-   "id": "evt-d20a1b885792",
+   "id": "evt-19abcc3a8243",
    "intern_id": "u-intern-01",
    "actor_id": "u-mentor-01",
    "actor_role": "mentor",
@@ -262,12 +227,12 @@
     "policy_id": "POL-CAL-002",
     "reason": "Наставник и руководитель назначают стажёру обязательные задачи",
     "role": "mentor",
-    "tool_call_id": "call-764e62a10760"
+    "tool_call_id": "call-345ca7e98fbd"
    },
-   "created_at": "2026-11-14T11:34:53.081927+03:00"
+   "created_at": "2026-11-14T17:30:47.7187319+03:00"
   },
   {
-   "id": "evt-c0c00c62b823",
+   "id": "evt-0ac50d9694c4",
    "intern_id": "u-intern-01",
    "actor_id": "u-mentor-01",
    "actor_role": "mentor",
@@ -278,10 +243,10 @@
     "message_id": "",
     "tool": "calendar.add_task"
    },
-   "created_at": "2026-11-14T11:34:53.081927+03:00"
+   "created_at": "2026-11-14T17:30:47.7187319+03:00"
   },
   {
-   "id": "evt-026875b8ab8a",
+   "id": "evt-02d0f76d472a",
    "intern_id": "u-intern-01",
    "actor_id": "u-intern-01",
    "actor_role": "intern_backend",
@@ -294,12 +259,12 @@
     "server": "calendar",
     "status": "success",
     "tool": "calendar.add_task",
-    "tool_call_id": "call-d5d2d646ae3e"
+    "tool_call_id": "call-c55a6221646a"
    },
-   "created_at": "2026-11-14T11:34:53.079427+03:00"
+   "created_at": "2026-11-14T17:30:47.7153073+03:00"
   },
   {
-   "id": "evt-7abef6fd6690",
+   "id": "evt-522825828946",
    "intern_id": "u-intern-01",
    "actor_id": "u-intern-01",
    "actor_role": "intern_backend",
@@ -314,12 +279,12 @@
     "policy_id": "POL-CAL-001",
     "reason": "Стажёр добавляет личные задачи только себе",
     "role": "intern_backend",
-    "tool_call_id": "call-d5d2d646ae3e"
+    "tool_call_id": "call-c55a6221646a"
    },
-   "created_at": "2026-11-14T11:34:53.079427+03:00"
+   "created_at": "2026-11-14T17:30:47.7153073+03:00"
   },
   {
-   "id": "evt-80cf3c107252",
+   "id": "evt-b0a2228c7503",
    "intern_id": "u-intern-01",
    "actor_id": "u-intern-01",
    "actor_role": "intern_backend",
@@ -330,10 +295,10 @@
     "message_id": "",
     "tool": "calendar.add_task"
    },
-   "created_at": "2026-11-14T11:34:53.079427+03:00"
+   "created_at": "2026-11-14T17:30:47.7153073+03:00"
   },
   {
-   "id": "evt-58880fe75327",
+   "id": "evt-3de5807858f7",
    "intern_id": "u-intern-01",
    "actor_id": "u-mentor-01",
    "actor_role": "mentor",
@@ -346,12 +311,12 @@
     "server": "absences",
     "status": "forbidden",
     "tool": "absences.create_day_off",
-    "tool_call_id": "call-33a853e243b7"
+    "tool_call_id": "call-b98b92375297"
    },
-   "created_at": "2026-11-14T11:34:53.0711069+03:00"
+   "created_at": "2026-11-14T17:30:47.7042788+03:00"
   },
   {
-   "id": "evt-313bfb83a438",
+   "id": "evt-e2c0b5c2d005",
    "intern_id": "u-intern-01",
    "actor_id": "u-mentor-01",
    "actor_role": "mentor",
@@ -366,12 +331,12 @@
     "policy_id": "DEFAULT-DENY",
     "reason": "Для роли «Наставник (buddy)» операция absences.create_day_off не разрешена (default deny)",
     "role": "mentor",
-    "tool_call_id": "call-33a853e243b7"
+    "tool_call_id": "call-b98b92375297"
    },
-   "created_at": "2026-11-14T11:34:53.0711069+03:00"
+   "created_at": "2026-11-14T17:30:47.7042788+03:00"
   },
   {
-   "id": "evt-61926320bcd6",
+   "id": "evt-623517ecd81a",
    "intern_id": "u-intern-01",
    "actor_id": "u-mentor-01",
    "actor_role": "mentor",
@@ -382,10 +347,10 @@
     "message_id": "",
     "tool": "absences.create_day_off"
    },
-   "created_at": "2026-11-14T11:34:53.0711069+03:00"
+   "created_at": "2026-11-14T17:30:47.7037972+03:00"
   },
   {
-   "id": "evt-cf8fc632ff99",
+   "id": "evt-527db512d9fb",
    "intern_id": "u-intern-01",
    "actor_id": "u-intern-01",
    "actor_role": "intern_backend",
@@ -398,12 +363,12 @@
     "server": "absences",
     "status": "error",
     "tool": "absences.create_day_off",
-    "tool_call_id": "call-a1ff087f7089"
+    "tool_call_id": "call-13edb12cc4a3"
    },
-   "created_at": "2026-11-14T11:34:53.0673971+03:00"
+   "created_at": "2026-11-14T17:30:47.7005378+03:00"
   },
   {
-   "id": "evt-44ecf84a6a4d",
+   "id": "evt-730dcdae23ff",
    "intern_id": "u-intern-01",
    "actor_id": "u-intern-01",
    "actor_role": "intern_backend",
@@ -418,12 +383,12 @@
     "policy_id": "POL-ABS-001",
     "reason": "Отгул оформляется только на себя",
     "role": "intern_backend",
-    "tool_call_id": "call-a1ff087f7089"
+    "tool_call_id": "call-13edb12cc4a3"
    },
-   "created_at": "2026-11-14T11:34:53.0673971+03:00"
+   "created_at": "2026-11-14T17:30:47.7005378+03:00"
   },
   {
-   "id": "evt-30eaac9d0e07",
+   "id": "evt-ebf878e9d0b8",
    "intern_id": "u-intern-01",
    "actor_id": "u-intern-01",
    "actor_role": "intern_backend",
@@ -434,10 +399,10 @@
     "message_id": "",
     "tool": "absences.create_day_off"
    },
-   "created_at": "2026-11-14T11:34:53.0673971+03:00"
+   "created_at": "2026-11-14T17:30:47.7005222+03:00"
   },
   {
-   "id": "evt-1d838c5baadf",
+   "id": "evt-0d6855f72685",
    "intern_id": "u-intern-01",
    "actor_id": "u-intern-01",
    "actor_role": "intern_backend",
@@ -450,10 +415,10 @@
     "saving_key": "absence_created",
     "tool": "absences.create_day_off"
    },
-   "created_at": "2026-11-14T11:34:53.0637752+03:00"
+   "created_at": "2026-11-14T17:30:47.6947837+03:00"
   },
   {
-   "id": "evt-faba4cf7d493",
+   "id": "evt-b4e6cf1f9e56",
    "intern_id": "u-intern-01",
    "actor_id": "u-intern-01",
    "actor_role": "intern_backend",
@@ -465,10 +430,10 @@
     "item": "absence_rules",
     "status": "completed"
    },
-   "created_at": "2026-11-14T11:34:53.0632946+03:00"
+   "created_at": "2026-11-14T17:30:47.6947837+03:00"
   },
   {
-   "id": "evt-09345a8a6b88",
+   "id": "evt-392e2502288f",
    "intern_id": "u-intern-01",
    "actor_id": "u-intern-01",
    "actor_role": "intern_backend",
@@ -481,12 +446,12 @@
     "server": "absences",
     "status": "success",
     "tool": "absences.create_day_off",
-    "tool_call_id": "call-0b638b6b5151"
+    "tool_call_id": "call-da20f69bc5ec"
    },
-   "created_at": "2026-11-14T11:34:53.0632946+03:00"
+   "created_at": "2026-11-14T17:30:47.6943427+03:00"
   },
   {
-   "id": "evt-60033f3b271e",
+   "id": "evt-a3f1284900f8",
    "intern_id": "u-intern-01",
    "actor_id": "u-intern-01",
    "actor_role": "intern_backend",
@@ -501,12 +466,12 @@
     "policy_id": "POL-ABS-001",
     "reason": "Отгул оформляется только на себя",
     "role": "intern_backend",
-    "tool_call_id": "call-0b638b6b5151"
+    "tool_call_id": "call-da20f69bc5ec"
    },
-   "created_at": "2026-11-14T11:34:53.0632946+03:00"
+   "created_at": "2026-11-14T17:30:47.6943427+03:00"
   },
   {
-   "id": "evt-71889a76b3e6",
+   "id": "evt-c1bc9c815d1c",
    "intern_id": "u-intern-01",
    "actor_id": "u-intern-01",
    "actor_role": "intern_backend",
@@ -514,13 +479,13 @@
    "name": "ui.action_confirmed",
    "severity": "info",
    "payload": {
-    "message_id": "msg-5769b9a7d457",
+    "message_id": "msg-44c4beac23d3",
     "tool": "absences.create_day_off"
    },
-   "created_at": "2026-11-14T11:34:53.0632946+03:00"
+   "created_at": "2026-11-14T17:30:47.6943427+03:00"
   },
   {
-   "id": "evt-fc6d7548e5e6",
+   "id": "evt-c6c5367da647",
    "intern_id": "u-intern-01",
    "actor_id": "u-intern-01",
    "actor_role": "intern_backend",
@@ -531,100 +496,15 @@
     "answered": true,
     "engine": "smart",
     "intent": "absence_day_off",
-    "latency_ms": 302.093,
+    "latency_ms": 303.614,
     "saving_key": "question_answered",
     "scenario": "S3",
     "tool_calls": 1
    },
-   "created_at": "2026-11-14T11:34:53.0521314+03:00"
+   "created_at": "2026-11-14T17:30:47.6908684+03:00"
   },
   {
-   "id": "evt-5d61ceb9be25",
-   "intern_id": "u-intern-01",
-   "actor_id": "u-intern-01",
-   "actor_role": "intern_backend",
-   "kind": "mcp",
-   "name": "mcp.call",
-   "severity": "info",
-   "payload": {
-    "duration_ms": 0.173,
-    "error_code": "",
-    "server": "playbook",
-    "status": "success",
-    "tool": "playbook.search_docs",
-    "tool_call_id": "call-7ec5493df412"
-   },
-   "created_at": "2026-11-14T11:34:52.9516208+03:00"
-  },
-  {
-   "id": "evt-9983a0d30c42",
-   "intern_id": "u-intern-01",
-   "actor_id": "u-intern-01",
-   "actor_role": "intern_backend",
-   "kind": "rbac",
-   "name": "rbac.decision",
-   "severity": "info",
-   "payload": {
-    "allowed": true,
-    "code": "ALLOWED",
-    "constraint": "",
-    "operation": "playbook.search_docs",
-    "policy_id": "POL-KB-001",
-    "reason": "Поиск по базе знаний; документы фильтруются по audience роли",
-    "role": "intern_backend",
-    "tool_call_id": "call-7ec5493df412"
-   },
-   "created_at": "2026-11-14T11:34:52.9516208+03:00"
-  },
-  {
-   "id": "evt-013427d469b0",
-   "intern_id": "u-intern-01",
-   "actor_id": "u-intern-01",
-   "actor_role": "intern_backend",
-   "kind": "clickstream",
-   "name": "chat.message_sent",
-   "severity": "info",
-   "payload": {
-    "length": 105
-   },
-   "created_at": "2026-11-14T11:34:52.7500384+03:00"
-  },
-  {
-   "id": "evt-b85ed3cd461f",
-   "intern_id": "u-intern-01",
-   "actor_id": "u-intern-01",
-   "actor_role": "intern_backend",
-   "kind": "agent",
-   "name": "agent.answer",
-   "severity": "info",
-   "payload": {
-    "answered": true,
-    "engine": "smart",
-    "intent": "process_question",
-    "latency_ms": 301.62,
-    "saving_key": "question_answered",
-    "scenario": "S2",
-    "tool_calls": 1
-   },
-   "created_at": "2026-11-14T11:34:52.7467722+03:00"
-  },
-  {
-   "id": "evt-4d6e6e4f2bda",
-   "intern_id": "u-intern-01",
-   "actor_id": "u-intern-01",
-   "actor_role": "intern_backend",
-   "kind": "clickstream",
-   "name": "checklist.updated",
-   "severity": "info",
-   "payload": {
-    "evidence": "Инструкции изучены через Гоффи",
-    "item": "team_processes",
-    "status": "completed"
-   },
-   "created_at": "2026-11-14T11:34:52.7466661+03:00"
-  },
-  {
-   "id": "evt-0c6120e34d6c",
+   "id": "evt-8fc624cbc727",
    "intern_id": "u-intern-01",
    "actor_id": "u-intern-01",
    "actor_role": "intern_backend",
@@ -637,12 +517,12 @@
     "server": "playbook",
     "status": "success",
     "tool": "playbook.search_docs",
-    "tool_call_id": "call-54b390da22cf"
+    "tool_call_id": "call-c25fe0164681"
    },
-   "created_at": "2026-11-14T11:34:52.646197+03:00"
+   "created_at": "2026-11-14T17:30:47.5902299+03:00"
   },
   {
-   "id": "evt-1015ed6b9251",
+   "id": "evt-cc867d5f72bc",
    "intern_id": "u-intern-01",
    "actor_id": "u-intern-01",
    "actor_role": "intern_backend",
@@ -657,12 +537,97 @@
     "policy_id": "POL-KB-001",
     "reason": "Поиск по базе знаний; документы фильтруются по audience роли",
     "role": "intern_backend",
-    "tool_call_id": "call-54b390da22cf"
+    "tool_call_id": "call-c25fe0164681"
    },
-   "created_at": "2026-11-14T11:34:52.646197+03:00"
+   "created_at": "2026-11-14T17:30:47.5902299+03:00"
   },
   {
-   "id": "evt-14244ccb0b38",
+   "id": "evt-a568c64bff89",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "kind": "clickstream",
+   "name": "chat.message_sent",
+   "severity": "info",
+   "payload": {
+    "length": 105
+   },
+   "created_at": "2026-11-14T17:30:47.3877398+03:00"
+  },
+  {
+   "id": "evt-ff4ebce2de7a",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "kind": "agent",
+   "name": "agent.answer",
+   "severity": "info",
+   "payload": {
+    "answered": true,
+    "engine": "smart",
+    "intent": "process_question",
+    "latency_ms": 302.355,
+    "saving_key": "question_answered",
+    "scenario": "S2",
+    "tool_calls": 1
+   },
+   "created_at": "2026-11-14T17:30:47.3843666+03:00"
+  },
+  {
+   "id": "evt-b508e007c232",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "kind": "clickstream",
+   "name": "checklist.updated",
+   "severity": "info",
+   "payload": {
+    "evidence": "Инструкции изучены через Гоффи",
+    "item": "team_processes",
+    "status": "completed"
+   },
+   "created_at": "2026-11-14T17:30:47.3843666+03:00"
+  },
+  {
+   "id": "evt-ec727478cea9",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "kind": "mcp",
+   "name": "mcp.call",
+   "severity": "info",
+   "payload": {
+    "duration_ms": 0,
+    "error_code": "",
+    "server": "playbook",
+    "status": "success",
+    "tool": "playbook.search_docs",
+    "tool_call_id": "call-127a00c84575"
+   },
+   "created_at": "2026-11-14T17:30:47.2831621+03:00"
+  },
+  {
+   "id": "evt-6613c1fcae49",
+   "intern_id": "u-intern-01",
+   "actor_id": "u-intern-01",
+   "actor_role": "intern_backend",
+   "kind": "rbac",
+   "name": "rbac.decision",
+   "severity": "info",
+   "payload": {
+    "allowed": true,
+    "code": "ALLOWED",
+    "constraint": "",
+    "operation": "playbook.search_docs",
+    "policy_id": "POL-KB-001",
+    "reason": "Поиск по базе знаний; документы фильтруются по audience роли",
+    "role": "intern_backend",
+    "tool_call_id": "call-127a00c84575"
+   },
+   "created_at": "2026-11-14T17:30:47.2831621+03:00"
+  },
+  {
+   "id": "evt-f2d079e61419",
    "intern_id": "u-intern-01",
    "actor_id": "u-intern-01",
    "actor_role": "intern_backend",
@@ -672,10 +637,10 @@
    "payload": {
     "length": 68
    },
-   "created_at": "2026-11-14T11:34:52.4451516+03:00"
+   "created_at": "2026-11-14T17:30:47.0820109+03:00"
   },
   {
-   "id": "evt-6ba9f26869b7",
+   "id": "evt-440fc87bbc5c",
    "intern_id": "u-intern-01",
    "actor_id": "u-intern-01",
    "actor_role": "intern_backend",
@@ -686,15 +651,15 @@
     "answered": true,
     "engine": "smart",
     "intent": "restricted_data_export",
-    "latency_ms": 302.733,
+    "latency_ms": 301.753,
     "saving_key": "rbac_blocked",
     "scenario": "S1B",
     "tool_calls": 1
    },
-   "created_at": "2026-11-14T11:34:52.4392469+03:00"
+   "created_at": "2026-11-14T17:30:47.0787236+03:00"
   },
   {
-   "id": "evt-d291059806a2",
+   "id": "evt-c01242d43801",
    "intern_id": "u-intern-01",
    "actor_id": "u-intern-01",
    "actor_role": "intern_backend",
@@ -707,12 +672,12 @@
     "server": "db_admin",
     "status": "forbidden",
     "tool": "db_admin.export_prod_pii",
-    "tool_call_id": "call-94dd4b7223da"
+    "tool_call_id": "call-9dfed296ae03"
    },
-   "created_at": "2026-11-14T11:34:52.3392039+03:00"
+   "created_at": "2026-11-14T17:30:46.9784986+03:00"
   },
   {
-   "id": "evt-6aa7f53b69ad",
+   "id": "evt-be9354b4dca9",
    "intern_id": "u-intern-01",
    "actor_id": "u-intern-01",
    "actor_role": "intern_backend",
@@ -730,12 +695,12 @@
     "policy_id": "POL-SEC-001",
     "reason": "Выгрузка production-данных с ПДн и финансовых сведений запрещена всем ролям Гоффи",
     "role": "intern_backend",
-    "tool_call_id": "call-94dd4b7223da"
+    "tool_call_id": "call-9dfed296ae03"
    },
-   "created_at": "2026-11-14T11:34:52.3392039+03:00"
+   "created_at": "2026-11-14T17:30:46.9784986+03:00"
   },
   {
-   "id": "evt-5b487daa384b",
+   "id": "evt-efd30c2661d8",
    "intern_id": "u-intern-01",
    "actor_id": "u-intern-01",
    "actor_role": "intern_backend",
@@ -750,12 +715,12 @@
     "policy_id": "POL-SEC-001",
     "reason": "Выгрузка production-данных с ПДн и финансовых сведений запрещена всем ролям Гоффи",
     "role": "intern_backend",
-    "tool_call_id": "call-94dd4b7223da"
+    "tool_call_id": "call-9dfed296ae03"
    },
-   "created_at": "2026-11-14T11:34:52.3392039+03:00"
+   "created_at": "2026-11-14T17:30:46.9784986+03:00"
   },
   {
-   "id": "evt-df851b6b48a5",
+   "id": "evt-447300895855",
    "intern_id": "u-intern-01",
    "actor_id": "u-intern-01",
    "actor_role": "intern_backend",
@@ -765,10 +730,10 @@
    "payload": {
     "length": 66
    },
-   "created_at": "2026-11-14T11:34:52.1375481+03:00"
+   "created_at": "2026-11-14T17:30:46.7769699+03:00"
   },
   {
-   "id": "evt-19125f991b9c",
+   "id": "evt-2f7136f1bb7e",
    "intern_id": "u-intern-01",
    "actor_id": "u-intern-01",
    "actor_role": "intern_backend",
@@ -779,15 +744,15 @@
     "answered": true,
     "engine": "smart",
     "intent": "access_request",
-    "latency_ms": 303.229,
+    "latency_ms": 302.388,
     "saving_key": "access_granted",
     "scenario": "S1A",
     "tool_calls": 1
    },
-   "created_at": "2026-11-14T11:34:52.1236785+03:00"
+   "created_at": "2026-11-14T17:30:46.772436+03:00"
   },
   {
-   "id": "evt-76600c18f7d8",
+   "id": "evt-02eafc966ee1",
    "intern_id": "u-intern-01",
    "actor_id": "u-intern-01",
    "actor_role": "intern_backend",
@@ -799,10 +764,10 @@
     "item": "access_repo",
     "status": "completed"
    },
-   "created_at": "2026-11-14T11:34:52.1236785+03:00"
+   "created_at": "2026-11-14T17:30:46.772436+03:00"
   },
   {
-   "id": "evt-feeb4ecf6147",
+   "id": "evt-d00c2268ab19",
    "intern_id": "u-intern-01",
    "actor_id": "u-intern-01",
    "actor_role": "intern_backend",
@@ -810,17 +775,17 @@
    "name": "mcp.call",
    "severity": "info",
    "payload": {
-    "duration_ms": 0,
+    "duration_ms": 0.094,
     "error_code": "",
     "server": "iam_access",
     "status": "success",
     "tool": "iam_access.request_repo_access",
-    "tool_call_id": "call-9e3e8140220e"
+    "tool_call_id": "call-6478cb4721e5"
    },
-   "created_at": "2026-11-14T11:34:52.022756+03:00"
+   "created_at": "2026-11-14T17:30:46.6722254+03:00"
   },
   {
-   "id": "evt-718b027b3bfb",
+   "id": "evt-693c902b12d3",
    "intern_id": "u-intern-01",
    "actor_id": "u-intern-01",
    "actor_role": "intern_backend",
@@ -835,12 +800,12 @@
     "policy_id": "POL-IAM-001",
     "reason": "Стажёр запрашивает доступ только себе и только к репозиториям своей команды",
     "role": "intern_backend",
-    "tool_call_id": "call-9e3e8140220e"
+    "tool_call_id": "call-6478cb4721e5"
    },
-   "created_at": "2026-11-14T11:34:52.022756+03:00"
+   "created_at": "2026-11-14T17:30:46.6722254+03:00"
   },
   {
-   "id": "evt-4c3a2f1f9688",
+   "id": "evt-bfdb611ce0b7",
    "intern_id": "u-intern-01",
    "actor_id": "u-intern-01",
    "actor_role": "intern_backend",
@@ -850,10 +815,10 @@
    "payload": {
     "length": 62
    },
-   "created_at": "2026-11-14T11:34:51.8204491+03:00"
+   "created_at": "2026-11-14T17:30:46.4700476+03:00"
   },
   {
-   "id": "evt-113df9057b2d",
+   "id": "evt-cf338b641102",
    "intern_id": "u-intern-01",
    "actor_id": "u-intern-01",
    "actor_role": "intern_backend",
@@ -861,12 +826,12 @@
    "name": "demo.reset",
    "severity": "info",
    "payload": {},
-   "created_at": "2026-11-14T11:34:51.8074128+03:00"
+   "created_at": "2026-11-14T17:30:46.4556629+03:00"
   }
  ],
  "tool_calls": [
   {
-   "id": "call-eedf50cfcf1c",
+   "id": "call-703020f7c564",
    "intern_id": "u-intern-01",
    "actor_id": "svc-ai-cron",
    "actor_role": "system_cron",
@@ -892,7 +857,7 @@
     "task_key": "AUT-1423"
    },
    "result": {
-    "brief_id": "brief-7e3581fba822",
+    "brief_id": "brief-a978082d23dc",
     "delivered_to": "Мария Кузнецова"
    },
    "status": "success",
@@ -907,10 +872,10 @@
     "incident": false
    },
    "duration_ms": 0,
-   "created_at": "2026-11-14T11:34:53.089204+03:00"
+   "created_at": "2026-11-14T17:30:47.7381137+03:00"
   },
   {
-   "id": "call-42ff5e854089",
+   "id": "call-82203272a04f",
    "intern_id": "u-intern-01",
    "actor_id": "svc-ai-cron",
    "actor_role": "system_cron",
@@ -943,39 +908,10 @@
     "incident": false
    },
    "duration_ms": 0,
-   "created_at": "2026-11-14T11:34:53.088675+03:00"
+   "created_at": "2026-11-14T17:30:47.737782+03:00"
   },
   {
-   "id": "call-c61b3921ee06",
-   "intern_id": "u-intern-01",
-   "actor_id": "u-lead-01",
-   "actor_role": "team_lead",
-   "server": "absences",
-   "tool": "absences.approve_day_off",
-   "arguments": {
-    "request_number": "#ABS-2026-84"
-   },
-   "result": {
-    "intern_id": "u-intern-01",
-    "request_number": "#ABS-2026-84",
-    "status": "approved"
-   },
-   "status": "success",
-   "rbac": {
-    "allowed": true,
-    "code": "ALLOWED",
-    "http_status": 200,
-    "role": "team_lead",
-    "operation": "absences.approve_day_off",
-    "policy_id": "POL-ABS-002",
-    "reason": "Отгул согласует только руководитель",
-    "incident": false
-   },
-   "duration_ms": 0,
-   "created_at": "2026-11-14T11:34:53.0865318+03:00"
-  },
-  {
-   "id": "call-3a99923aff43",
+   "id": "call-0123e6b6ef9c",
    "intern_id": "u-intern-01",
    "actor_id": "u-intern-01",
    "actor_role": "intern_backend",
@@ -988,7 +924,7 @@
    },
    "result": {
     "all_day": false,
-    "completed_at": "2026-11-14T11:34:53.0844246+03:00",
+    "completed_at": "2026-11-14T17:30:47.7219527+03:00",
     "created_by": "u-lead-01",
     "created_by_name": "Дмитрий Орлов",
     "description": "Ежедневный синк команды: что сделано, что в работе, что мешает.",
@@ -1016,10 +952,10 @@
     "incident": false
    },
    "duration_ms": 0,
-   "created_at": "2026-11-14T11:34:53.0844246+03:00"
+   "created_at": "2026-11-14T17:30:47.7219527+03:00"
   },
   {
-   "id": "call-764e62a10760",
+   "id": "call-345ca7e98fbd",
    "intern_id": "u-intern-01",
    "actor_id": "u-mentor-01",
    "actor_role": "mentor",
@@ -1036,7 +972,7 @@
     "created_by_name": "Мария Кузнецова",
     "description": "",
     "duration_min": 0,
-    "id": "plan-e7e55e864989",
+    "id": "plan-dfb062003699",
     "intern_id": "u-intern-01",
     "is_synthetic": true,
     "kind": "task",
@@ -1059,10 +995,10 @@
     "incident": false
    },
    "duration_ms": 0,
-   "created_at": "2026-11-14T11:34:53.081927+03:00"
+   "created_at": "2026-11-14T17:30:47.7187319+03:00"
   },
   {
-   "id": "call-d5d2d646ae3e",
+   "id": "call-c55a6221646a",
    "intern_id": "u-intern-01",
    "actor_id": "u-intern-01",
    "actor_role": "intern_backend",
@@ -1079,7 +1015,7 @@
     "created_by_name": "Алексей Смирнов",
     "description": "",
     "duration_min": 0,
-    "id": "plan-83c06912bb48",
+    "id": "plan-5ec0f4fa6ec7",
     "intern_id": "u-intern-01",
     "is_synthetic": true,
     "kind": "task",
@@ -1102,10 +1038,10 @@
     "incident": false
    },
    "duration_ms": 0,
-   "created_at": "2026-11-14T11:34:53.079427+03:00"
+   "created_at": "2026-11-14T17:30:47.7153073+03:00"
   },
   {
-   "id": "call-33a853e243b7",
+   "id": "call-b98b92375297",
    "intern_id": "u-intern-01",
    "actor_id": "u-mentor-01",
    "actor_role": "mentor",
@@ -1137,10 +1073,10 @@
     "incident": false
    },
    "duration_ms": 0,
-   "created_at": "2026-11-14T11:34:53.0711069+03:00"
+   "created_at": "2026-11-14T17:30:47.7037972+03:00"
   },
   {
-   "id": "call-a1ff087f7089",
+   "id": "call-13edb12cc4a3",
    "intern_id": "u-intern-01",
    "actor_id": "u-intern-01",
    "actor_role": "intern_backend",
@@ -1172,10 +1108,10 @@
     "incident": false
    },
    "duration_ms": 0,
-   "created_at": "2026-11-14T11:34:53.0673971+03:00"
+   "created_at": "2026-11-14T17:30:47.7005378+03:00"
   },
   {
-   "id": "call-0b638b6b5151",
+   "id": "call-da20f69bc5ec",
    "intern_id": "u-intern-01",
    "actor_id": "u-intern-01",
    "actor_role": "intern_backend",
@@ -1200,7 +1136,7 @@
      "Дмитрий Орлов"
     ],
     "reason": "Зачёт в университете",
-    "request_id": "abs-8ab9b84362f0",
+    "request_id": "abs-d58ae74b1104",
     "request_number": "#ABS-2026-84",
     "status": "pending_approval",
     "time_from": "14:00",
@@ -1218,10 +1154,10 @@
     "incident": false
    },
    "duration_ms": 0,
-   "created_at": "2026-11-14T11:34:53.0632946+03:00"
+   "created_at": "2026-11-14T17:30:47.6943427+03:00"
   },
   {
-   "id": "call-7ec5493df412",
+   "id": "call-c25fe0164681",
    "intern_id": "u-intern-01",
    "actor_id": "u-intern-01",
    "actor_role": "intern_backend",
@@ -1268,11 +1204,11 @@
     "reason": "Поиск по базе знаний; документы фильтруются по audience роли",
     "incident": false
    },
-   "duration_ms": 0.173,
-   "created_at": "2026-11-14T11:34:52.9514478+03:00"
+   "duration_ms": 0,
+   "created_at": "2026-11-14T17:30:47.5902299+03:00"
   },
   {
-   "id": "call-54b390da22cf",
+   "id": "call-127a00c84575",
    "intern_id": "u-intern-01",
    "actor_id": "u-intern-01",
    "actor_role": "intern_backend",
@@ -1336,10 +1272,10 @@
     "incident": false
    },
    "duration_ms": 0,
-   "created_at": "2026-11-14T11:34:52.646197+03:00"
+   "created_at": "2026-11-14T17:30:47.2831621+03:00"
   },
   {
-   "id": "call-94dd4b7223da",
+   "id": "call-9dfed296ae03",
    "intern_id": "u-intern-01",
    "actor_id": "u-intern-01",
    "actor_role": "intern_backend",
@@ -1366,10 +1302,10 @@
     "incident": true
    },
    "duration_ms": 0,
-   "created_at": "2026-11-14T11:34:52.3392039+03:00"
+   "created_at": "2026-11-14T17:30:46.9784986+03:00"
   },
   {
-   "id": "call-9e3e8140220e",
+   "id": "call-6478cb4721e5",
    "intern_id": "u-intern-01",
    "actor_id": "u-intern-01",
    "actor_role": "intern_backend",
@@ -1385,15 +1321,15 @@
    "result": {
     "access_level": "developer",
     "already_granted": false,
-    "created_at": "2026-11-14T11:34:52.0218251+03:00",
-    "expires_at": "2027-02-12T11:34:52.0218251+03:00",
-    "id": "grant-f945abe56090",
+    "created_at": "2026-11-14T17:30:46.6716161+03:00",
+    "expires_at": "2027-02-12T17:30:46.6716161+03:00",
+    "id": "grant-428358f99ee5",
     "intern_id": "u-intern-01",
     "is_synthetic": true,
     "repository": "avito-autoteka-api",
     "stand": "autoteka-test-07",
     "status": "granted",
-    "token_masked": "glpat-synt-••••119c"
+    "token_masked": "glpat-synt-••••4236"
    },
    "status": "success",
    "rbac": {
@@ -1406,8 +1342,8 @@
     "reason": "Стажёр запрашивает доступ только себе и только к репозиториям своей команды",
     "incident": false
    },
-   "duration_ms": 0,
-   "created_at": "2026-11-14T11:34:52.0218251+03:00"
+   "duration_ms": 0.094,
+   "created_at": "2026-11-14T17:30:46.6716161+03:00"
   }
  ],
  "tools": [
@@ -1751,6 +1687,83 @@
    "allowed_for_viewer": true
   },
   {
+   "name": "absences.review_day_off",
+   "server": "absences",
+   "title": "Согласовать или отклонить заявку на отгул",
+   "description": "Руководитель согласовывает или отклоняет заявку на отгул сотрудника.",
+   "side_effects": "write",
+   "requires_confirmation": false,
+   "input_schema": {
+    "additionalProperties": false,
+    "properties": {
+     "comment": {
+      "description": "Комментарий руководителя",
+      "maxLength": 500,
+      "type": "string"
+     },
+     "decision": {
+      "description": "Решение: approved или rejected",
+      "enum": [
+       "approved",
+       "rejected"
+      ],
+      "type": "string"
+     },
+     "id": {
+      "description": "ID заявки на отгул",
+      "minLength": 1,
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "decision"
+    ],
+    "type": "object"
+   },
+   "output_schema": {
+    "properties": {
+     "comment": {
+      "type": "string"
+     },
+     "decision": {
+      "type": "string"
+     },
+     "id": {
+      "type": "string"
+     },
+     "is_synthetic": {
+      "type": "boolean"
+     },
+     "request_number": {
+      "type": "string"
+     },
+     "status": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "id",
+     "request_number",
+     "status",
+     "decision",
+     "is_synthetic"
+    ],
+    "type": "object"
+   },
+   "errors": [
+    {
+     "code": "NOT_FOUND",
+     "description": "Заявка не найдена"
+    },
+    {
+     "code": "INVALID_ARGUMENTS",
+     "description": "Некорректное решение"
+    }
+   ],
+   "allowed_for_viewer": false
+  },
+  {
    "name": "mentor.send_1on1_brief",
    "server": "mentor",
    "title": "Отправить наставнику Structured 1:1 Brief",
@@ -1955,53 +1968,6 @@
    "allowed_for_viewer": true
   },
   {
-   "name": "absences.approve_day_off",
-   "server": "absences",
-   "title": "Согласовать заявку на отгул",
-   "description": "Руководитель согласует заявку на отгул; сотрудник получает уведомление.",
-   "side_effects": "write",
-   "requires_confirmation": false,
-   "input_schema": {
-    "additionalProperties": false,
-    "properties": {
-     "request_number": {
-      "description": "Номер заявки, например #ABS-2026-84",
-      "pattern": "^#ABS-\\d{4}-\\d+$",
-      "type": "string"
-     }
-    },
-    "required": [
-     "request_number"
-    ],
-    "type": "object"
-   },
-   "output_schema": {
-    "properties": {
-     "request_number": {
-      "type": "string"
-     },
-     "status": {
-      "enum": [
-       "approved"
-      ],
-      "type": "string"
-     }
-    },
-    "required": [
-     "request_number",
-     "status"
-    ],
-    "type": "object"
-   },
-   "errors": [
-    {
-     "code": "INVALID_ARGUMENTS",
-     "description": "Заявка не найдена или уже согласована"
-    }
-   ],
-   "allowed_for_viewer": false
-  },
-  {
    "name": "calendar.add_task",
    "server": "calendar",
    "title": "Добавить задачу в календарь",
@@ -2200,15 +2166,6 @@
  ],
  "matrix": [
   {
-   "operation": "absences.approve_day_off",
-   "access": {
-    "intern_backend": false,
-    "mentor": false,
-    "system_cron": false,
-    "team_lead": true
-   }
-  },
-  {
    "operation": "absences.create_day_off",
    "access": {
     "intern_backend": true,
@@ -2218,10 +2175,28 @@
    }
   },
   {
+   "operation": "absences.review_day_off",
+   "access": {
+    "intern_backend": false,
+    "mentor": false,
+    "system_cron": false,
+    "team_lead": true
+   }
+  },
+  {
    "operation": "api.absences.read_team",
    "access": {
     "intern_backend": false,
     "mentor": true,
+    "system_cron": false,
+    "team_lead": true
+   }
+  },
+  {
+   "operation": "api.absences.review",
+   "access": {
+    "intern_backend": false,
+    "mentor": false,
     "system_cron": false,
     "team_lead": true
    }

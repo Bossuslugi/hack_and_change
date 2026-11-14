@@ -38,7 +38,7 @@ export function formatMinutes(minutes: number): string {
 }
 
 export const STATUS_LABEL: Record<ChecklistStatus, string> = {
-  pending: 'Впереди',
+  pending: 'Ожидает',
   in_progress: 'В работе',
   completed: 'Выполнено',
 };
@@ -58,7 +58,8 @@ export const TOOL_STATUS_LABEL: Record<string, string> = {
 
 export const ABSENCE_STATUS_LABEL: Record<string, string> = {
   pending_approval: 'Ожидает согласования',
-  approved: 'Согласовано',
+  approved: 'Согласовано руководителем',
+  rejected: 'Отклонено',
 };
 
 /** Сегодняшняя дата в формате YYYY-MM-DD (локальное время). */
@@ -73,4 +74,28 @@ export function prettyJson(value: unknown): string {
   } catch {
     return String(value);
   }
+}
+
+/** «AK» из «Алексей Кузнецов» — для аватаров без фотографий. */
+export function initials(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join('');
+}
+
+/** «140ms» для плашек MCP; вызовы имитаций быстрее миллисекунды показываются как «<1ms». */
+export function formatMs(ms: number): string {
+  return ms < 1 ? '<1ms' : `${Math.round(ms)}ms`;
+}
+
+/** Контекст стажёра для шапки: «Команда: Autoteka • Backend Go • Неделя 1 из 24». */
+export function internContext(intern: { team: string; stack: string; stage: string; program: string }): string {
+  const week = /\d+/.exec(intern.stage)?.[0];
+  const months = /(\d+)\s*месяц/.exec(intern.program)?.[1];
+  const stage = week ? `Неделя ${week}${months ? ` из ${Number(months) * 4}` : ''}` : intern.stage;
+  const stack = intern.stack === 'Go' ? 'Backend Go' : intern.stack;
+  return `Команда: ${intern.team} • ${stack} • ${stage}`;
 }

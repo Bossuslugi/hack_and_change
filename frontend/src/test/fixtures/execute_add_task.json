@@ -3,7 +3,7 @@
  "message": null,
  "tool_calls": [
   {
-   "id": "call-d5d2d646ae3e",
+   "id": "call-c55a6221646a",
    "intern_id": "u-intern-01",
    "actor_id": "u-intern-01",
    "actor_role": "intern_backend",
@@ -20,7 +20,7 @@
     "created_by_name": "Алексей Смирнов",
     "description": "",
     "duration_min": 0,
-    "id": "plan-83c06912bb48",
+    "id": "plan-5ec0f4fa6ec7",
     "intern_id": "u-intern-01",
     "is_synthetic": true,
     "kind": "task",
@@ -43,7 +43,7 @@
     "incident": false
    },
    "duration_ms": 0,
-   "created_at": "2026-11-14T11:34:53.079427+03:00"
+   "created_at": "2026-11-14T17:30:47.7153073+03:00"
   }
  ],
  "rbac": {
@@ -66,8 +66,8 @@
    "status": "completed",
    "scenario": "S1",
    "evidence": "Доступ к avito-autoteka-api выдан через IAM (Гоффи)",
-   "updated_at": "2026-11-14T11:34:52.1236785+03:00",
-   "completed_at": "2026-11-14T11:34:52.1236785+03:00"
+   "updated_at": "2026-11-14T17:30:46.772436+03:00",
+   "completed_at": "2026-11-14T17:30:46.772436+03:00"
   },
   {
    "id": "meet_team",
@@ -77,7 +77,7 @@
    "description": "Вводная встреча с командой Autoteka, знакомство с наставником и руководителем.",
    "status": "completed",
    "evidence": "Вводная встреча проведена в первый день",
-   "updated_at": "2026-11-14T11:34:51.8074128+03:00"
+   "updated_at": "2026-11-14T17:30:46.4556629+03:00"
   },
   {
    "id": "local_env",
@@ -87,7 +87,7 @@
    "description": "Go, Docker, IDE и корпоративный VPN на рабочем ноутбуке.",
    "status": "completed",
    "evidence": "Окружение настроено по инструкции",
-   "updated_at": "2026-11-14T11:34:51.8074128+03:00"
+   "updated_at": "2026-11-14T17:30:46.4556629+03:00"
   },
   {
    "id": "team_processes",
@@ -98,8 +98,8 @@
    "status": "completed",
    "scenario": "S2",
    "evidence": "Инструкции изучены через Гоффи",
-   "updated_at": "2026-11-14T11:34:52.7465635+03:00",
-   "completed_at": "2026-11-14T11:34:52.7465635+03:00"
+   "updated_at": "2026-11-14T17:30:47.3843666+03:00",
+   "completed_at": "2026-11-14T17:30:47.3843666+03:00"
   },
   {
    "id": "first_task",
@@ -110,7 +110,7 @@
    "status": "in_progress",
    "scenario": "S2",
    "evidence": "Задача взята в работу",
-   "updated_at": "2026-11-14T11:34:51.8074128+03:00"
+   "updated_at": "2026-11-14T17:30:46.4556629+03:00"
   },
   {
    "id": "absence_rules",
@@ -121,8 +121,8 @@
    "status": "completed",
    "scenario": "S3",
    "evidence": "Заявка #ABS-2026-84 оформлена через Гоффи",
-   "updated_at": "2026-11-14T11:34:53.0632946+03:00",
-   "completed_at": "2026-11-14T11:34:53.0632946+03:00"
+   "updated_at": "2026-11-14T17:30:47.6943427+03:00",
+   "completed_at": "2026-11-14T17:30:47.6943427+03:00"
   },
   {
    "id": "first_one_on_one",
@@ -132,7 +132,7 @@
    "description": "Обсудить прогресс и вопросы, требующие участия сеньора. Гоффи подготовит бриф.",
    "status": "pending",
    "scenario": "S2",
-   "updated_at": "2026-11-14T11:34:51.8074128+03:00"
+   "updated_at": "2026-11-14T17:30:46.4556629+03:00"
   }
  ],
  "checklist_updates": [],
@@ -151,7 +151,7 @@
   "status": "in_progress",
   "scenario": "S2",
   "evidence": "Задача взята в работу",
-  "updated_at": "2026-11-14T11:34:51.8074128+03:00"
+  "updated_at": "2026-11-14T17:30:46.4556629+03:00"
  },
  "latency_ms": 0
 }

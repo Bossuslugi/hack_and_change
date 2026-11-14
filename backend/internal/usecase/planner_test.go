@@ -175,15 +175,15 @@ func TestLeadApprovesDayOff(t *testing.T) {
 	if _, err := e.svc.Execute(e.ctx, e.intern, card.Tool, card.Fields, ""); err != nil {
 		t.Fatal(err)
 	}
-	args := map[string]any{"request_number": "#ABS-2026-84"}
+	args := map[string]any{"id": "#ABS-2026-84", "decision": domain.AbsenceStatusApproved}
 
 	for _, p := range []domain.Principal{e.intern, e.mentor} {
-		res, err := e.svc.Execute(e.ctx, p, mcp.ToolApproveDayOff, args, "")
+		res, err := e.svc.Execute(e.ctx, p, mcp.ToolReviewDayOff, args, "")
 		if err != nil || res.ToolCalls[0].Status != domain.ToolForbidden {
 			t.Fatalf("%s не должен согласовывать отгул: %+v, %v", p.Role, res.ToolCalls[0], err)
 		}
 	}
-	res, err := e.svc.Execute(e.ctx, e.lead, mcp.ToolApproveDayOff, args, "")
+	res, err := e.svc.Execute(e.ctx, e.lead, mcp.ToolReviewDayOff, args, "")
 	if err != nil || !res.ToolCalls[0].OK() || res.Message != nil {
 		t.Fatalf("согласование: %+v, %v", res.ToolCalls[0], err)
 	}

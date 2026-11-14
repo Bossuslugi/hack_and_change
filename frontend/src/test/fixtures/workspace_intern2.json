@@ -1,0 +1,446 @@
+{
+ "viewer": {
+  "id": "u-intern-02",
+  "name": "Мария Козлова",
+  "role": "intern_backend",
+  "role_title": "Стажёр (Backend)",
+  "team": "Авито Товары (Модерация)"
+ },
+ "intern": {
+  "id": "u-intern-02",
+  "name": "Мария Козлова",
+  "role": "intern_backend",
+  "team": "Авито Товары (Модерация)",
+  "stack": "Python/ML",
+  "stage": "Week 3",
+  "program": "Стажировка ML, 6 месяцев",
+  "start_date": "2026-10-26",
+  "repository": "avito-moderation-ml",
+  "mentor_id": "u-mentor-02",
+  "mentor_name": "Елена Соколова",
+  "team_lead_id": "u-lead-01",
+  "team_lead_name": "Дмитрий Орлов",
+  "is_synthetic": true
+ },
+ "checklist": [
+  {
+   "id": "access_repo",
+   "position": 1,
+   "week": 1,
+   "title": "Получить доступы к репозиторию avito-moderation-ml и стенду",
+   "description": "Доступ к ML-репозиторию и кластеру обучения. Гоффи оформил через IAM.",
+   "status": "completed",
+   "evidence": "Доступы выданы через IAM",
+   "updated_at": "2026-11-14T17:30:46.4556629+03:00"
+  },
+  {
+   "id": "meet_team",
+   "position": 2,
+   "week": 1,
+   "title": "Познакомиться с командой Модерации и наставником",
+   "description": "Вводная встреча с командой Модерации и наставником Еленой Соколовой.",
+   "status": "completed",
+   "evidence": "Вводная встреча проведена",
+   "updated_at": "2026-11-14T17:30:46.4556629+03:00"
+  },
+  {
+   "id": "local_env",
+   "position": 3,
+   "week": 1,
+   "title": "Настроить ML-окружение: Python, CUDA, DVC и Docker",
+   "description": "Локальное окружение для инференса и запуска тестов моделей.",
+   "status": "completed",
+   "evidence": "Окружение развёрнуто по инструкции",
+   "updated_at": "2026-11-14T17:30:46.4556629+03:00"
+  },
+  {
+   "id": "team_processes",
+   "position": 4,
+   "week": 2,
+   "title": "Разобраться с ML-пайплайнами: DVC, Airflow и A/B-тесты",
+   "description": "Как команда версионирует датасеты через DVC, запускает DAG в Airflow и катит модели.",
+   "status": "completed",
+   "scenario": "S2",
+   "evidence": "Изучены инструкции pb-ml-pipelines и pb-ml-ab-test",
+   "updated_at": "2026-11-14T17:30:46.4556629+03:00"
+  },
+  {
+   "id": "first_task",
+   "position": 5,
+   "week": 3,
+   "title": "Задача спринта: классификатор дубликатов в модерации",
+   "description": "MOD-842: интеграция новой модели классификации под runtime-флагом и запуск A/B-теста.",
+   "status": "in_progress",
+   "scenario": "S2",
+   "evidence": "Модель обучена, идёт подготовка A/B-теста",
+   "updated_at": "2026-11-14T17:30:46.4556629+03:00"
+  },
+  {
+   "id": "absence_rules",
+   "position": 6,
+   "week": 3,
+   "title": "Разобраться с оформлением отсутствий",
+   "description": "Отгул, отпуск, больничный: как оформить через сервис «Отсутствия» и кого предупредить.",
+   "status": "pending",
+   "scenario": "S3",
+   "updated_at": "2026-11-14T17:30:46.4556629+03:00"
+  },
+  {
+   "id": "first_one_on_one",
+   "position": 7,
+   "week": 3,
+   "title": "Провести встречу 1:1 с наставником Еленой Соколовой",
+   "description": "Обсудить результаты валидации модели и дизайн A/B-эксперимента. Гоффи подготовит бриф.",
+   "status": "pending",
+   "scenario": "S2",
+   "updated_at": "2026-11-14T17:30:46.4556629+03:00"
+  }
+ ],
+ "progress": {
+  "completed": 4,
+  "in_progress": 1,
+  "total": 7,
+  "percent": 57
+ },
+ "next_step": {
+  "id": "first_task",
+  "position": 5,
+  "week": 3,
+  "title": "Задача спринта: классификатор дубликатов в модерации",
+  "description": "MOD-842: интеграция новой модели классификации под runtime-флагом и запуск A/B-теста.",
+  "status": "in_progress",
+  "scenario": "S2",
+  "evidence": "Модель обучена, идёт подготовка A/B-теста",
+  "updated_at": "2026-11-14T17:30:46.4556629+03:00"
+ },
+ "sprint_task": {
+  "key": "MOD-842",
+  "intern_id": "u-intern-02",
+  "title": "Классификатор дубликатов в модерации",
+  "summary": "Интеграция новой модели классификации под runtime-флагом и запуск A/B-теста",
+  "status": "in_progress",
+  "commits": 2,
+  "days_in_progress": 4,
+  "repository": "avito-moderation-ml",
+  "architecture_question": "Как правильно организовать shadow-деплой модели модерации и распределить трафик в A/B-тесте, чтобы минимизировать p99 latency инференса под фича-флагом?"
+ },
+ "skills": [
+  {
+   "id": "skill.onboarding_navigator",
+   "name": "Навигатор онбординга",
+   "description": "Ведение стажёра по чек-листу адаптации, рекомендации следующего шага и автозакрытие этапов",
+   "active": true
+  },
+  {
+   "id": "skill.contextual_playbook_rag",
+   "name": "Контекстный Playbook RAG",
+   "description": "Поиск по синтетической базе знаний команды с маркировкой источников и учётом стека",
+   "active": true
+  },
+  {
+   "id": "skill.rbac_security_guard",
+   "name": "RBAC Security Guard",
+   "description": "Блокировка доступа к ПДн, продакшн-дампам и финансам по политике POL-SEC-001 с предложением песочницы",
+   "active": true
+  },
+  {
+   "id": "skill.absence_workflow_automation",
+   "name": "Автоматизация отгулов и отсутствий",
+   "description": "Сквозное интерактивное оформление отгулов и двухстороннее согласование руководителем",
+   "active": true
+  },
+  {
+   "id": "skill.proactive_mentor_sync",
+   "name": "Проактивная синхронизация с ментором",
+   "description": "Фоновый ИИ-крон, обнаружение пробуксовок стажёра и автогенерация повестки встречи 1:1",
+   "active": true
+  }
+ ],
+ "feature_flags": [
+  {
+   "key": "proactive_ai_cron",
+   "enabled": false,
+   "kind": "runtime",
+   "description": "ИИ-крон: проактивные сообщения стажёру и бриф наставнику"
+  },
+  {
+   "key": "strict_rbac_guard",
+   "enabled": true,
+   "kind": "runtime",
+   "description": "Строгая RBAC-защита: немедленная блокировка выгрузки ПДн (POL-SEC-001)"
+  },
+  {
+   "key": "mentor_auto_brief",
+   "enabled": true,
+   "kind": "runtime",
+   "description": "Автогенерация Structured 1:1 Brief наставнику при пробуксовке стажёра"
+  },
+  {
+   "key": "ai_buddy.proactive_cron",
+   "enabled": false,
+   "kind": "runtime",
+   "description": "ИИ-крон: фоновый запуск проверок (системный алиас)"
+  },
+  {
+   "key": "ai_buddy.absence_action_card",
+   "enabled": true,
+   "kind": "runtime",
+   "description": "Интерактивная карточка оформления отгула в чате"
+  },
+  {
+   "key": "ai_buddy.llm_answers",
+   "enabled": true,
+   "kind": "runtime",
+   "description": "Формулировка ответов внешней LLM (если задан LLM_API_KEY)"
+  },
+  {
+   "key": "sdd_spec_enforcement",
+   "enabled": true,
+   "kind": "compile_time",
+   "description": "Валидация контрактов OpenSpec в runtime через embed.FS"
+  },
+  {
+   "key": "synthetic_data_watermark",
+   "enabled": true,
+   "kind": "compile_time",
+   "description": "Водяные знаки синтетических данных и маскирование токенов"
+  },
+  {
+   "key": "mcp_jsonrpc_v2",
+   "enabled": true,
+   "kind": "compile_time",
+   "description": "Поддержка протокола MCP JSON-RPC 2.0"
+  },
+  {
+   "key": "ai_buddy.mcp_jsonrpc",
+   "enabled": true,
+   "kind": "compile_time",
+   "description": "MCP JSON-RPC endpoint POST /mcp (системный алиас)"
+  }
+ ],
+ "metrics": {
+  "questions_answered": 2,
+  "actions_automated": 2,
+  "rbac_blocks": 1,
+  "briefs_prepared": 1,
+  "unanswered_questions": 0,
+  "tool_calls": 12,
+  "docs_read": 3,
+  "docs_total": 7,
+  "checklist_percent": 57,
+  "mentor_minutes_saved": 70,
+  "mentor_hours_baseline_min": 40,
+  "mentor_hours_baseline_max": 48,
+  "saving_percent": 2.7,
+  "avg_response_ms": 302.5,
+  "deflection_rate": 100,
+  "access_grants": 1,
+  "tasks_done": 1,
+  "tasks_total": 8
+ },
+ "messages": [
+  {
+   "id": "msg-welcome-u-intern-02",
+   "intern_id": "u-intern-02",
+   "role": "assistant",
+   "text": "Привет, Мария! Я Гоффи — твой ИИ-наставник в команде Авито Товары (Модерация). Помогу получить доступы к репозиторию и стенду, объясню процессы команды (фича-флаги, ревью), оформлю отгул через сервис «Отсутствия», напомню о встречах и подскажу следующий шаг чек-листа. С чего начнём?",
+   "intent": "greeting",
+   "engine": "smart",
+   "sources": [],
+   "action_card": null,
+   "result_card": null,
+   "suggestions": [
+    "Как устроены ML-пайплайны в команде: DVC, Airflow и версионирование данных?",
+    "Как в нашей команде катить ML-модель под фича-флагом и запустить A/B-тест?",
+    "Что дальше по чек-листу?"
+   ],
+   "proactive": false,
+   "tool_call_ids": [],
+   "created_at": "2026-11-14T17:30:46.4556629+03:00"
+  }
+ ],
+ "notifications": [],
+ "briefs": [],
+ "absences": [],
+ "access_grants": [],
+ "incidents": [],
+ "doc_progress": {
+  "read": [],
+  "total": 7
+ },
+ "engine": {
+  "mode": "smart",
+  "model": "Smart Engine (детерминированный)"
+ },
+ "storage": {
+  "store": "memory",
+  "cache": "memory"
+ },
+ "permissions": {
+  "absence_approve": false,
+  "briefs": false,
+  "chat": true,
+  "cron": true,
+  "flags_write": false,
+  "incidents": false,
+  "planner_add": true,
+  "planner_complete": true,
+  "reset": true,
+  "telemetry": true
+ },
+ "disclaimer": "Тестовая инструкция (Синтетические данные)",
+ "planner": [
+  {
+   "id": "u-intern-02:plan-1on1",
+   "intern_id": "u-intern-02",
+   "kind": "meeting",
+   "title": "Созвон 1:1 с наставником",
+   "description": "Первая встреча 1:1: прогресс по чек-листу и вопросы, где нужен опыт сеньора. Гоффи заранее отправит наставнику бриф.",
+   "starts_at": "2026-11-14T20:30:00+03:00",
+   "duration_min": 30,
+   "all_day": false,
+   "link": "https://meet.avito.example/autoteka-1on1",
+   "mandatory": true,
+   "created_by": "u-mentor-02",
+   "created_by_name": "Елена Соколова",
+   "status": "planned",
+   "report": "",
+   "is_synthetic": true
+  },
+  {
+   "id": "u-intern-02:plan-sync",
+   "intern_id": "u-intern-02",
+   "kind": "sync",
+   "title": "Командный синк Autoteka",
+   "description": "Ежедневный синк команды: что сделано, что в работе, что мешает.",
+   "starts_at": "2026-11-15T11:00:00+03:00",
+   "duration_min": 15,
+   "all_day": false,
+   "link": "https://meet.avito.example/autoteka-daily",
+   "mandatory": true,
+   "created_by": "u-lead-01",
+   "created_by_name": "Дмитрий Орлов",
+   "status": "planned",
+   "report": "",
+   "is_synthetic": true
+  },
+  {
+   "id": "u-intern-02:plan-review",
+   "intern_id": "u-intern-02",
+   "kind": "review",
+   "title": "Код-ревью задачи AUT-1423",
+   "description": "Разбор первого MR с наставником: фича-флаг, тесты, контракт ручки.",
+   "starts_at": "2026-11-16T15:00:00+03:00",
+   "duration_min": 45,
+   "all_day": false,
+   "link": "https://meet.avito.example/autoteka-review",
+   "mandatory": true,
+   "created_by": "u-mentor-02",
+   "created_by_name": "Елена Соколова",
+   "status": "planned",
+   "report": "",
+   "is_synthetic": true
+  },
+  {
+   "id": "u-intern-02:plan-security-course",
+   "intern_id": "u-intern-02",
+   "kind": "task",
+   "title": "Пройти курс по информационной безопасности",
+   "description": "Обязательный вводный курс: работа с данными, ПДн, доступы.",
+   "starts_at": "2026-11-19T00:00:00+03:00",
+   "duration_min": 0,
+   "all_day": true,
+   "link": "",
+   "mandatory": true,
+   "created_by": "u-lead-01",
+   "created_by_name": "Дмитрий Орлов",
+   "status": "planned",
+   "report": "",
+   "is_synthetic": true
+  },
+  {
+   "id": "u-intern-02:plan-first-pr",
+   "intern_id": "u-intern-02",
+   "kind": "deadline",
+   "title": "Срок сдачи первого PR",
+   "description": "Первый PR по задаче AUT-1423 должен быть отправлен на ревью.",
+   "starts_at": "2026-11-20T18:00:00+03:00",
+   "duration_min": 0,
+   "all_day": false,
+   "link": "",
+   "mandatory": true,
+   "created_by": "u-mentor-02",
+   "created_by_name": "Елена Соколова",
+   "status": "planned",
+   "report": "",
+   "is_synthetic": true
+  },
+  {
+   "id": "u-intern-02:plan-feedback",
+   "intern_id": "u-intern-02",
+   "kind": "meeting",
+   "title": "Созвон по обратной связи за первую неделю",
+   "description": "Руководитель и наставник: итоги недели, ожидания на следующую.",
+   "starts_at": "2026-11-21T16:00:00+03:00",
+   "duration_min": 30,
+   "all_day": false,
+   "link": "https://meet.avito.example/autoteka-feedback",
+   "mandatory": true,
+   "created_by": "u-lead-01",
+   "created_by_name": "Дмитрий Орлов",
+   "status": "planned",
+   "report": "",
+   "is_synthetic": true
+  }
+ ],
+ "reminders": [
+  {
+   "id": "rem-u-intern-02:plan-1on1",
+   "kind": "meeting",
+   "text": "🚨 Через 3 часа — Созвон 1:1 с наставником",
+   "at": "2026-11-14T20:30:00+03:00",
+   "item_id": "u-intern-02:plan-1on1",
+   "urgent": true
+  },
+  {
+   "id": "rem-u-intern-02:plan-sync",
+   "kind": "sync",
+   "text": "🚨 Завтра в 11:00 — Командный синк Autoteka",
+   "at": "2026-11-15T11:00:00+03:00",
+   "item_id": "u-intern-02:plan-sync",
+   "urgent": true
+  },
+  {
+   "id": "rem-u-intern-02:plan-review",
+   "kind": "review",
+   "text": "🗓 В понедельник в 15:00 — Код-ревью задачи AUT-1423",
+   "at": "2026-11-16T15:00:00+03:00",
+   "item_id": "u-intern-02:plan-review",
+   "urgent": false
+  },
+  {
+   "id": "rem-u-intern-02:plan-security-course",
+   "kind": "task",
+   "text": "📌 Обязательная задача «Пройти курс по информационной безопасности» — в четверг",
+   "at": "2026-11-19T00:00:00+03:00",
+   "item_id": "u-intern-02:plan-security-course",
+   "urgent": false
+  },
+  {
+   "id": "rem-u-intern-02:plan-first-pr",
+   "kind": "deadline",
+   "text": "📅 Срок сдачи первого PR — в пятницу",
+   "at": "2026-11-20T18:00:00+03:00",
+   "item_id": "u-intern-02:plan-first-pr",
+   "urgent": false
+  },
+  {
+   "id": "rem-u-intern-02:plan-feedback",
+   "kind": "meeting",
+   "text": "🗓 21.11 в 16:00 — Созвон по обратной связи за первую неделю",
+   "at": "2026-11-21T16:00:00+03:00",
+   "item_id": "u-intern-02:plan-feedback",
+   "urgent": false
+  }
+ ]
+}

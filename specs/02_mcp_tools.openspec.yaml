@@ -246,26 +246,6 @@ tools:
       properties:
         flags: { type: array, items: { type: object } }
 
-  - name: absences.approve_day_off
-    server: absences
-    title: "Согласовать заявку на отгул"
-    description: "Руководитель согласует заявку на отгул; сотрудник получает уведомление."
-    side_effects: "write"
-    input_schema:
-      type: object
-      additionalProperties: false
-      required: [request_number]
-      properties:
-        request_number: { type: string, pattern: "^#ABS-\\d{4}-\\d+$", description: "Номер заявки, например #ABS-2026-84" }
-    output_schema:
-      type: object
-      required: [request_number, status]
-      properties:
-        request_number: { type: string }
-        status:         { type: string, enum: [approved] }
-    errors:
-      - { code: "INVALID_ARGUMENTS", description: "Заявка не найдена или уже согласована" }
-
   - name: calendar.add_task
     server: calendar
     title: "Добавить задачу в календарь"

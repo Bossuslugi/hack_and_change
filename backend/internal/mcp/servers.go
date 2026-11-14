@@ -82,7 +82,6 @@ func (s *Services) BindAll(r *Registry) error {
 		{ToolSendNotification, s.Notifications.SendTool, nil},
 		{ToolTaskActivity, s.Tracker.TaskActivity, nil},
 		{ToolListFlags, s.Flags.ListTool, nil},
-		{ToolApproveDayOff, s.Absences.ApproveDayOff, nil},
 		{ToolAddTask, s.Calendar.AddTask, nil},
 		{ToolCompleteItem, s.Calendar.CompleteItem, nil},
 	}
@@ -450,6 +449,10 @@ func (s *Absences) ReviewDayOff(ctx context.Context, c Call) (map[string]any, er
 	t := c.Now
 	target.ReviewedAt = &t
 	if err := domain.Save(ctx, s.store, domain.KindAbsence, target.ID, target.InternID, target.CreatedAt, *target); err != nil {
+		return nil, err
+	}
+	kind, body := ReviewNotice(*target)
+	if _, err := s.notifications.Send(ctx, target.InternID, "Решение по отгулу", body, kind, c.Now); err != nil {
 		return nil, err
 	}
 	return map[string]any{

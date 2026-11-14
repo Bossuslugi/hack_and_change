@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { getApiRole } from '../api/auth';
 import { applyTheme, useUi } from '../store/ui';
-import { formatDate, formatDateTime, formatMinutes, formatTime, plural, prettyJson, todayIso } from './format';
+import { formatDate, formatDateTime, formatMinutes, formatMs, formatTime, initials, internContext, plural, prettyJson, todayIso } from './format';
+import { groupByStage, stepMeta } from './onboarding';
 import { parseInline, parseRichText } from './richText';
 import { absenceDefaults, chatInputSchema, validateAbsence } from './validation';
 
@@ -168,5 +169,42 @@ describe('ui store', () => {
     expect(ui().seenReminders).toEqual(['a', 'b', 'c']);
     ui().resetSession();
     expect(ui().seenReminders).toEqual([]);
+  });
+});
+
+describe('контекст и раскладка чек-листа', () => {
+  it('собирает контекст стажёра для шапки', () => {
+    const intern = { team: 'Autoteka', stack: 'Go', stage: 'Week 1', program: 'Стажировка Backend, 6 месяцев' };
+    expect(internContext(intern)).toBe('Команда: Autoteka • Backend Go • Неделя 1 из 24');
+    expect(internContext({ ...intern, program: 'Стажировка' })).toBe('Команда: Autoteka • Backend Go • Неделя 1');
+    expect(internContext({ ...intern, stage: 'Онбординг' })).toBe('Команда: Autoteka • Backend Go • Онбординг');
+  });
+
+  it('форматирует инициалы и длительность вызова', () => {
+    expect(initials('Мария Кузнецова')).toBe('МК');
+    expect(initials('  Алексей  ')).toBe('А');
+    expect(formatMs(0.4)).toBe('<1ms');
+    expect(formatMs(139.6)).toBe('140ms');
+  });
+
+  it('группирует шаги по этапам и сервисам', () => {
+    const item = (id: string, status: 'pending' | 'completed', scenario?: string) => ({
+      id,
+      position: 1,
+      week: 1,
+      title: id,
+      description: '',
+      status,
+      scenario,
+      updated_at: '2026-11-13T10:00:00+03:00',
+    });
+    const groups = groupByStage([item('access_repo', 'completed'), item('absence_rules', 'pending'), item('custom_step', 'pending', 'S2')]);
+    expect(groups.map((g) => [g.id, g.items.length, g.completed])).toEqual([
+      ['access', 1, 1],
+      ['process', 1, 0],
+      ['org', 1, 0],
+    ]);
+    expect(stepMeta({ id: 'absence_rules' })).toEqual({ stage: 'org', service: 'Отсутствия' });
+    expect(stepMeta({ id: 'unknown' })).toEqual({ stage: 'org', service: 'Онбординг' });
   });
 });

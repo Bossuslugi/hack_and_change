@@ -2,5 +2,5 @@
  "key": "ai_buddy.proactive_cron",
  "enabled": false,
  "kind": "runtime",
- "description": "ИИ-крон: проактивные сообщения стажёру и бриф наставнику"
+ "description": "ИИ-крон: фоновый запуск проверок (системный алиас)"
 }

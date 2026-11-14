@@ -55,7 +55,7 @@
 			<div id="nav">
 				<select id="files">
 				
-				<option value="file0">aibuddy/backend/cmd/server/main.go (73.1%)</option>
+				<option value="file0">aibuddy/backend/cmd/server/main.go (55.9%)</option>
 				
 				<option value="file1">aibuddy/backend/internal/agent/engine.go (99.0%)</option>
 				
@@ -73,11 +73,11 @@
 				
 				<option value="file8">aibuddy/backend/internal/domain/planner.go (100.0%)</option>
 				
-				<option value="file9">aibuddy/backend/internal/domain/ports.go (92.4%)</option>
+				<option value="file9">aibuddy/backend/internal/domain/ports.go (93.3%)</option>
 				
 				<option value="file10">aibuddy/backend/internal/domain/text.go (100.0%)</option>
 				
-				<option value="file11">aibuddy/backend/internal/http/server.go (98.6%)</option>
+				<option value="file11">aibuddy/backend/internal/http/server.go (96.0%)</option>
 				
 				<option value="file12">aibuddy/backend/internal/mcp/calendar.go (100.0%)</option>
 				
@@ -87,21 +87,21 @@
 				
 				<option value="file15">aibuddy/backend/internal/mcp/schema.go (99.1%)</option>
 				
-				<option value="file16">aibuddy/backend/internal/mcp/servers.go (99.5%)</option>
+				<option value="file16">aibuddy/backend/internal/mcp/servers.go (97.6%)</option>
 				
 				<option value="file17">aibuddy/backend/internal/rbac/engine.go (100.0%)</option>
 				
-				<option value="file18">aibuddy/backend/internal/seed/seed.go (100.0%)</option>
+				<option value="file18">aibuddy/backend/internal/seed/seed.go (95.8%)</option>
 				
-				<option value="file19">aibuddy/backend/internal/spec/spec.go (99.0%)</option>
+				<option value="file19">aibuddy/backend/internal/spec/spec.go (98.1%)</option>
 				
 				<option value="file20">aibuddy/backend/internal/storage/memory/store.go (100.0%)</option>
 				
 				<option value="file21">aibuddy/backend/internal/storage/postgres/store.go (94.8%)</option>
 				
-				<option value="file22">aibuddy/backend/internal/usecase/actions.go (95.4%)</option>
+				<option value="file22">aibuddy/backend/internal/usecase/actions.go (93.7%)</option>
 				
-				<option value="file23">aibuddy/backend/internal/usecase/service.go (94.9%)</option>
+				<option value="file23">aibuddy/backend/internal/usecase/service.go (90.7%)</option>
 				
 				</select>
 			</div>
@@ -144,7 +144,18 @@ import (
 )
 
 func main() <span class="cov0" title="0">{
-        log := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+        if len(os.Args) &gt; 1 &amp;&amp; (os.Args[1] == "-healthcheck" || os.Args[1] == "--healthcheck") </span><span class="cov0" title="0">{
+                port := os.Getenv("PORT")
+                if port == "" </span><span class="cov0" title="0">{
+                        port = "8080"
+                }</span>
+                <span class="cov0" title="0">resp, err := http.Get("http://127.0.0.1:" + port + "/healthz")
+                if err != nil || resp.StatusCode != http.StatusOK </span><span class="cov0" title="0">{
+                        os.Exit(1)
+                }</span>
+                <span class="cov0" title="0">os.Exit(0)</span>
+        }
+        <span class="cov0" title="0">log := slog.New(slog.NewJSONHandler(os.Stdout, nil))
         ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
         defer stop()
         if err := run(ctx, config.Load(os.Getenv), log, nil); err != nil </span><span class="cov0" title="0">{
@@ -155,35 +166,35 @@ func main() <span class="cov0" title="0">{
 
 // run собирает приложение и обслуживает HTTP до отмены контекста (graceful shutdown).
 // ready, если задан, получает фактический адрес после начала прослушивания.
-func run(ctx context.Context, cfg config.Config, log *slog.Logger, ready chan&lt;- string) error <span class="cov10" title="3">{
+func run(ctx context.Context, cfg config.Config, log *slog.Logger, ready chan&lt;- string) error <span class="cov10" title="4">{
         application, err := app.Build(ctx, cfg, log, app.Overrides{})
         if err != nil </span><span class="cov1" title="1">{
                 return fmt.Errorf("не удалось запустить приложение: %w", err)
         }</span>
-        <span class="cov6" title="2">defer application.Close()
+        <span class="cov8" title="3">defer application.Close()
 
         listener, err := net.Listen("tcp", ":"+cfg.Port)
         if err != nil </span><span class="cov1" title="1">{
                 return fmt.Errorf("не удалось занять порт %s: %w", cfg.Port, err)
         }</span>
-        <span class="cov1" title="1">srv := &amp;http.Server{Handler: application.Handler, ReadHeaderTimeout: 5 * time.Second}
+        <span class="cov5" title="2">srv := &amp;http.Server{Handler: application.Handler, ReadHeaderTimeout: 5 * time.Second}
 
         stopped := make(chan error, 1)
-        go func() </span><span class="cov1" title="1">{
+        go func() </span><span class="cov5" title="2">{
                 &lt;-ctx.Done()
                 shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
                 defer cancel()
                 stopped &lt;- srv.Shutdown(shutdownCtx)
         }</span>()
 
-        <span class="cov1" title="1">log.Info("AI-Buddy backend запущен", "addr", listener.Addr().String())
-        if ready != nil </span><span class="cov1" title="1">{
+        <span class="cov5" title="2">log.Info("AI-Buddy backend запущен", "addr", listener.Addr().String())
+        if ready != nil </span><span class="cov5" title="2">{
                 ready &lt;- listener.Addr().String()
         }</span>
-        <span class="cov1" title="1">if err := srv.Serve(listener); err != nil &amp;&amp; !errors.Is(err, http.ErrServerClosed) </span><span class="cov0" title="0">{
+        <span class="cov5" title="2">if err := srv.Serve(listener); err != nil &amp;&amp; !errors.Is(err, http.ErrServerClosed) </span><span class="cov0" title="0">{
                 return err
         }</span>
-        <span class="cov1" title="1">return &lt;-stopped</span>
+        <span class="cov5" title="2">return &lt;-stopped</span>
 }
 </pre>
 		
@@ -1922,23 +1933,25 @@ func (d KnowledgeDoc) Ref() DocRef <span class="cov1" title="1">{
 
 // Типы карточек.
 const (
-        ActionAbsenceForm    = "absence_form"
-        CardAccessGranted    = "access_granted"
-        CardRBACDenied       = "rbac_denied"
-        CardAbsenceCreated   = "absence_created"
-        CardBriefSent        = "brief_sent"
-        ActionStatusPending  = "pending"
-        ActionStatusDone     = "submitted"
-        CardStatusSuccess    = "success"
-        CardStatusDenied     = "denied"
-        CardStatusInfo       = "info"
-        EngineSmart          = "smart"
-        EngineLLM            = "llm"
-        EngineCron           = "cron"
-        SeverityInfo         = "info"
-        SeverityWarn         = "warn"
-        SeveritySecurity     = "security"
-        AbsenceStatusPending = "pending_approval"
+        ActionAbsenceForm     = "absence_form"
+        CardAccessGranted     = "access_granted"
+        CardRBACDenied        = "rbac_denied"
+        CardAbsenceCreated    = "absence_created"
+        CardBriefSent         = "brief_sent"
+        ActionStatusPending   = "pending"
+        ActionStatusDone      = "submitted"
+        CardStatusSuccess     = "success"
+        CardStatusDenied      = "denied"
+        CardStatusInfo        = "info"
+        EngineSmart           = "smart"
+        EngineLLM             = "llm"
+        EngineCron            = "cron"
+        SeverityInfo          = "info"
+        SeverityWarn          = "warn"
+        SeveritySecurity      = "security"
+        AbsenceStatusPending  = "pending_approval"
+        AbsenceStatusApproved = "approved"
+        AbsenceStatusRejected = "rejected"
 )
 
 // ActionCard — интерактивная карточка, требующая подтверждения пользователя.
@@ -2038,18 +2051,22 @@ func (c MCPToolCall) OK() bool <span class="cov3" title="2">{ return c.Status ==
 
 // AbsenceRequest — заявка на отгул в имитации сервиса «Отсутствия».
 type AbsenceRequest struct {
-        ID          string    `json:"id"`
-        Number      string    `json:"number"`
-        InternID    string    `json:"intern_id"`
-        InternName  string    `json:"intern_name"`
-        Date        string    `json:"date"`
-        TimeFrom    string    `json:"time_from"`
-        TimeTo      string    `json:"time_to"`
-        Reason      string    `json:"reason"`
-        Status      string    `json:"status"`
-        Notified    []string  `json:"notified"`
-        IsSynthetic bool      `json:"is_synthetic"`
-        CreatedAt   time.Time `json:"created_at"`
+        ID          string     `json:"id"`
+        Number      string     `json:"number"`
+        InternID    string     `json:"intern_id"`
+        InternName  string     `json:"intern_name"`
+        Date        string     `json:"date"`
+        TimeFrom    string     `json:"time_from"`
+        TimeTo      string     `json:"time_to"`
+        Reason      string     `json:"reason"`
+        Status      string     `json:"status"`
+        Notified    []string   `json:"notified"`
+        IsSynthetic bool       `json:"is_synthetic"`
+        Decision    string     `json:"decision,omitempty"`
+        ReviewerID  string     `json:"reviewer_id,omitempty"`
+        ReviewedAt  *time.Time `json:"reviewed_at,omitempty"`
+        Comment     string     `json:"comment,omitempty"`
+        CreatedAt   time.Time  `json:"created_at"`
 }
 
 var (
@@ -2195,6 +2212,14 @@ const (
         EventKindCron        = "cron"
 )
 
+// AgentSkill — подключённый модульный скилл агента.
+type AgentSkill struct {
+        ID          string `json:"id" yaml:"id"`
+        Name        string `json:"name" yaml:"name"`
+        Description string `json:"description" yaml:"description"`
+        Active      bool   `json:"active" yaml:"active"`
+}
+
 // FeatureFlag — флаг функциональности.
 type FeatureFlag struct {
         Key         string `json:"key"`
@@ -2332,9 +2357,8 @@ const (
         PlannerPlanned = "planned"
         PlannerDone    = "done"
 
-        AbsenceStatusApproved = "approved"
-
         NotificationAbsenceApproved = "absence_approved"
+        NotificationAbsenceRejected = "absence_rejected"
         NotificationTaskAssigned    = "task_assigned"
 )
 
@@ -2489,10 +2513,10 @@ func BuildReminders(items []PlannerItem, notes []Notification, now time.Time) []
                 <span class="cov5" title="7">out = append(out, r)</span>
         }
         <span class="cov2" title="2">for _, n := range notes </span><span class="cov3" title="3">{
-                if n.Kind != NotificationAbsenceApproved &amp;&amp; n.Kind != NotificationTaskAssigned </span><span class="cov1" title="1">{
+                if n.Kind != NotificationAbsenceApproved &amp;&amp; n.Kind != NotificationAbsenceRejected &amp;&amp; n.Kind != NotificationTaskAssigned </span><span class="cov1" title="1">{
                         continue</span>
                 }
-                <span class="cov2" title="2">out = append(out, Reminder{ID: "rem-" + n.ID, Kind: n.Kind, Text: "🔔 " + n.Body, At: n.CreatedAt, Urgent: n.Kind == NotificationAbsenceApproved})</span>
+                <span class="cov2" title="2">out = append(out, Reminder{ID: "rem-" + n.ID, Kind: n.Kind, Text: "🔔 " + n.Body, At: n.CreatedAt, Urgent: n.Kind != NotificationTaskAssigned})</span>
         }
         <span class="cov2" title="2">sort.SliceStable(out, func(i, j int) bool </span><span class="cov8" title="28">{
                 if out[i].Urgent != out[j].Urgent </span><span class="cov7" title="15">{
@@ -2625,15 +2649,15 @@ func (s *SequentialIDs) NewID(prefix string) string <span class="cov2" title="2"
 }</span>
 
 // NewRecord сериализует значение в запись хранилища.
-func NewRecord(kind Kind, id, ownerID string, at time.Time, v any) (Record, error) <span class="cov10" title="23">{
-        if id == "" </span><span class="cov4" title="3">{
+func NewRecord(kind Kind, id, ownerID string, at time.Time, v any) (Record, error) <span class="cov10" title="38">{
+        if id == "" </span><span class="cov3" title="3">{
                 return Record{}, fmt.Errorf("%w: пустой идентификатор записи %s", ErrValidation, kind)
         }</span>
-        <span class="cov9" title="20">raw, err := json.Marshal(v)
+        <span class="cov9" title="35">raw, err := json.Marshal(v)
         if err != nil </span><span class="cov1" title="1">{
                 return Record{}, fmt.Errorf("сериализация %s/%s: %w", kind, id, err)
         }</span>
-        <span class="cov9" title="19">return Record{Kind: kind, ID: id, OwnerID: ownerID, CreatedAt: at, Payload: raw}, nil</span>
+        <span class="cov9" title="34">return Record{Kind: kind, ID: id, OwnerID: ownerID, CreatedAt: at, Payload: raw}, nil</span>
 }
 
 // Save сохраняет типизированное значение.
@@ -2642,28 +2666,28 @@ func Save(ctx context.Context, s Store, kind Kind, id, ownerID string, at time.T
         if err != nil </span><span class="cov1" title="1">{
                 return err
         }</span>
-        <span class="cov4" title="3">return s.Put(ctx, rec)</span>
+        <span class="cov3" title="3">return s.Put(ctx, rec)</span>
 }
 
 // Load читает типизированные значения владельца.
-func Load[T any](ctx context.Context, s Store, kind Kind, ownerID string) ([]T, error) <span class="cov4" title="3">{
+func Load[T any](ctx context.Context, s Store, kind Kind, ownerID string) ([]T, error) <span class="cov3" title="3">{
         recs, err := s.List(ctx, kind, ownerID)
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
-        <span class="cov4" title="3">out := make([]T, 0, len(recs))
+        <span class="cov3" title="3">out := make([]T, 0, len(recs))
         for _, r := range recs </span><span class="cov4" title="4">{
                 var v T
                 if err := json.Unmarshal(r.Payload, &amp;v); err != nil </span><span class="cov1" title="1">{
                         return nil, fmt.Errorf("десериализация %s/%s: %w", kind, r.ID, err)
                 }</span>
-                <span class="cov4" title="3">out = append(out, v)</span>
+                <span class="cov3" title="3">out = append(out, v)</span>
         }
         <span class="cov2" title="2">return out, nil</span>
 }
 
 // LoadOne читает одно типизированное значение по идентификатору.
-func LoadOne[T any](ctx context.Context, s Store, kind Kind, id string) (T, error) <span class="cov4" title="3">{
+func LoadOne[T any](ctx context.Context, s Store, kind Kind, id string) (T, error) <span class="cov3" title="3">{
         var v T
         rec, err := s.Get(ctx, kind, id)
         if err != nil </span><span class="cov1" title="1">{
@@ -2676,7 +2700,7 @@ func LoadOne[T any](ctx context.Context, s Store, kind Kind, id string) (T, erro
 }
 
 // ChecklistRecordID — идентификатор записи шага чек-листа.
-func ChecklistRecordID(internID, itemID string) string <span class="cov7" title="10">{ return internID + ":" + itemID }</span>
+func ChecklistRecordID(internID, itemID string) string <span class="cov8" title="17">{ return internID + ":" + itemID }</span>
 
 // LoadChecklist читает чек-лист стажёра, отсортированный по позиции.
 func LoadChecklist(ctx context.Context, s Store, internID string) ([]ChecklistItem, error) <span class="cov1" title="1">{
@@ -2695,46 +2719,71 @@ func SaveChecklistItem(ctx context.Context, s Store, internID string, item Check
 
 // SeedData — синтетические демо-данные.
 type SeedData struct {
-        Employees []Employee
-        Intern    InternProfile
-        Checklist []ChecklistItem
-        Task      SprintTask
-        Docs      []KnowledgeDoc
-        Flags     []FeatureFlag
+        Employees  []Employee
+        Intern     InternProfile
+        Interns    []InternProfile
+        Checklist  []ChecklistItem
+        Checklists map[string][]ChecklistItem
+        Task       SprintTask
+        Tasks      map[string]SprintTask
+        Docs       []KnowledgeDoc
+        Flags      []FeatureFlag
         // Repositories — каталог репозиториев: имя → команда-владелец.
         Repositories map[string]string
         // Planner — события календаря и задачи первых недель относительно момента загрузки.
-        Planner func(now time.Time) []PlannerItem
+        Planner func(now time.Time, intern InternProfile) []PlannerItem
 }
 
 // Records превращает seed в записи хранилища.
 func (d SeedData) Records(now time.Time) ([]Record, error) <span class="cov2" title="2">{
         var out []Record
-        rec, err := NewRecord(KindIntern, d.Intern.ID, d.Intern.ID, now, d.Intern)
-        if err != nil </span><span class="cov1" title="1">{
-                return nil, err
+        interns := d.Interns
+        if len(interns) == 0 </span><span class="cov1" title="1">{
+                interns = []InternProfile{d.Intern}
         }</span>
-        <span class="cov1" title="1">out = append(out, rec)
-        for _, it := range d.Checklist </span><span class="cov6" title="7">{
-                it.UpdatedAt = now
-                rec, err := NewRecord(KindChecklist, ChecklistRecordID(d.Intern.ID, it.ID), d.Intern.ID, now, it)
-                if err != nil </span><span class="cov0" title="0">{
+        <span class="cov2" title="2">for _, in := range interns </span><span class="cov3" title="3">{
+                rec, err := NewRecord(KindIntern, in.ID, in.ID, now, in)
+                if err != nil </span><span class="cov1" title="1">{
                         return nil, err
                 }</span>
-                <span class="cov6" title="7">out = append(out, rec)</span>
-        }
-        <span class="cov1" title="1">rec, err = NewRecord(KindSprintTask, d.Intern.ID, d.Intern.ID, now, d.Task)
-        if err != nil </span><span class="cov0" title="0">{
-                return nil, err
-        }</span>
-        <span class="cov1" title="1">out = append(out, rec)
-        if d.Planner != nil </span><span class="cov1" title="1">{
-                for _, item := range d.Planner(now) </span><span class="cov6" title="6">{
-                        rec, err := NewRecord(KindPlanner, item.ID, d.Intern.ID, now, item)
+                <span class="cov2" title="2">out = append(out, rec)
+
+                // Чек-лист для данного стажёра
+                items := d.Checklist
+                if d.Checklists != nil &amp;&amp; len(d.Checklists[in.ID]) &gt; 0 </span><span class="cov2" title="2">{
+                        items = d.Checklists[in.ID]
+                }</span>
+                <span class="cov2" title="2">for _, it := range items </span><span class="cov7" title="14">{
+                        it.UpdatedAt = now
+                        rec, err := NewRecord(KindChecklist, ChecklistRecordID(in.ID, it.ID), in.ID, now, it)
                         if err != nil </span><span class="cov0" title="0">{
                                 return nil, err
                         }</span>
-                        <span class="cov6" title="6">out = append(out, rec)</span>
+                        <span class="cov7" title="14">out = append(out, rec)</span>
+                }
+
+                // Спринт-задача для данного стажёра
+                <span class="cov2" title="2">task := d.Task
+                if d.Tasks != nil </span><span class="cov2" title="2">{
+                        if t, ok := d.Tasks[in.ID]; ok </span><span class="cov2" title="2">{
+                                task = t
+                        }</span>
+                }
+                <span class="cov2" title="2">rec, err = NewRecord(KindSprintTask, in.ID, in.ID, now, task)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov2" title="2">out = append(out, rec)
+
+                // Календарь первых недель для данного стажёра
+                if d.Planner != nil </span><span class="cov2" title="2">{
+                        for _, item := range d.Planner(now, in) </span><span class="cov7" title="12">{
+                                rec, err := NewRecord(KindPlanner, item.ID, in.ID, now, item)
+                                if err != nil </span><span class="cov0" title="0">{
+                                        return nil, err
+                                }</span>
+                                <span class="cov7" title="12">out = append(out, rec)</span>
+                        }
                 }
         }
         <span class="cov1" title="1">return out, nil</span>
@@ -2750,18 +2799,18 @@ type Directory struct {
 // NewDirectory строит справочник.
 func NewDirectory(employees []Employee) *Directory <span class="cov1" title="1">{
         d := &amp;Directory{byID: map[string]Employee{}, byToken: map[string]Employee{}}
-        for _, e := range employees </span><span class="cov4" title="4">{
+        for _, e := range employees </span><span class="cov5" title="6">{
                 d.byID[e.ID] = e
-                if e.Token != "" </span><span class="cov4" title="3">{
+                if e.Token != "" </span><span class="cov4" title="5">{
                         d.byToken[e.Token] = e
                 }</span>
-                <span class="cov4" title="4">d.order = append(d.order, e)</span>
+                <span class="cov5" title="6">d.order = append(d.order, e)</span>
         }
         <span class="cov1" title="1">return d</span>
 }
 
 // ByToken находит сотрудника по демо-токену.
-func (d *Directory) ByToken(token string) (Employee, bool) <span class="cov4" title="3">{
+func (d *Directory) ByToken(token string) (Employee, bool) <span class="cov3" title="3">{
         e, ok := d.byToken[token]
         return e, ok
 }</span>
@@ -2774,7 +2823,7 @@ func (d *Directory) ByID(id string) (Employee, bool) <span class="cov1" title="1
 
 // ByRole возвращает первого сотрудника с ролью.
 func (d *Directory) ByRole(role Role) (Employee, bool) <span class="cov2" title="2">{
-        for _, e := range d.order </span><span class="cov6" title="6">{
+        for _, e := range d.order </span><span class="cov6" title="9">{
                 if e.Role == role </span><span class="cov1" title="1">{
                         return e, true
                 }</span>
@@ -2899,20 +2948,22 @@ const maxBodyBytes = 64 &lt;&lt; 10
 type ctxKey struct{}
 
 // New создаёт HTTP-обработчик со всеми маршрутами.
-func New(o Options) http.Handler <span class="cov5" title="13">{
+func New(o Options) http.Handler <span class="cov5" title="15">{
         if o.Logger == nil </span><span class="cov1" title="1">{
                 o.Logger = slog.New(slog.NewTextHandler(io.Discard, nil))
         }</span>
-        <span class="cov5" title="13">if len(o.CORSOrigins) == 0 </span><span class="cov5" title="12">{
+        <span class="cov5" title="15">if len(o.CORSOrigins) == 0 </span><span class="cov5" title="14">{
                 o.CORSOrigins = []string{"*"}
         }</span>
-        <span class="cov5" title="13">s := &amp;Server{svc: o.Service, log: o.Logger, origins: o.CORSOrigins, chunkDelay: o.StreamChunkDelay, mux: http.NewServeMux()}
+        <span class="cov5" title="15">s := &amp;Server{svc: o.Service, log: o.Logger, origins: o.CORSOrigins, chunkDelay: o.StreamChunkDelay, mux: http.NewServeMux()}
 
         s.mux.HandleFunc("GET /healthz", s.health)
+        s.mux.HandleFunc("GET /metrics", s.metrics)
         s.mux.Handle("GET /api/v1/workspace", s.auth(s.workspace))
         s.mux.Handle("POST /api/v1/chat", s.auth(s.chat))
         s.mux.Handle("POST /api/v1/chat/stream", s.auth(s.chatStream))
         s.mux.Handle("POST /api/v1/mcp/execute", s.auth(s.execute))
+        s.mux.Handle("POST /api/v1/absences/review", s.auth(s.reviewAbsence))
         s.mux.Handle("POST /api/v1/cron/trigger", s.auth(s.cron))
         s.mux.Handle("POST /api/v1/reset", s.auth(s.reset))
         s.mux.Handle("GET /api/v1/telemetry", s.auth(s.telemetry))
@@ -2922,7 +2973,7 @@ func New(o Options) http.Handler <span class="cov5" title="13">{
         s.mux.HandleFunc("/", func(w http.ResponseWriter, _ *http.Request) </span><span class="cov1" title="1">{
                 writeError(w, http.StatusNotFound, "NOT_FOUND", "Маршрут не найден", nil)
         }</span>)
-        <span class="cov5" title="13">return s.middleware(s.mux)</span>
+        <span class="cov5" title="15">return s.middleware(s.mux)</span>
 }
 
 // statusRecorder запоминает код ответа для журнала.
@@ -2931,7 +2982,7 @@ type statusRecorder struct {
         status int
 }
 
-func (r *statusRecorder) WriteHeader(code int) <span class="cov8" title="87">{
+func (r *statusRecorder) WriteHeader(code int) <span class="cov8" title="93">{
         r.status = code
         r.ResponseWriter.WriteHeader(code)
 }</span>
@@ -2943,9 +2994,9 @@ func (r *statusRecorder) Flush() <span class="cov7" title="69">{
         }</span>
 }
 
-func (s *Server) allowOrigin(origin string) string <span class="cov8" title="87">{
-        for _, o := range s.origins </span><span class="cov8" title="87">{
-                if o == "*" </span><span class="cov8" title="85">{
+func (s *Server) allowOrigin(origin string) string <span class="cov8" title="94">{
+        for _, o := range s.origins </span><span class="cov8" title="94">{
+                if o == "*" </span><span class="cov8" title="92">{
                         return "*"
                 }</span>
                 <span class="cov2" title="2">if origin != "" &amp;&amp; strings.EqualFold(o, origin) </span><span class="cov1" title="1">{
@@ -2956,46 +3007,46 @@ func (s *Server) allowOrigin(origin string) string <span class="cov8" title="87"
 }
 
 // middleware: восстановление после паники, CORS, лимит тела, журнал и время ответа.
-func (s *Server) middleware(next http.Handler) http.Handler <span class="cov5" title="13">{
-        return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) </span><span class="cov8" title="87">{
+func (s *Server) middleware(next http.Handler) http.Handler <span class="cov5" title="15">{
+        return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) </span><span class="cov8" title="94">{
                 started := time.Now()
                 rec := &amp;statusRecorder{ResponseWriter: w, status: http.StatusOK}
-                defer func() </span><span class="cov8" title="87">{
+                defer func() </span><span class="cov8" title="94">{
                         if p := recover(); p != nil </span><span class="cov1" title="1">{
                                 s.log.Error("panic", "path", r.URL.Path, "panic", fmt.Sprint(p))
                                 writeError(rec, http.StatusInternalServerError, "INTERNAL", "Внутренняя ошибка сервера", nil)
                         }</span>
-                        <span class="cov8" title="87">s.log.Info("http", "method", r.Method, "path", r.URL.Path, "status", rec.status,
+                        <span class="cov8" title="94">s.log.Info("http", "method", r.Method, "path", r.URL.Path, "status", rec.status,
                                 "ms", float64(time.Since(started).Microseconds())/1000)</span>
                 }()
 
-                <span class="cov8" title="87">if allowed := s.allowOrigin(r.Header.Get("Origin")); allowed != "" </span><span class="cov8" title="86">{
+                <span class="cov8" title="94">if allowed := s.allowOrigin(r.Header.Get("Origin")); allowed != "" </span><span class="cov8" title="93">{
                         rec.Header().Set("Access-Control-Allow-Origin", allowed)
                         rec.Header().Set("Vary", "Origin")
                         rec.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type")
                         rec.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS")
                         rec.Header().Set("Access-Control-Max-Age", "600")
                 }</span>
-                <span class="cov8" title="87">rec.Header().Set("X-Content-Type-Options", "nosniff")
+                <span class="cov8" title="94">rec.Header().Set("X-Content-Type-Options", "nosniff")
                 if r.Method == http.MethodOptions </span><span class="cov2" title="3">{
                         rec.WriteHeader(http.StatusNoContent)
                         return
                 }</span>
-                <span class="cov8" title="84">r.Body = http.MaxBytesReader(rec, r.Body, maxBodyBytes)
+                <span class="cov8" title="91">r.Body = http.MaxBytesReader(rec, r.Body, maxBodyBytes)
                 next.ServeHTTP(rec, r)</span>
         })
 }
 
 // auth — имитация корпоративной авторизации: демо-токен → сотрудник → роль.
-func (s *Server) auth(next func(http.ResponseWriter, *http.Request, domain.Principal)) http.Handler <span class="cov9" title="130">{
-        return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) </span><span class="cov8" title="80">{
+func (s *Server) auth(next func(http.ResponseWriter, *http.Request, domain.Principal)) http.Handler <span class="cov9" title="165">{
+        return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) </span><span class="cov8" title="86">{
                 token := strings.TrimSpace(strings.TrimPrefix(r.Header.Get("Authorization"), "Bearer "))
                 p, err := s.svc.Authenticate(token)
                 if err != nil </span><span class="cov3" title="5">{
                         s.fail(w, r, err)
                         return
                 }</span>
-                <span class="cov8" title="75">next(w, r.WithContext(context.WithValue(r.Context(), ctxKey{}, p)), p)</span>
+                <span class="cov8" title="81">next(w, r.WithContext(context.WithValue(r.Context(), ctxKey{}, p)), p)</span>
         })
 }
 
@@ -3010,7 +3061,7 @@ type errorEnvelope struct {
         Result any       `json:"result,omitempty"`
 }
 
-func writeJSON(w http.ResponseWriter, status int, v any) <span class="cov8" title="80">{
+func writeJSON(w http.ResponseWriter, status int, v any) <span class="cov8" title="86">{
         w.Header().Set("Content-Type", "application/json; charset=utf-8")
         w.WriteHeader(status)
         _ = json.NewEncoder(w).Encode(v)
@@ -3021,18 +3072,18 @@ func writeError(w http.ResponseWriter, status int, code, message string, verdict
 }</span>
 
 // classify сопоставляет ошибку прикладного слоя HTTP-статусу и коду.
-func classify(err error) (int, errorBody) <span class="cov6" title="27">{
+func classify(err error) (int, errorBody) <span class="cov6" title="30">{
         var forbidden *usecase.ForbiddenError
         var tooLarge *http.MaxBytesError
         switch </span>{
         case errors.Is(err, usecase.ErrUnauthorized):<span class="cov3" title="5">
                 return http.StatusUnauthorized, errorBody{Code: "UNAUTHORIZED", Message: err.Error()}</span>
-        case errors.As(err, &amp;forbidden):<span class="cov3" title="4">
+        case errors.As(err, &amp;forbidden):<span class="cov3" title="5">
                 v := forbidden.Verdict
                 return http.StatusForbidden, errorBody{Code: "FORBIDDEN", Message: v.Reason, RBAC: &amp;v}</span>
-        case errors.Is(err, domain.ErrValidation):<span class="cov4" title="10">
+        case errors.Is(err, domain.ErrValidation):<span class="cov4" title="11">
                 return http.StatusUnprocessableEntity, errorBody{Code: "VALIDATION_ERROR", Message: err.Error()}</span>
-        case errors.Is(err, domain.ErrNotFound):<span class="cov1" title="1">
+        case errors.Is(err, domain.ErrNotFound):<span class="cov2" title="2">
                 return http.StatusNotFound, errorBody{Code: "NOT_FOUND", Message: err.Error()}</span>
         case errors.As(err, &amp;tooLarge):<span class="cov2" title="2">
                 return http.StatusRequestEntityTooLarge, errorBody{Code: "PAYLOAD_TOO_LARGE", Message: "Слишком большой запрос"}</span>
@@ -3041,16 +3092,16 @@ func classify(err error) (int, errorBody) <span class="cov6" title="27">{
         }
 }
 
-func (s *Server) fail(w http.ResponseWriter, r *http.Request, err error) <span class="cov6" title="25">{
+func (s *Server) fail(w http.ResponseWriter, r *http.Request, err error) <span class="cov6" title="28">{
         status, body := classify(err)
         if status &gt;= 500 </span><span class="cov3" title="4">{
                 s.log.Error("request failed", "path", r.URL.Path, "error", err.Error())
         }</span>
-        <span class="cov6" title="25">writeJSON(w, status, errorEnvelope{Error: body})</span>
+        <span class="cov6" title="28">writeJSON(w, status, errorEnvelope{Error: body})</span>
 }
 
 // decode читает JSON-тело запроса в структуру.
-func decode(r *http.Request, dst any) error <span class="cov6" title="30">{
+func decode(r *http.Request, dst any) error <span class="cov6" title="35">{
         dec := json.NewDecoder(r.Body)
         if err := dec.Decode(dst); err != nil </span><span class="cov3" title="6">{
                 var tooLarge *http.MaxBytesError
@@ -3059,7 +3110,7 @@ func decode(r *http.Request, dst any) error <span class="cov6" title="30">{
                 }</span>
                 <span class="cov3" title="5">return fmt.Errorf("%w: некорректный JSON в теле запроса", domain.ErrValidation)</span>
         }
-        <span class="cov6" title="24">return nil</span>
+        <span class="cov6" title="29">return nil</span>
 }
 
 func (s *Server) health(w http.ResponseWriter, r *http.Request) <span class="cov2" title="3">{
@@ -3071,17 +3122,58 @@ func (s *Server) health(w http.ResponseWriter, r *http.Request) <span class="cov
         <span class="cov2" title="2">writeJSON(w, status, map[string]any{"status": state, "store": info.Store, "cache": info.Cache})</span>
 }
 
-func (s *Server) workspace(w http.ResponseWriter, r *http.Request, p domain.Principal) <span class="cov6" title="34">{
-        view, err := s.svc.Workspace(r.Context(), p)
+func (s *Server) metrics(w http.ResponseWriter, r *http.Request) <span class="cov1" title="1">{
+        m, ratio, err := s.svc.PrometheusMetrics(r.Context())
+        if err != nil </span><span class="cov0" title="0">{
+                writeError(w, http.StatusInternalServerError, "INTERNAL_ERROR", "Не удалось собрать метрики", nil)
+                return
+        }</span>
+        <span class="cov1" title="1">w.Header().Set("Content-Type", "text/plain; version=0.0.4; charset=utf-8")
+        fmt.Fprintf(w, "# HELP aibuddy_mentor_minutes_saved_total Total mentor minutes saved by AI-Buddy.\n")
+        fmt.Fprintf(w, "# TYPE aibuddy_mentor_minutes_saved_total counter\n")
+        fmt.Fprintf(w, "aibuddy_mentor_minutes_saved_total %d\n\n", m.MentorMinutesSaved)
+
+        fmt.Fprintf(w, "# HELP aibuddy_mcp_calls_total Total MCP tool executions.\n")
+        fmt.Fprintf(w, "# TYPE aibuddy_mcp_calls_total counter\n")
+        fmt.Fprintf(w, "aibuddy_mcp_calls_total %d\n\n", m.ToolCalls)
+
+        fmt.Fprintf(w, "# HELP aibuddy_rbac_denials_total Total security denials enforced by RBAC gateway.\n")
+        fmt.Fprintf(w, "# TYPE aibuddy_rbac_denials_total counter\n")
+        fmt.Fprintf(w, "aibuddy_rbac_denials_total %d\n\n", m.RBACBlocks)
+
+        fmt.Fprintf(w, "# HELP aibuddy_checklist_completed_ratio Ratio of completed checklist items (0.0 to 1.0).\n")
+        fmt.Fprintf(w, "# TYPE aibuddy_checklist_completed_ratio gauge\n")
+        fmt.Fprintf(w, "aibuddy_checklist_completed_ratio %.2f\n", ratio)</span>
+}
+
+func getInternID(r *http.Request, explicit ...string) string <span class="cov7" title="53">{
+        for _, id := range explicit </span><span class="cov5" title="18">{
+                if s := strings.TrimSpace(id); s != "" </span><span class="cov0" title="0">{
+                        return s
+                }</span>
+        }
+        <span class="cov7" title="53">if id := strings.TrimSpace(r.URL.Query().Get("intern_id")); id != "" </span><span class="cov0" title="0">{
+                return id
+        }</span>
+        <span class="cov7" title="53">if id := strings.TrimSpace(r.Header.Get("X-Intern-ID")); id != "" </span><span class="cov0" title="0">{
+                return id
+        }</span>
+        <span class="cov7" title="53">return ""</span>
+}
+
+func (s *Server) workspace(w http.ResponseWriter, r *http.Request, p domain.Principal) <span class="cov6" title="35">{
+        internID := getInternID(r)
+        view, err := s.svc.Workspace(r.Context(), p, internID)
         if err != nil </span><span class="cov1" title="1">{
                 s.fail(w, r, err)
                 return
         }</span>
-        <span class="cov6" title="33">writeJSON(w, http.StatusOK, view)</span>
+        <span class="cov6" title="34">writeJSON(w, http.StatusOK, view)</span>
 }
 
 type chatRequest struct {
-        Message string `json:"message"`
+        Message  string `json:"message"`
+        InternID string `json:"intern_id,omitempty"`
 }
 
 func (s *Server) chat(w http.ResponseWriter, r *http.Request, p domain.Principal) <span class="cov4" title="9">{
@@ -3090,7 +3182,8 @@ func (s *Server) chat(w http.ResponseWriter, r *http.Request, p domain.Principal
                 s.fail(w, r, err)
                 return
         }</span>
-        <span class="cov4" title="7">res, err := s.svc.Chat(r.Context(), p, req.Message, nil)
+        <span class="cov4" title="7">internID := getInternID(r, req.InternID)
+        res, err := s.svc.Chat(r.Context(), p, req.Message, nil, internID)
         if err != nil </span><span class="cov2" title="3">{
                 s.fail(w, r, err)
                 return
@@ -3143,7 +3236,8 @@ func (s *Server) chatStream(w http.ResponseWriter, r *http.Request, p domain.Pri
         w.WriteHeader(http.StatusOK)
         flusher.Flush()
 
-        res, err := s.svc.Chat(r.Context(), p, req.Message, func(st agent.Stage) </span><span class="cov3" title="4">{ sseEvent(w, flusher, "stage", st) }</span>)
+        internID := getInternID(r, req.InternID)
+        res, err := s.svc.Chat(r.Context(), p, req.Message, func(st agent.Stage) </span><span class="cov3" title="4">{ sseEvent(w, flusher, "stage", st) }</span>, internID)
         <span class="cov2" title="3">if err != nil </span><span class="cov2" title="2">{
                 status, body := classify(err)
                 if status &gt;= 500 </span><span class="cov1" title="1">{
@@ -3168,22 +3262,24 @@ type executeRequest struct {
         Tool      string         `json:"tool"`
         Arguments map[string]any `json:"arguments"`
         MessageID string         `json:"message_id"`
+        InternID  string         `json:"intern_id,omitempty"`
 }
 
 // execute — прямое подтверждение интерактивной карточки: вызов MCP-инструмента через RBAC-шлюз.
-func (s *Server) execute(w http.ResponseWriter, r *http.Request, p domain.Principal) <span class="cov4" title="8">{
+func (s *Server) execute(w http.ResponseWriter, r *http.Request, p domain.Principal) <span class="cov4" title="9">{
         var req executeRequest
         if err := decode(r, &amp;req); err != nil </span><span class="cov1" title="1">{
                 s.fail(w, r, err)
                 return
         }</span>
-        <span class="cov4" title="7">res, err := s.svc.Execute(r.Context(), p, req.Tool, req.Arguments, req.MessageID)
+        <span class="cov4" title="8">internID := getInternID(r, req.InternID)
+        res, err := s.svc.Execute(r.Context(), p, req.Tool, req.Arguments, req.MessageID, internID)
         if err != nil </span><span class="cov1" title="1">{
                 s.fail(w, r, err)
                 return
         }</span>
-        <span class="cov3" title="6">call := res.ToolCalls[0]
-        if call.OK() </span><span class="cov1" title="1">{
+        <span class="cov4" title="7">call := res.ToolCalls[0]
+        if call.OK() </span><span class="cov2" title="2">{
                 writeJSON(w, http.StatusOK, res)
                 return
         }</span>
@@ -3199,6 +3295,26 @@ func (s *Server) execute(w http.ResponseWriter, r *http.Request, p domain.Princi
                 status = http.StatusNotFound</span>
         }
         <span class="cov3" title="5">writeJSON(w, status, errorEnvelope{Error: body, Result: res})</span>
+}
+
+type reviewAbsenceRequest struct {
+        ID       string `json:"id"`
+        Decision string `json:"decision"`
+        Comment  string `json:"comment"`
+}
+
+func (s *Server) reviewAbsence(w http.ResponseWriter, r *http.Request, p domain.Principal) <span class="cov3" title="4">{
+        var req reviewAbsenceRequest
+        if err := decode(r, &amp;req); err != nil </span><span class="cov0" title="0">{
+                s.fail(w, r, err)
+                return
+        }</span>
+        <span class="cov3" title="4">updated, err := s.svc.ReviewAbsence(r.Context(), p, req.ID, req.Decision, req.Comment)
+        if err != nil </span><span class="cov2" title="3">{
+                s.fail(w, r, err)
+                return
+        }</span>
+        <span class="cov1" title="1">writeJSON(w, http.StatusOK, updated)</span>
 }
 
 func (s *Server) cron(w http.ResponseWriter, r *http.Request, p domain.Principal) <span class="cov2" title="3">{
@@ -3293,11 +3409,10 @@ import (
         "aibuddy/backend/internal/domain"
 )
 
-// Имена инструментов календаря и согласования отгула.
+// Имена инструментов календаря.
 const (
-        ToolApproveDayOff = "absences.approve_day_off"
-        ToolAddTask       = "calendar.add_task"
-        ToolCompleteItem  = "calendar.complete_item"
+        ToolAddTask      = "calendar.add_task"
+        ToolCompleteItem = "calendar.complete_item"
 )
 
 // Calendar — имитация корпоративного календаря: встречи, дедлайны, задачи адаптации.
@@ -3363,31 +3478,12 @@ func (s *Calendar) CompleteItem(ctx context.Context, c Call) (map[string]any, er
         <span class="cov1" title="1">return toMap(done), nil</span>
 }
 
-// ApproveDayOff согласует заявку на отгул и уведомляет сотрудника.
-func (s *Absences) ApproveDayOff(ctx context.Context, c Call) (map[string]any, error) <span class="cov8" title="6">{
-        number := argString(c.Args, "request_number")
-        all, err := domain.Load[domain.AbsenceRequest](ctx, s.store, domain.KindAbsence, "")
-        if err != nil </span><span class="cov1" title="1">{
-                return nil, err
+// ReviewNotice — короткое уведомление стажёру о решении по отгулу (попадает в ленту напоминаний).
+func ReviewNotice(a domain.AbsenceRequest) (kind, body string) <span class="cov5" title="3">{
+        if a.Status == domain.AbsenceStatusApproved </span><span class="cov3" title="2">{
+                return domain.NotificationAbsenceApproved, fmt.Sprintf("Руководитель согласовал твой отгул %s на %s", a.Number, humanDate(a.Date))
         }</span>
-        <span class="cov7" title="5">for _, a := range all </span><span class="cov7" title="5">{
-                if a.Number != number </span><span class="cov1" title="1">{
-                        continue</span>
-                }
-                <span class="cov6" title="4">if a.Status == domain.AbsenceStatusApproved </span><span class="cov1" title="1">{
-                        return nil, Errorf(CodeInvalidArgs, "заявка %s уже согласована", number)
-                }</span>
-                <span class="cov5" title="3">a.Status = domain.AbsenceStatusApproved
-                if err := domain.Save(ctx, s.store, domain.KindAbsence, a.ID, a.InternID, c.Now, a); err != nil </span><span class="cov1" title="1">{
-                        return nil, err
-                }</span>
-                <span class="cov3" title="2">body := fmt.Sprintf("Руководитель согласовал твой отгул %s на %s", a.Number, humanDate(a.Date))
-                if _, err := s.notifications.Send(ctx, a.InternID, "Отгул согласован", body, domain.NotificationAbsenceApproved, c.Now); err != nil </span><span class="cov1" title="1">{
-                        return nil, err
-                }</span>
-                <span class="cov1" title="1">return map[string]any{"request_number": a.Number, "status": a.Status, "intern_id": a.InternID}, nil</span>
-        }
-        <span class="cov1" title="1">return nil, Errorf(CodeInvalidArgs, "заявка %s не найдена", number)</span>
+        <span class="cov1" title="1">return domain.NotificationAbsenceRejected, fmt.Sprintf("Руководитель отклонил твой отгул %s на %s", a.Number, humanDate(a.Date))</span>
 }
 </pre>
 		
@@ -3432,7 +3528,7 @@ type Error struct {
 func (e *Error) Error() string <span class="cov1" title="1">{ return e.Code + ": " + e.Message }</span>
 
 // Errorf создаёт бизнес-ошибку инструмента.
-func Errorf(code, format string, args ...any) *Error <span class="cov4" title="13">{
+func Errorf(code, format string, args ...any) *Error <span class="cov4" title="11">{
         return &amp;Error{Code: code, Message: fmt.Sprintf(format, args...)}
 }</span>
 
@@ -3443,6 +3539,7 @@ const (
         CodeInvalidArgs = "INVALID_ARGUMENTS"
         CodeInternal    = "INTERNAL"
         CodeDuplicate   = "DUPLICATE"
+        CodeNotFound    = "NOT_FOUND"
 )
 
 type boundTool struct {
@@ -3459,40 +3556,40 @@ type Registry struct {
 }
 
 // NewRegistry создаёт реестр из спецификации (обработчики привязываются через Bind).
-func NewRegistry(ts spec.ToolsSpec) *Registry <span class="cov6" title="69">{
+func NewRegistry(ts spec.ToolsSpec) *Registry <span class="cov6" title="67">{
         r := &amp;Registry{servers: append([]spec.Server{}, ts.Servers...), tools: map[string]*boundTool{}}
-        for _, t := range ts.Tools </span><span class="cov9" title="700">{
+        for _, t := range ts.Tools </span><span class="cov9" title="678">{
                 r.tools[t.Name] = &amp;boundTool{spec: t}
                 r.order = append(r.order, t.Name)
         }</span>
-        <span class="cov6" title="69">return r</span>
+        <span class="cov6" title="67">return r</span>
 }
 
 // Bind привязывает обработчик к инструменту из спецификации.
-func (r *Registry) Bind(name string, h Handler, attrs AttrResolver) error <span class="cov9" title="693">{
+func (r *Registry) Bind(name string, h Handler, attrs AttrResolver) error <span class="cov9" title="671">{
         t, ok := r.tools[name]
         if !ok </span><span class="cov1" title="1">{
                 return fmt.Errorf("mcp: инструмент %q отсутствует в спецификации", name)
         }</span>
-        <span class="cov9" title="692">if h == nil </span><span class="cov1" title="1">{
+        <span class="cov9" title="670">if h == nil </span><span class="cov1" title="1">{
                 return fmt.Errorf("mcp: пустой обработчик для %q", name)
         }</span>
-        <span class="cov9" title="691">if t.handler != nil </span><span class="cov1" title="2">{
+        <span class="cov9" title="669">if t.handler != nil </span><span class="cov1" title="2">{
                 return fmt.Errorf("mcp: обработчик для %q уже привязан", name)
         }</span>
-        <span class="cov9" title="689">t.handler, t.attrs = h, attrs
+        <span class="cov9" title="667">t.handler, t.attrs = h, attrs
         return nil</span>
 }
 
 // Unbound возвращает инструменты спецификации без обработчика (должно быть пусто).
-func (r *Registry) Unbound() []string <span class="cov6" title="64">{
+func (r *Registry) Unbound() []string <span class="cov6" title="62">{
         var out []string
-        for _, name := range r.order </span><span class="cov10" title="705">{
+        for _, name := range r.order </span><span class="cov10" title="683">{
                 if r.tools[name].handler == nil </span><span class="cov4" title="11">{
                         out = append(out, name)
                 }</span>
         }
-        <span class="cov6" title="64">sort.Strings(out)
+        <span class="cov6" title="62">sort.Strings(out)
         return out</span>
 }
 
@@ -3506,12 +3603,12 @@ func (r *Registry) Tools() []spec.Tool <span class="cov2" title="3">{
 }
 
 // Tool возвращает контракт инструмента.
-func (r *Registry) Tool(name string) (spec.Tool, bool) <span class="cov4" title="9">{
+func (r *Registry) Tool(name string) (spec.Tool, bool) <span class="cov4" title="10">{
         t, ok := r.tools[name]
         if !ok </span><span class="cov1" title="1">{
                 return spec.Tool{}, false
         }</span>
-        <span class="cov3" title="8">return t.spec, true</span>
+        <span class="cov4" title="9">return t.spec, true</span>
 }
 
 // Servers возвращает описания MCP-серверов.
@@ -3525,16 +3622,16 @@ type Telemetry struct {
 }
 
 // NewTelemetry создаёт приёмник событий.
-func NewTelemetry(store domain.Store, clock domain.Clock, ids domain.IDGenerator) *Telemetry <span class="cov6" title="68">{
+func NewTelemetry(store domain.Store, clock domain.Clock, ids domain.IDGenerator) *Telemetry <span class="cov6" title="66">{
         return &amp;Telemetry{store: store, clock: clock, ids: ids}
 }</span>
 
 // Track записывает событие. Запись best-effort: сбой телеметрии не ломает сценарий.
-func (t *Telemetry) Track(ctx context.Context, internID string, actor domain.Principal, kind, name, severity string, payload map[string]any) domain.TelemetryEvent <span class="cov8" title="212">{
+func (t *Telemetry) Track(ctx context.Context, internID string, actor domain.Principal, kind, name, severity string, payload map[string]any) domain.TelemetryEvent <span class="cov8" title="200">{
         if payload == nil </span><span class="cov1" title="1">{
                 payload = map[string]any{}
         }</span>
-        <span class="cov8" title="212">ev := domain.TelemetryEvent{
+        <span class="cov8" title="200">ev := domain.TelemetryEvent{
                 ID: t.ids.NewID("evt"), InternID: internID, ActorID: actor.ID, ActorRole: actor.Role,
                 Kind: kind, Name: name, Severity: severity, Payload: payload, CreatedAt: t.clock.Now(),
         }
@@ -3553,91 +3650,91 @@ type Gateway struct {
 }
 
 // NewGateway создаёт шлюз.
-func NewGateway(reg *Registry, engine *rbac.Engine, tel *Telemetry, store domain.Store, clock domain.Clock, ids domain.IDGenerator) *Gateway <span class="cov6" title="67">{
+func NewGateway(reg *Registry, engine *rbac.Engine, tel *Telemetry, store domain.Store, clock domain.Clock, ids domain.IDGenerator) *Gateway <span class="cov6" title="65">{
         return &amp;Gateway{reg: reg, rbac: engine, tel: tel, store: store, clock: clock, ids: ids}
 }</span>
 
 // Registry возвращает реестр инструментов.
 func (g *Gateway) Registry() *Registry <span class="cov1" title="1">{ return g.reg }</span>
 
-func defaultAttrs(args map[string]any) rbac.Resource <span class="cov6" title="78">{
+func defaultAttrs(args map[string]any) rbac.Resource <span class="cov6" title="72">{
         return rbac.Resource{InternID: argString(args, "intern_id")}
 }</span>
 
 // Execute выполняет вызов инструмента от имени субъекта. Всегда возвращает запись аудита;
 // итог — в полях Status / RBAC / Error.
-func (g *Gateway) Execute(ctx context.Context, p domain.Principal, internID, tool string, args map[string]any) domain.MCPToolCall <span class="cov7" title="102">{
+func (g *Gateway) Execute(ctx context.Context, p domain.Principal, internID, tool string, args map[string]any) domain.MCPToolCall <span class="cov7" title="96">{
         started := time.Now()
         if args == nil </span><span class="cov4" title="9">{
                 args = map[string]any{}
         }</span>
-        <span class="cov7" title="102">call := domain.MCPToolCall{
+        <span class="cov7" title="96">call := domain.MCPToolCall{
                 ID: g.ids.NewID("call"), InternID: internID, ActorID: p.ID, ActorRole: p.Role,
                 Tool: tool, Arguments: args, Result: map[string]any{}, CreatedAt: g.clock.Now(),
         }
-        if i := strings.Index(tool, "."); i &gt; 0 </span><span class="cov7" title="101">{
+        if i := strings.Index(tool, "."); i &gt; 0 </span><span class="cov7" title="95">{
                 call.Server = tool[:i]
         }</span>
 
-        <span class="cov7" title="102">bt, known := g.reg.tools[tool]
+        <span class="cov7" title="96">bt, known := g.reg.tools[tool]
         switch </span>{
         case !known || bt.handler == nil:<span class="cov2" title="3">
                 // Неизвестный инструмент: default deny, обработчика нет.
                 call.RBAC = g.rbac.Check(p, tool, rbac.Resource{})
                 call.Status, call.ErrorCode = domain.ToolError, CodeUnknownTool
                 call.Error = fmt.Sprintf("Инструмент %q не зарегистрирован", tool)</span>
-        default:<span class="cov7" title="99">
+        default:<span class="cov7" title="93">
                 call.Server = bt.spec.Server
                 attrs := defaultAttrs
                 if bt.attrs != nil </span><span class="cov5" title="21">{
                         attrs = bt.attrs
                 }</span>
-                <span class="cov7" title="99">call.RBAC = g.rbac.Check(p, tool, attrs(args))
+                <span class="cov7" title="93">call.RBAC = g.rbac.Check(p, tool, attrs(args))
                 switch </span>{
                 case !call.RBAC.Allowed:<span class="cov5" title="23">
                         call.Status, call.ErrorCode, call.Error = domain.ToolForbidden, CodeForbidden, call.RBAC.Reason</span>
-                default:<span class="cov6" title="76">
-                        if problems := ValidateArgs(bt.spec.InputSchema, args); len(problems) &gt; 0 </span><span class="cov4" title="10">{
+                default:<span class="cov6" title="70">
+                        if problems := ValidateArgs(bt.spec.InputSchema, args); len(problems) &gt; 0 </span><span class="cov4" title="9">{
                                 call.Status, call.ErrorCode = domain.ToolInvalid, CodeInvalidArgs
                                 call.Error = strings.Join(problems, "; ")
                                 break</span>
                         }
-                        <span class="cov6" title="66">result, err := bt.handler(ctx, Call{Principal: p, InternID: internID, Args: args, Now: call.CreatedAt})
+                        <span class="cov6" title="61">result, err := bt.handler(ctx, Call{Principal: p, InternID: internID, Args: args, Now: call.CreatedAt})
                         var toolErr *Error
                         switch </span>{
-                        case err == nil:<span class="cov5" title="28">
+                        case err == nil:<span class="cov5" title="27">
                                 call.Status = domain.ToolSuccess
-                                if result != nil </span><span class="cov5" title="27">{
+                                if result != nil </span><span class="cov5" title="26">{
                                         call.Result = result
                                 }</span>
-                        case errors.As(err, &amp;toolErr):<span class="cov4" title="11">
+                        case errors.As(err, &amp;toolErr):<span class="cov4" title="9">
                                 call.Status, call.ErrorCode, call.Error = domain.ToolError, toolErr.Code, toolErr.Message
-                                if toolErr.Code == CodeInvalidArgs </span><span class="cov4" title="9">{
+                                if toolErr.Code == CodeInvalidArgs </span><span class="cov3" title="7">{
                                         call.Status = domain.ToolInvalid
                                 }</span>
                         case errors.Is(err, domain.ErrValidation):<span class="cov3" title="6">
                                 call.Status, call.ErrorCode, call.Error = domain.ToolInvalid, CodeInvalidArgs, err.Error()</span>
-                        default:<span class="cov5" title="21">
+                        default:<span class="cov5" title="19">
                                 call.Status, call.ErrorCode, call.Error = domain.ToolError, CodeInternal, err.Error()</span>
                         }
                 }
         }
 
-        <span class="cov7" title="102">call.DurationMS = float64(time.Since(started).Microseconds()) / 1000
+        <span class="cov7" title="96">call.DurationMS = float64(time.Since(started).Microseconds()) / 1000
         g.audit(ctx, p, internID, &amp;call)
         return call</span>
 }
 
-func (g *Gateway) audit(ctx context.Context, p domain.Principal, internID string, call *domain.MCPToolCall) <span class="cov7" title="102">{
+func (g *Gateway) audit(ctx context.Context, p domain.Principal, internID string, call *domain.MCPToolCall) <span class="cov7" title="96">{
         if err := domain.Save(ctx, g.store, domain.KindToolCall, call.ID, internID, call.CreatedAt, call); err != nil </span><span class="cov1" title="1">{
                 call.Error = strings.TrimSpace(call.Error + " (аудит не записан: " + err.Error() + ")")
         }</span>
-        <span class="cov7" title="102">v := call.RBAC
+        <span class="cov7" title="96">v := call.RBAC
         rbacSeverity := domain.SeverityInfo
         if !v.Allowed </span><span class="cov5" title="26">{
                 rbacSeverity = domain.SeverityWarn
         }</span>
-        <span class="cov7" title="102">g.tel.Track(ctx, internID, p, domain.EventKindRBAC, "rbac.decision", rbacSeverity, map[string]any{
+        <span class="cov7" title="96">g.tel.Track(ctx, internID, p, domain.EventKindRBAC, "rbac.decision", rbacSeverity, map[string]any{
                 "operation": v.Operation, "role": string(v.Role), "allowed": v.Allowed, "code": v.Code,
                 "policy_id": v.PolicyID, "reason": v.Reason, "constraint": v.Constraint, "tool_call_id": call.ID,
         })
@@ -3647,11 +3744,11 @@ func (g *Gateway) audit(ctx context.Context, p domain.Principal, internID string
                         "reason": v.Reason, "actor": p.Name, "tool_call_id": call.ID, "arguments": call.Arguments,
                 })
         }</span>
-        <span class="cov7" title="102">severity := domain.SeverityInfo
-        if call.Status != domain.ToolSuccess </span><span class="cov6" title="74">{
+        <span class="cov7" title="96">severity := domain.SeverityInfo
+        if call.Status != domain.ToolSuccess </span><span class="cov6" title="69">{
                 severity = domain.SeverityWarn
         }</span>
-        <span class="cov7" title="102">g.tel.Track(ctx, internID, p, domain.EventKindMCP, "mcp.call", severity, map[string]any{
+        <span class="cov7" title="96">g.tel.Track(ctx, internID, p, domain.EventKindMCP, "mcp.call", severity, map[string]any{
                 "tool": call.Tool, "server": call.Server, "status": string(call.Status),
                 "error_code": call.ErrorCode, "duration_ms": call.DurationMS, "tool_call_id": call.ID,
         })</span>
@@ -3793,11 +3890,11 @@ import (
 // ValidateArgs проверяет аргументы по JSON Schema из спецификации инструмента.
 // Поддерживается подмножество, достаточное для контрактов /specs: type, required,
 // properties, additionalProperties, enum, pattern, minLength, maxLength, minimum, maximum, items.
-func ValidateArgs(schema map[string]any, args map[string]any) []string <span class="cov7" title="101">{
+func ValidateArgs(schema map[string]any, args map[string]any) []string <span class="cov7" title="95">{
         if args == nil </span><span class="cov1" title="1">{
                 args = map[string]any{}
         }</span>
-        <span class="cov7" title="101">var errs []string
+        <span class="cov7" title="95">var errs []string
         validateValue("", schema, args, &amp;errs)
         sort.Strings(errs)
         return errs</span>
@@ -3808,27 +3905,27 @@ var (
         patternCache = map[string]*regexp.Regexp{}
 )
 
-func compile(pattern string) (*regexp.Regexp, error) <span class="cov7" title="106">{
+func compile(pattern string) (*regexp.Regexp, error) <span class="cov7" title="93">{
         patternMu.Lock()
         defer patternMu.Unlock()
-        if re, ok := patternCache[pattern]; ok </span><span class="cov7" title="100">{
+        if re, ok := patternCache[pattern]; ok </span><span class="cov7" title="88">{
                 return re, nil
         }</span>
-        <span class="cov3" title="6">re, err := regexp.Compile(pattern)
+        <span class="cov3" title="5">re, err := regexp.Compile(pattern)
         if err != nil </span><span class="cov1" title="1">{
                 return nil, err
         }</span>
-        <span class="cov3" title="5">patternCache[pattern] = re
+        <span class="cov2" title="4">patternCache[pattern] = re
         return re, nil</span>
 }
 
-func toFloat(v any) (float64, bool) <span class="cov10" title="661">{
+func toFloat(v any) (float64, bool) <span class="cov10" title="633">{
         switch n := v.(type) </span>{
         case float64:<span class="cov2" title="3">
                 return n, true</span>
         case float32:<span class="cov1" title="1">
                 return float64(n), true</span>
-        case int:<span class="cov8" title="264">
+        case int:<span class="cov8" title="262">
                 return float64(n), true</span>
         case int64:<span class="cov1" title="1">
                 return float64(n), true</span>
@@ -3836,45 +3933,45 @@ func toFloat(v any) (float64, bool) <span class="cov10" title="661">{
                 f, err := n.Float64()
                 return f, err == nil</span>
         }
-        <span class="cov9" title="391">return 0, false</span>
+        <span class="cov9" title="365">return 0, false</span>
 }
 
-func fieldName(path string) string <span class="cov5" title="24">{
+func fieldName(path string) string <span class="cov5" title="23">{
         if path == "" </span><span class="cov0" title="0">{
                 return "аргументы"
         }</span>
-        <span class="cov5" title="24">return path</span>
+        <span class="cov5" title="23">return path</span>
 }
 
-func join(path, key string) string <span class="cov8" title="316">{
-        if path == "" </span><span class="cov8" title="314">{
+func join(path, key string) string <span class="cov8" title="304">{
+        if path == "" </span><span class="cov8" title="302">{
                 return key
         }</span>
         <span class="cov1" title="2">return path + "." + key</span>
 }
 
-func validateValue(path string, schema map[string]any, value any, errs *[]string) <span class="cov9" title="457">{
+func validateValue(path string, schema map[string]any, value any, errs *[]string) <span class="cov9" title="435">{
         if schema == nil </span><span class="cov1" title="1">{
                 return
         }</span>
-        <span class="cov9" title="456">typ, _ := schema["type"].(string)
+        <span class="cov9" title="434">typ, _ := schema["type"].(string)
         switch typ </span>{
-        case "object":<span class="cov7" title="103">
+        case "object":<span class="cov7" title="97">
                 obj, ok := value.(map[string]any)
                 if !ok </span><span class="cov1" title="1">{
                         *errs = append(*errs, fmt.Sprintf("%s: ожидается объект", fieldName(path)))
                         return
                 }</span>
-                <span class="cov7" title="102">props, _ := schema["properties"].(map[string]any)
-                if required, ok := schema["required"].([]any); ok </span><span class="cov7" title="93">{
-                        for _, r := range required </span><span class="cov8" title="212">{
+                <span class="cov7" title="96">props, _ := schema["properties"].(map[string]any)
+                if required, ok := schema["required"].([]any); ok </span><span class="cov7" title="87">{
+                        for _, r := range required </span><span class="cov8" title="205">{
                                 name, _ := r.(string)
                                 if v, present := obj[name]; !present || v == nil </span><span class="cov3" title="5">{
                                         *errs = append(*errs, fmt.Sprintf("%s: обязательное поле", join(path, name)))
                                 }</span>
                         }
                 }
-                <span class="cov7" title="102">for key, v := range obj </span><span class="cov8" title="313">{
+                <span class="cov7" title="96">for key, v := range obj </span><span class="cov8" title="301">{
                         sub, known := props[key].(map[string]any)
                         if !known </span><span class="cov1" title="1">{
                                 if extra, ok := schema["additionalProperties"].(bool); ok &amp;&amp; !extra </span><span class="cov1" title="1">{
@@ -3882,33 +3979,33 @@ func validateValue(path string, schema map[string]any, value any, errs *[]string
                                 }</span>
                                 <span class="cov1" title="1">continue</span>
                         }
-                        <span class="cov8" title="312">if v == nil </span><span class="cov1" title="2">{
+                        <span class="cov8" title="300">if v == nil </span><span class="cov1" title="2">{
                                 continue</span>
                         }
-                        <span class="cov8" title="310">validateValue(join(path, key), sub, v, errs)</span>
+                        <span class="cov8" title="298">validateValue(join(path, key), sub, v, errs)</span>
                 }
-        case "string":<span class="cov8" title="293">
+        case "string":<span class="cov8" title="279">
                 s, ok := value.(string)
                 if !ok </span><span class="cov1" title="1">{
                         *errs = append(*errs, fmt.Sprintf("%s: ожидается строка", fieldName(path)))
                         return
                 }</span>
-                <span class="cov8" title="292">n := float64(len([]rune(s)))
+                <span class="cov8" title="278">n := float64(len([]rune(s)))
                 if min, ok := toFloat(schema["minLength"]); ok &amp;&amp; n &lt; min </span><span class="cov3" title="5">{
                         *errs = append(*errs, fmt.Sprintf("%s: минимум %d симв.", fieldName(path), int(min)))
                 }</span>
-                <span class="cov8" title="292">if max, ok := toFloat(schema["maxLength"]); ok &amp;&amp; n &gt; max </span><span class="cov1" title="2">{
+                <span class="cov8" title="278">if max, ok := toFloat(schema["maxLength"]); ok &amp;&amp; n &gt; max </span><span class="cov1" title="2">{
                         *errs = append(*errs, fmt.Sprintf("%s: максимум %d симв.", fieldName(path), int(max)))
                 }</span>
-                <span class="cov8" title="292">if pattern, ok := schema["pattern"].(string); ok </span><span class="cov7" title="106">{
+                <span class="cov8" title="278">if pattern, ok := schema["pattern"].(string); ok </span><span class="cov7" title="93">{
                         re, err := compile(pattern)
                         if err != nil </span><span class="cov1" title="1">{
                                 *errs = append(*errs, fmt.Sprintf("%s: некорректный pattern в спецификации", fieldName(path)))
-                        }</span> else<span class="cov7" title="105"> if !re.MatchString(s) </span><span class="cov2" title="4">{
+                        }</span> else<span class="cov7" title="92"> if !re.MatchString(s) </span><span class="cov2" title="3">{
                                 *errs = append(*errs, fmt.Sprintf("%s: значение %q не соответствует формату", fieldName(path), s))
                         }</span>
                 }
-                <span class="cov8" title="292">checkEnum(path, schema, s, errs)</span>
+                <span class="cov8" title="278">checkEnum(path, schema, s, errs)</span>
         case "integer", "number":<span class="cov5" title="25">
                 f, ok := toFloat(value)
                 if !ok </span><span class="cov1" title="1">{
@@ -3928,10 +4025,10 @@ func validateValue(path string, schema map[string]any, value any, errs *[]string
                 if _, ok := value.(bool); !ok </span><span class="cov1" title="1">{
                         *errs = append(*errs, fmt.Sprintf("%s: ожидается true/false", fieldName(path)))
                 }</span>
-        case "array":<span class="cov5" title="32">
+        case "array":<span class="cov5" title="30">
                 var list []any
                 switch v := value.(type) </span>{
-                case []any:<span class="cov5" title="30">
+                case []any:<span class="cov5" title="28">
                         list = v</span>
                 case []string:<span class="cov1" title="1">
                         for _, s := range v </span><span class="cov1" title="1">{
@@ -3941,21 +4038,21 @@ func validateValue(path string, schema map[string]any, value any, errs *[]string
                         *errs = append(*errs, fmt.Sprintf("%s: ожидается массив", fieldName(path)))
                         return</span>
                 }
-                <span class="cov5" title="31">if items, ok := schema["items"].(map[string]any); ok </span><span class="cov5" title="31">{
-                        for i, it := range list </span><span class="cov6" title="46">{
+                <span class="cov5" title="29">if items, ok := schema["items"].(map[string]any); ok </span><span class="cov5" title="29">{
+                        for i, it := range list </span><span class="cov6" title="42">{
                                 validateValue(fmt.Sprintf("%s[%d]", path, i), items, it, errs)
                         }</span>
                 }
         }
 }
 
-func checkEnum(path string, schema map[string]any, s string, errs *[]string) <span class="cov8" title="292">{
+func checkEnum(path string, schema map[string]any, s string, errs *[]string) <span class="cov8" title="278">{
         enum, ok := schema["enum"].([]any)
-        if !ok </span><span class="cov8" title="251">{
+        if !ok </span><span class="cov8" title="238">{
                 return
         }</span>
-        <span class="cov6" title="41">for _, e := range enum </span><span class="cov6" title="68">{
-                if es, _ := e.(string); es == s </span><span class="cov6" title="37">{
+        <span class="cov6" title="40">for _, e := range enum </span><span class="cov6" title="66">{
+                if es, _ := e.(string); es == s </span><span class="cov5" title="36">{
                         return
                 }</span>
         }
@@ -3963,24 +4060,24 @@ func checkEnum(path string, schema map[string]any, s string, errs *[]string) <sp
 }
 
 // argString достаёт строковый аргумент.
-func argString(args map[string]any, key string) string <span class="cov8" title="309">{
+func argString(args map[string]any, key string) string <span class="cov8" title="296">{
         s, _ := args[key].(string)
         return s
 }</span>
 
 // argStrings достаёт массив строк.
-func argStrings(args map[string]any, key string) []string <span class="cov5" title="26">{
+func argStrings(args map[string]any, key string) []string <span class="cov5" title="24">{
         switch v := args[key].(type) </span>{
         case []string:<span class="cov1" title="1">
                 return append([]string{}, v...)</span>
-        case []any:<span class="cov5" title="18">
+        case []any:<span class="cov4" title="16">
                 out := make([]string, 0, len(v))
-                for _, it := range v </span><span class="cov5" title="32">{
-                        if s, ok := it.(string); ok </span><span class="cov5" title="31">{
+                for _, it := range v </span><span class="cov5" title="28">{
+                        if s, ok := it.(string); ok </span><span class="cov5" title="27">{
                                 out = append(out, s)
                         }</span>
                 }
-                <span class="cov5" title="18">return out</span>
+                <span class="cov4" title="16">return out</span>
         }
         <span class="cov3" title="7">return nil</span>
 }
@@ -3994,16 +4091,16 @@ func argInt(args map[string]any, key string, def int) int <span class="cov2" tit
 }
 
 // toMap превращает структуру в map через JSON (результат инструмента).
-func toMap(v any) map[string]any <span class="cov5" title="30">{
+func toMap(v any) map[string]any <span class="cov6" title="45">{
         raw, err := json.Marshal(v)
         if err != nil </span><span class="cov1" title="1">{
                 return map[string]any{}
         }</span>
-        <span class="cov5" title="29">out := map[string]any{}
+        <span class="cov6" title="44">out := map[string]any{}
         if err := json.Unmarshal(raw, &amp;out); err != nil </span><span class="cov1" title="1">{
                 return map[string]any{}
         }</span>
-        <span class="cov5" title="28">return out</span>
+        <span class="cov6" title="43">return out</span>
 }
 </pre>
 		
@@ -4030,6 +4127,7 @@ const (
         ToolExportProdPII     = "db_admin.export_prod_pii"
         ToolSearchDocs        = "playbook.search_docs"
         ToolCreateDayOff      = "absences.create_day_off"
+        ToolReviewDayOff      = "absences.review_day_off"
         ToolSendBrief         = "mentor.send_1on1_brief"
         ToolSendNotification  = "notifications.send"
         ToolTaskActivity      = "tracker.get_task_activity"
@@ -4059,7 +4157,7 @@ type Services struct {
 }
 
 // NewServices создаёт имитации сервисов.
-func NewServices(d Deps) *Services <span class="cov6" title="61">{
+func NewServices(d Deps) *Services <span class="cov6" title="59">{
         notifications := &amp;Notifications{store: d.Store, ids: d.IDs}
         return &amp;Services{
                 IAM:           &amp;IAM{store: d.Store, ids: d.IDs, repos: d.Seed.Repositories},
@@ -4075,7 +4173,7 @@ func NewServices(d Deps) *Services <span class="cov6" title="61">{
 }</span>
 
 // BindAll привязывает обработчики всех сервисов к реестру.
-func (s *Services) BindAll(r *Registry) error <span class="cov6" title="63">{
+func (s *Services) BindAll(r *Registry) error <span class="cov6" title="61">{
         bindings := []struct {
                 name    string
                 handler Handler
@@ -4085,31 +4183,31 @@ func (s *Services) BindAll(r *Registry) error <span class="cov6" title="63">{
                 {ToolExportProdPII, s.DBAdmin.ExportProdPII, nil},
                 {ToolSearchDocs, s.Playbook.SearchTool, nil},
                 {ToolCreateDayOff, s.Absences.CreateDayOff, nil},
+                {ToolReviewDayOff, s.Absences.ReviewDayOff, nil},
                 {ToolSendBrief, s.Mentor.SendBrief, nil},
                 {ToolSendNotification, s.Notifications.SendTool, nil},
                 {ToolTaskActivity, s.Tracker.TaskActivity, nil},
                 {ToolListFlags, s.Flags.ListTool, nil},
-                {ToolApproveDayOff, s.Absences.ApproveDayOff, nil},
                 {ToolAddTask, s.Calendar.AddTask, nil},
                 {ToolCompleteItem, s.Calendar.CompleteItem, nil},
         }
-        for _, b := range bindings </span><span class="cov10" title="683">{
+        for _, b := range bindings </span><span class="cov10" title="661">{
                 if err := r.Bind(b.name, b.handler, b.attrs); err != nil </span><span class="cov1" title="1">{
                         return err
                 }</span>
         }
-        <span class="cov6" title="62">if missing := r.Unbound(); len(missing) &gt; 0 </span><span class="cov1" title="1">{
+        <span class="cov6" title="60">if missing := r.Unbound(); len(missing) &gt; 0 </span><span class="cov1" title="1">{
                 return fmt.Errorf("mcp: в спецификации есть инструменты без обработчика: %s", strings.Join(missing, ", "))
         }</span>
-        <span class="cov6" title="61">return nil</span>
+        <span class="cov6" title="59">return nil</span>
 }
 
-func loadIntern(ctx context.Context, store domain.Store, internID string) (domain.InternProfile, error) <span class="cov6" title="38">{
+func loadIntern(ctx context.Context, store domain.Store, internID string) (domain.InternProfile, error) <span class="cov5" title="36">{
         p, err := domain.LoadOne[domain.InternProfile](ctx, store, domain.KindIntern, internID)
         if errors.Is(err, domain.ErrNotFound) </span><span class="cov1" title="2">{
                 return p, Errorf(CodeInvalidArgs, "сотрудник %q не найден", internID)
         }</span>
-        <span class="cov5" title="36">return p, err</span>
+        <span class="cov5" title="34">return p, err</span>
 }
 
 // ---------- IAM / Доступы ----------
@@ -4221,8 +4319,8 @@ func (s *Playbook) Search(role domain.Role, team, query string, topics []string,
         }
         var hits []scored
         top := 0
-        for _, d := range s.docs </span><span class="cov7" title="96">{
-                if !d.VisibleTo(role, team) || (len(topics) &gt; 0 &amp;&amp; !intersects(topics, d.Topics)) </span><span class="cov6" title="44">{
+        for _, d := range s.docs </span><span class="cov7" title="120">{
+                if !d.VisibleTo(role, team) || (len(topics) &gt; 0 &amp;&amp; !intersects(topics, d.Topics)) </span><span class="cov6" title="68">{
                         continue</span>
                 }
                 <span class="cov6" title="52">score := 0
@@ -4262,19 +4360,19 @@ func intersects(a, b []string) bool <span class="cov5" title="35">{
 }
 
 // VisibleCount — число документов, доступных роли и команде.
-func (s *Playbook) VisibleCount(role domain.Role, team string) int <span class="cov1" title="2">{
+func (s *Playbook) VisibleCount(role domain.Role, team string) int <span class="cov2" title="3">{
         n := 0
-        for _, d := range s.docs </span><span class="cov4" title="16">{
-                if d.VisibleTo(role, team) </span><span class="cov4" title="15">{
+        for _, d := range s.docs </span><span class="cov5" title="30">{
+                if d.VisibleTo(role, team) </span><span class="cov4" title="17">{
                         n++
                 }</span>
         }
-        <span class="cov1" title="2">return n</span>
+        <span class="cov2" title="3">return n</span>
 }
 
 // Doc возвращает документ по идентификатору.
 func (s *Playbook) Doc(id string) (domain.KnowledgeDoc, bool) <span class="cov1" title="2">{
-        for _, d := range s.docs </span><span class="cov4" title="11">{
+        for _, d := range s.docs </span><span class="cov4" title="13">{
                 if d.ID == id </span><span class="cov1" title="1">{
                         return d, true
                 }</span>
@@ -4327,15 +4425,15 @@ type Notifications struct {
 }
 
 // Send сохраняет уведомление получателю.
-func (s *Notifications) Send(ctx context.Context, recipientID, title, body, kind string, now time.Time) (domain.Notification, error) <span class="cov5" title="25">{
+func (s *Notifications) Send(ctx context.Context, recipientID, title, body, kind string, now time.Time) (domain.Notification, error) <span class="cov5" title="22">{
         if kind == "" </span><span class="cov1" title="1">{
                 kind = "info"
         }</span>
-        <span class="cov5" title="25">n := domain.Notification{ID: s.ids.NewID("ntf"), RecipientID: recipientID, Title: title, Body: body, Kind: kind, CreatedAt: now}
+        <span class="cov5" title="22">n := domain.Notification{ID: s.ids.NewID("ntf"), RecipientID: recipientID, Title: title, Body: body, Kind: kind, CreatedAt: now}
         if err := domain.Save(ctx, s.store, domain.KindNotification, n.ID, recipientID, now, n); err != nil </span><span class="cov3" title="5">{
                 return n, err
         }</span>
-        <span class="cov5" title="20">return n, nil</span>
+        <span class="cov4" title="17">return n, nil</span>
 }
 
 // SendTool — обработчик notifications.send.
@@ -4356,22 +4454,22 @@ type Absences struct {
         notifications *Notifications
 }
 
-func humanDate(date string) string <span class="cov4" title="14">{
+func humanDate(date string) string <span class="cov4" title="13">{
         t, err := time.Parse("2006-01-02", date)
         if err != nil </span><span class="cov1" title="1">{
                 return date
         }</span>
-        <span class="cov4" title="13">return t.Format("02.01.2006")</span>
+        <span class="cov4" title="12">return t.Format("02.01.2006")</span>
 }
 
 // CreateDayOff создаёт заявку на отгул, уведомляет наставника и руководителя.
-func (s *Absences) CreateDayOff(ctx context.Context, c Call) (map[string]any, error) <span class="cov4" title="14">{
+func (s *Absences) CreateDayOff(ctx context.Context, c Call) (map[string]any, error) <span class="cov4" title="12">{
         internID := argString(c.Args, "intern_id")
         intern, err := loadIntern(ctx, s.store, internID)
         if err != nil </span><span class="cov1" title="1">{
                 return nil, err
         }</span>
-        <span class="cov4" title="13">req := domain.AbsenceRequest{
+        <span class="cov4" title="11">req := domain.AbsenceRequest{
                 ID: s.ids.NewID("abs"), InternID: internID, InternName: intern.Name,
                 Date: argString(c.Args, "date"), TimeFrom: argString(c.Args, "time_from"), TimeTo: argString(c.Args, "time_to"),
                 Reason: strings.TrimSpace(argString(c.Args, "reason")), Status: domain.AbsenceStatusPending,
@@ -4380,60 +4478,105 @@ func (s *Absences) CreateDayOff(ctx context.Context, c Call) (map[string]any, er
         if err := req.Validate(c.Now); err != nil </span><span class="cov1" title="2">{
                 return nil, err
         }</span>
-        <span class="cov4" title="11">all, err := domain.Load[domain.AbsenceRequest](ctx, s.store, domain.KindAbsence, "")
+        <span class="cov4" title="9">all, err := domain.Load[domain.AbsenceRequest](ctx, s.store, domain.KindAbsence, "")
         if err != nil </span><span class="cov1" title="1">{
                 return nil, err
         }</span>
-        <span class="cov4" title="10">for _, a := range all </span><span class="cov1" title="2">{
+        <span class="cov3" title="8">for _, a := range all </span><span class="cov1" title="2">{
                 if a.InternID == internID &amp;&amp; a.Date == req.Date </span><span class="cov1" title="1">{
                         return nil, Errorf(CodeDuplicate, "заявка на %s уже оформлена: %s", humanDate(req.Date), a.Number)
                 }</span>
         }
-        <span class="cov4" title="9">year := c.Now.Year()
-        if t, err := time.Parse("2006-01-02", req.Date); err == nil </span><span class="cov4" title="9">{
+        <span class="cov3" title="7">year := c.Now.Year()
+        if t, err := time.Parse("2006-01-02", req.Date); err == nil </span><span class="cov3" title="7">{
                 year = t.Year()
         }</span>
-        <span class="cov4" title="9">req.Number = domain.AbsenceNumber(year, len(all))
+        <span class="cov3" title="7">req.Number = domain.AbsenceNumber(year, len(all))
 
         notify := argStrings(c.Args, "notify")
         if len(notify) == 0 </span><span class="cov1" title="1">{
                 notify = []string{"mentor", "team_lead"}
         }</span>
-        <span class="cov4" title="9">when := humanDate(req.Date)
-        if req.TimeFrom != "" </span><span class="cov3" title="7">{
+        <span class="cov3" title="7">when := humanDate(req.Date)
+        if req.TimeFrom != "" </span><span class="cov3" title="5">{
                 when += fmt.Sprintf(", %s–%s", req.TimeFrom, req.TimeTo)
         }</span>
-        <span class="cov4" title="9">recipients := map[string]struct{ id, name, note string }{
+        <span class="cov3" title="7">recipients := map[string]struct{ id, name, note string }{
                 "mentor":    {intern.MentorID, intern.MentorName, "К сведению: учти при планировании встреч и ревью."},
                 "team_lead": {intern.TeamLeadID, intern.TeamLeadName, "Заявка ожидает согласования в сервисе «Отсутствия»."},
         }
-        for _, key := range notify </span><span class="cov4" title="16">{
+        for _, key := range notify </span><span class="cov4" title="12">{
                 r, ok := recipients[key]
                 if !ok || r.id == "" </span><span class="cov0" title="0">{
                         continue</span>
                 }
-                <span class="cov4" title="16">body := fmt.Sprintf("%s оформил(а) отгул на %s. Причина: %s. Заявка %s. %s", intern.Name, when, req.Reason, req.Number, r.note)
+                <span class="cov4" title="12">body := fmt.Sprintf("%s оформил(а) отгул на %s. Причина: %s. Заявка %s. %s", intern.Name, when, req.Reason, req.Number, r.note)
                 if _, err := s.notifications.Send(ctx, r.id, "Отгул: "+intern.Name, body, "absence", c.Now); err != nil </span><span class="cov1" title="1">{
                         return nil, err
                 }</span>
-                <span class="cov4" title="15">req.Notified = append(req.Notified, r.name)</span>
+                <span class="cov4" title="11">req.Notified = append(req.Notified, r.name)</span>
         }
-        <span class="cov3" title="8">if err := domain.Save(ctx, s.store, domain.KindAbsence, req.ID, internID, c.Now, req); err != nil </span><span class="cov1" title="1">{
+        <span class="cov3" title="6">if err := domain.Save(ctx, s.store, domain.KindAbsence, req.ID, internID, c.Now, req); err != nil </span><span class="cov1" title="1">{
                 return nil, err
         }</span>
-        <span class="cov3" title="7">return map[string]any{
+        <span class="cov3" title="5">return map[string]any{
                 "request_id": req.ID, "request_number": req.Number, "status": req.Status, "date": req.Date,
                 "time_from": req.TimeFrom, "time_to": req.TimeTo, "reason": req.Reason,
                 "notified": toAny(req.Notified), "is_synthetic": true,
         }, nil</span>
 }
 
-func toAny(in []string) []any <span class="cov3" title="7">{
+// ReviewDayOff согласовывает или отклоняет заявку на отгул руководителем.
+func (s *Absences) ReviewDayOff(ctx context.Context, c Call) (map[string]any, error) <span class="cov2" title="3">{
+        id := argString(c.Args, "id")
+        decision := strings.TrimSpace(argString(c.Args, "decision"))
+        comment := strings.TrimSpace(argString(c.Args, "comment"))
+        if decision != domain.AbsenceStatusApproved &amp;&amp; decision != domain.AbsenceStatusRejected </span><span class="cov0" title="0">{
+                return nil, Errorf(CodeInvalidArgs, "некорректное решение %q: ожидается approved или rejected", decision)
+        }</span>
+        <span class="cov2" title="3">all, err := domain.Load[domain.AbsenceRequest](ctx, s.store, domain.KindAbsence, "")
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov2" title="3">var target *domain.AbsenceRequest
+        for i := range all </span><span class="cov2" title="3">{
+                if all[i].ID == id || all[i].Number == id </span><span class="cov2" title="3">{
+                        target = &amp;all[i]
+                        break</span>
+                }
+        }
+        <span class="cov2" title="3">if target == nil </span><span class="cov0" title="0">{
+                return nil, Errorf(CodeNotFound, "заявка на отгул %q не найдена", id)
+        }</span>
+        <span class="cov2" title="3">target.Status = decision
+        target.Decision = decision
+        target.Comment = comment
+        target.ReviewerID = c.Principal.ID
+        t := c.Now
+        target.ReviewedAt = &amp;t
+        if err := domain.Save(ctx, s.store, domain.KindAbsence, target.ID, target.InternID, target.CreatedAt, *target); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov2" title="3">kind, body := ReviewNotice(*target)
+        if _, err := s.notifications.Send(ctx, target.InternID, "Решение по отгулу", body, kind, c.Now); err != nil </span><span class="cov1" title="1">{
+                return nil, err
+        }</span>
+        <span class="cov1" title="2">return map[string]any{
+                "id":             target.ID,
+                "request_number": target.Number,
+                "status":         target.Status,
+                "decision":       target.Decision,
+                "comment":        target.Comment,
+                "is_synthetic":   true,
+        }, nil</span>
+}
+
+func toAny(in []string) []any <span class="cov3" title="5">{
         out := make([]any, 0, len(in))
-        for _, s := range in </span><span class="cov4" title="13">{
+        for _, s := range in </span><span class="cov4" title="9">{
                 out = append(out, s)
         }</span>
-        <span class="cov3" title="7">return out</span>
+        <span class="cov3" title="5">return out</span>
 }
 
 // ---------- Наставничество ----------
@@ -4519,27 +4662,27 @@ const (
 )
 
 // NewFlags создаёт сервис флагов.
-func NewFlags(cache domain.Cache, defaults []domain.FeatureFlag) *Flags <span class="cov6" title="62">{
+func NewFlags(cache domain.Cache, defaults []domain.FeatureFlag) *Flags <span class="cov6" title="60">{
         return &amp;Flags{cache: cache, defaults: append([]domain.FeatureFlag{}, defaults...)}
 }</span>
 
 // List возвращает флаги с учётом runtime-переопределений. Сбой кэша → значения по умолчанию.
 func (f *Flags) List(ctx context.Context) []domain.FeatureFlag <span class="cov4" title="11">{
         out := make([]domain.FeatureFlag, 0, len(f.defaults))
-        for _, flag := range f.defaults </span><span class="cov6" title="55">{
-                if flag.Kind == domain.FlagRuntime </span><span class="cov5" title="33">{
-                        if v, ok, err := f.cache.Get(ctx, flagCachePrefix+flag.Key); err == nil &amp;&amp; ok </span><span class="cov1" title="1">{
+        for _, flag := range f.defaults </span><span class="cov7" title="110">{
+                if flag.Kind == domain.FlagRuntime </span><span class="cov6" title="66">{
+                        if v, ok, err := f.cache.Get(ctx, flagCachePrefix+flag.Key); err == nil &amp;&amp; ok </span><span class="cov1" title="2">{
                                 flag.Enabled = v == "1"
                         }</span>
                 }
-                <span class="cov6" title="55">out = append(out, flag)</span>
+                <span class="cov7" title="110">out = append(out, flag)</span>
         }
         <span class="cov4" title="11">return out</span>
 }
 
 // Enabled сообщает, включён ли флаг (неизвестный флаг выключен).
 func (f *Flags) Enabled(ctx context.Context, key string) bool <span class="cov3" title="7">{
-        for _, flag := range f.List(ctx) </span><span class="cov4" title="15">{
+        for _, flag := range f.List(ctx) </span><span class="cov6" title="38">{
                 if flag.Key == key </span><span class="cov3" title="6">{
                         return flag.Enabled
                 }</span>
@@ -4549,8 +4692,8 @@ func (f *Flags) Enabled(ctx context.Context, key string) bool <span class="cov3"
 
 // Set переключает runtime-флаг.
 func (f *Flags) Set(ctx context.Context, key string, enabled bool) (domain.FeatureFlag, error) <span class="cov3" title="6">{
-        for _, flag := range f.defaults </span><span class="cov4" title="14">{
-                if flag.Key != key </span><span class="cov4" title="9">{
+        for _, flag := range f.defaults </span><span class="cov6" title="37">{
+                if flag.Key != key </span><span class="cov5" title="32">{
                         continue</span>
                 }
                 <span class="cov3" title="5">if flag.Kind != domain.FlagRuntime </span><span class="cov1" title="1">{
@@ -4563,6 +4706,11 @@ func (f *Flags) Set(ctx context.Context, key string, enabled bool) (domain.Featu
                 <span class="cov2" title="4">if err := f.cache.Set(ctx, flagCachePrefix+key, value, 0); err != nil </span><span class="cov1" title="1">{
                         return flag, err
                 }</span>
+                <span class="cov2" title="3">if key == "ai_buddy.proactive_cron" </span><span class="cov1" title="2">{
+                        _ = f.cache.Set(ctx, flagCachePrefix+"proactive_ai_cron", value, 0)
+                }</span> else<span class="cov1" title="1"> if key == "proactive_ai_cron" </span><span class="cov0" title="0">{
+                        _ = f.cache.Set(ctx, flagCachePrefix+"ai_buddy.proactive_cron", value, 0)
+                }</span>
                 <span class="cov2" title="3">flag.Enabled = enabled
                 return flag, nil</span>
         }
@@ -4572,7 +4720,7 @@ func (f *Flags) Set(ctx context.Context, key string, enabled bool) (domain.Featu
 // Reset сбрасывает runtime-переопределения.
 func (f *Flags) Reset(ctx context.Context) error <span class="cov1" title="2">{
         keys := make([]string, 0, len(f.defaults))
-        for _, flag := range f.defaults </span><span class="cov4" title="10">{
+        for _, flag := range f.defaults </span><span class="cov5" title="20">{
                 keys = append(keys, flagCachePrefix+flag.Key)
         }</span>
         <span class="cov1" title="2">return f.cache.Del(ctx, keys...)</span>
@@ -4582,7 +4730,7 @@ func (f *Flags) Reset(ctx context.Context) error <span class="cov1" title="2">{
 func (f *Flags) ListTool(ctx context.Context, _ Call) (map[string]any, error) <span class="cov2" title="3">{
         flags := f.List(ctx)
         list := make([]any, 0, len(flags))
-        for _, flag := range flags </span><span class="cov4" title="15">{
+        for _, flag := range flags </span><span class="cov5" title="30">{
                 list = append(list, toMap(flag))
         }</span>
         <span class="cov2" title="3">return map[string]any{"flags": list}, nil</span>
@@ -4635,25 +4783,25 @@ func New(s spec.RBACSpec) *Engine <span class="cov3" title="5">{
                 e.roles[r.ID] = r
                 e.roleOrder = append(e.roleOrder, r)
         }</span>
-        <span class="cov3" title="5">for _, p := range s.Policies </span><span class="cov8" title="102">{
-                if _, seen := e.policies[p.Operation]; !seen </span><span class="cov8" title="88">{
+        <span class="cov3" title="5">for _, p := range s.Policies </span><span class="cov8" title="106">{
+                if _, seen := e.policies[p.Operation]; !seen </span><span class="cov8" title="92">{
                         e.operations = append(e.operations, p.Operation)
                 }</span>
-                <span class="cov8" title="102">e.policies[p.Operation] = append(e.policies[p.Operation], p)</span>
+                <span class="cov8" title="106">e.policies[p.Operation] = append(e.policies[p.Operation], p)</span>
         }
         <span class="cov3" title="5">return e</span>
 }
 
-func appliesTo(p spec.Policy, role domain.Role) bool <span class="cov9" title="151">{
-        for _, r := range p.Roles </span><span class="cov10" title="226">{
-                if r == wildcard || r == string(role) </span><span class="cov8" title="85">{
+func appliesTo(p spec.Policy, role domain.Role) bool <span class="cov9" title="159">{
+        for _, r := range p.Roles </span><span class="cov10" title="234">{
+                if r == wildcard || r == string(role) </span><span class="cov8" title="88">{
                         return true
                 }</span>
         }
-        <span class="cov7" title="66">return false</span>
+        <span class="cov8" title="71">return false</span>
 }
 
-func forbidden(p domain.Principal, op, policy, reason string) domain.RBACVerdict <span class="cov6" title="26">{
+func forbidden(p domain.Principal, op, policy, reason string) domain.RBACVerdict <span class="cov6" title="28">{
         return domain.RBACVerdict{
                 Allowed: false, Code: domain.VerdictForbidden, HTTPStatus: http.StatusForbidden,
                 Role: p.Role, Operation: op, PolicyID: policy, Reason: reason,
@@ -4661,18 +4809,18 @@ func forbidden(p domain.Principal, op, policy, reason string) domain.RBACVerdict
 }</span>
 
 // Check проверяет, может ли субъект выполнить операцию над ресурсом.
-func (e *Engine) Check(p domain.Principal, operation string, res Resource) domain.RBACVerdict <span class="cov7" title="41">{
+func (e *Engine) Check(p domain.Principal, operation string, res Resource) domain.RBACVerdict <span class="cov7" title="45">{
         role, known := e.roles[string(p.Role)]
         if !known </span><span class="cov1" title="1">{
                 return forbidden(p, operation, PolicyUnknownRole, fmt.Sprintf("Роль %q не входит в ролевую модель", p.Role))
         }</span>
 
-        <span class="cov7" title="40">var allows []spec.Policy
-        for _, pol := range e.policies[operation] </span><span class="cov7" title="51">{
-                if !appliesTo(pol, p.Role) </span><span class="cov5" title="20">{
+        <span class="cov7" title="44">var allows []spec.Policy
+        for _, pol := range e.policies[operation] </span><span class="cov7" title="55">{
+                if !appliesTo(pol, p.Role) </span><span class="cov6" title="22">{
                         continue</span>
                 }
-                <span class="cov6" title="31">if pol.Effect == effectDeny </span><span class="cov3" title="6">{
+                <span class="cov6" title="33">if pol.Effect == effectDeny </span><span class="cov3" title="6">{
                         reason := pol.Reason
                         if reason == "" </span><span class="cov1" title="1">{
                                 reason = fmt.Sprintf("Операция %s запрещена политикой %s", operation, pol.ID)
@@ -4682,18 +4830,18 @@ func (e *Engine) Check(p domain.Principal, operation string, res Resource) domai
                         v.SafeAlternative = pol.SafeAlternative
                         return v</span>
                 }
-                <span class="cov6" title="25">allows = append(allows, pol)</span>
+                <span class="cov6" title="27">allows = append(allows, pol)</span>
         }
 
-        <span class="cov6" title="34">if len(allows) == 0 </span><span class="cov4" title="11">{
+        <span class="cov7" title="38">if len(allows) == 0 </span><span class="cov5" title="13">{
                 return forbidden(p, operation, PolicyDefaultDeny,
                         fmt.Sprintf("Для роли «%s» операция %s не разрешена (default deny)", role.Title, operation))
         }</span>
 
-        <span class="cov6" title="23">var failed domain.RBACVerdict
-        for _, pol := range allows </span><span class="cov6" title="24">{
+        <span class="cov6" title="25">var failed domain.RBACVerdict
+        for _, pol := range allows </span><span class="cov6" title="26">{
                 constraint, reason := firstFailedConstraint(pol.Constraints, p, res)
-                if constraint == "" </span><span class="cov5" title="16">{
+                if constraint == "" </span><span class="cov5" title="18">{
                         return domain.RBACVerdict{
                                 Allowed: true, Code: domain.VerdictAllowed, HTTPStatus: http.StatusOK,
                                 Role: p.Role, Operation: operation, PolicyID: pol.ID,
@@ -4706,14 +4854,14 @@ func (e *Engine) Check(p domain.Principal, operation string, res Resource) domai
         <span class="cov4" title="7">return failed</span>
 }
 
-func allowReason(pol spec.Policy, role spec.Role) string <span class="cov5" title="16">{
-        if pol.Description != "" </span><span class="cov4" title="11">{
+func allowReason(pol spec.Policy, role spec.Role) string <span class="cov5" title="18">{
+        if pol.Description != "" </span><span class="cov5" title="13">{
                 return pol.Description
         }</span>
         <span class="cov3" title="5">return fmt.Sprintf("Разрешено политикой %s для роли «%s»", pol.ID, role.Title)</span>
 }
 
-func firstFailedConstraint(constraints []string, p domain.Principal, res Resource) (string, string) <span class="cov6" title="24">{
+func firstFailedConstraint(constraints []string, p domain.Principal, res Resource) (string, string) <span class="cov6" title="26">{
         for _, c := range constraints </span><span class="cov5" title="15">{
                 switch c </span>{
                 case ConstraintSelfOnly:<span class="cov4" title="9">
@@ -4728,22 +4876,22 @@ func firstFailedConstraint(constraints []string, p domain.Principal, res Resourc
                         return c, fmt.Sprintf("Неизвестное ограничение %q — доступ запрещён", c)</span>
                 }
         }
-        <span class="cov5" title="16">return "", ""</span>
+        <span class="cov5" title="18">return "", ""</span>
 }
 
 // Can сообщает, разрешена ли операция роли на уровне матрицы (без учёта ABAC-ограничений).
-func (e *Engine) Can(role domain.Role, operation string) bool <span class="cov8" title="87">{
+func (e *Engine) Can(role domain.Role, operation string) bool <span class="cov8" title="91">{
         allowed := false
-        for _, pol := range e.policies[operation] </span><span class="cov8" title="100">{
-                if !appliesTo(pol, role) </span><span class="cov7" title="46">{
+        for _, pol := range e.policies[operation] </span><span class="cov8" title="104">{
+                if !appliesTo(pol, role) </span><span class="cov7" title="49">{
                         continue</span>
                 }
-                <span class="cov7" title="54">if pol.Effect == effectDeny </span><span class="cov3" title="5">{
+                <span class="cov7" title="55">if pol.Effect == effectDeny </span><span class="cov3" title="5">{
                         return false
                 }</span>
-                <span class="cov7" title="49">allowed = true</span>
+                <span class="cov7" title="50">allowed = true</span>
         }
-        <span class="cov8" title="82">return allowed</span>
+        <span class="cov8" title="86">return allowed</span>
 }
 
 // MatrixRow — строка матрицы «операция × роль» для отображения.
@@ -4757,12 +4905,12 @@ func (e *Engine) Matrix() []MatrixRow <span class="cov1" title="1">{
         ops := append([]string{}, e.operations...)
         sort.Strings(ops)
         rows := make([]MatrixRow, 0, len(ops))
-        for _, op := range ops </span><span class="cov6" title="21">{
+        for _, op := range ops </span><span class="cov6" title="22">{
                 row := MatrixRow{Operation: op, Access: map[string]bool{}}
-                for _, r := range e.roleOrder </span><span class="cov8" title="84">{
+                for _, r := range e.roleOrder </span><span class="cov8" title="88">{
                         row.Access[r.ID] = e.Can(domain.Role(r.ID), op)
                 }</span>
-                <span class="cov6" title="21">rows = append(rows, row)</span>
+                <span class="cov6" title="22">rows = append(rows, row)</span>
         }
         <span class="cov1" title="1">return rows</span>
 }
@@ -4791,20 +4939,26 @@ import (
 
 // Идентификаторы демо-пользователей и тестовые токены (тестовые учётные данные из README).
 const (
-        InternID    = "u-intern-01"
-        MentorID    = "u-mentor-01"
-        TeamLeadID  = "u-lead-01"
-        CronID      = "svc-ai-cron"
-        InternToken = "demo-intern-token"
-        MentorToken = "demo-mentor-token"
-        LeadToken   = "demo-lead-token"
-        Team        = "Autoteka"
-        TeamRepo    = "avito-autoteka-api"
+        InternID     = "u-intern-01"
+        Intern2ID    = "u-intern-02"
+        MentorID     = "u-mentor-01"
+        Mentor2ID    = "u-mentor-02"
+        TeamLeadID   = "u-lead-01"
+        CronID       = "svc-ai-cron"
+        InternToken  = "demo-intern-token"
+        Intern2Token = "demo-intern-02-token"
+        MentorToken  = "demo-mentor-token"
+        Mentor2Token = "demo-mentor-02-token"
+        LeadToken    = "demo-lead-token"
+        Team         = "Autoteka"
+        TeamRepo     = "avito-autoteka-api"
+        Team2        = "Авито Товары (Модерация)"
+        Team2Repo    = "avito-moderation-ml"
 )
 
 const playbookSource = "Синтетическая адаптация по мотивам AvitoTech Playbook (github.com/avito-tech/playbook)"
 
-func doc(id, title, summary string, topics, keywords, steps []string, audience ...domain.Role) domain.KnowledgeDoc <span class="cov10" title="32">{
+func doc(id, title, summary string, topics, keywords, steps []string, audience ...domain.Role) domain.KnowledgeDoc <span class="cov10" title="56">{
         return domain.KnowledgeDoc{
                 ID: id, Title: title, Summary: summary, Steps: steps, Topics: topics, Keywords: keywords,
                 Team: Team, Audience: audience, Source: playbookSource,
@@ -4812,72 +4966,147 @@ func doc(id, title, summary string, topics, keywords, steps []string, audience .
         }
 }</span>
 
+func docTeam(id, title, summary, team string, topics, keywords, steps []string, audience ...domain.Role) domain.KnowledgeDoc <span class="cov6" title="14">{
+        return domain.KnowledgeDoc{
+                ID: id, Title: title, Summary: summary, Steps: steps, Topics: topics, Keywords: keywords,
+                Team: team, Audience: audience, Source: playbookSource,
+                IsSynthetic: true, Disclaimer: domain.SyntheticDisclaimer,
+        }
+}</span>
+
 // Data возвращает исходное состояние демо.
-func Data() domain.SeedData <span class="cov4" title="4">{
+func Data() domain.SeedData <span class="cov5" title="7">{
+        intern1 := domain.InternProfile{
+                ID: InternID, Name: "Алексей Смирнов", Role: domain.RoleInternBackend,
+                Team: Team, Stack: "Go", Stage: "Week 1", Program: "Стажировка Backend, 6 месяцев",
+                StartDate: "2026-11-09", Repository: TeamRepo,
+                MentorID: MentorID, MentorName: "Мария Кузнецова",
+                TeamLeadID: TeamLeadID, TeamLeadName: "Дмитрий Орлов", IsSynthetic: true,
+        }
+        intern2 := domain.InternProfile{
+                ID: Intern2ID, Name: "Мария Козлова", Role: domain.RoleInternBackend,
+                Team: Team2, Stack: "Python/ML", Stage: "Week 3", Program: "Стажировка ML, 6 месяцев",
+                StartDate: "2026-10-26", Repository: Team2Repo,
+                MentorID: Mentor2ID, MentorName: "Елена Соколова",
+                TeamLeadID: TeamLeadID, TeamLeadName: "Дмитрий Орлов", IsSynthetic: true,
+        }
+
+        checklist1 := []domain.ChecklistItem{
+                {ID: "access_repo", Position: 1, Week: 1, Status: domain.StatusPending, Scenario: "S1",
+                        Title:       "Получить доступы к репозиторию команды и тестовому стенду",
+                        Description: "Доступ к avito-autoteka-api и стенду с синтетическими данными. Гоффи оформит через IAM."},
+                {ID: "meet_team", Position: 2, Week: 1, Status: domain.StatusCompleted,
+                        Title:       "Познакомиться с командой и наставником",
+                        Description: "Вводная встреча с командой Autoteka, знакомство с наставником и руководителем.",
+                        Evidence:    "Вводная встреча проведена в первый день"},
+                {ID: "local_env", Position: 3, Week: 1, Status: domain.StatusCompleted,
+                        Title:       "Настроить рабочее окружение",
+                        Description: "Go, Docker, IDE и корпоративный VPN на рабочем ноутбуке.",
+                        Evidence:    "Окружение настроено по инструкции"},
+                {ID: "team_processes", Position: 4, Week: 1, Status: domain.StatusPending, Scenario: "S2",
+                        Title:       "Изучить процессы команды: фича-флаги и код-ревью",
+                        Description: "Как команда катит задачи под фича-флагами и как проходит ревью. Спроси Гоффи."},
+                {ID: "first_task", Position: 5, Week: 1, Status: domain.StatusInProgress, Scenario: "S2",
+                        Title:       "Первая задача в спринте",
+                        Description: "AUT-1423: добавить поле mileage_verified в сводку отчёта под фича-флагом.",
+                        Evidence:    "Задача взята в работу"},
+                {ID: "absence_rules", Position: 6, Week: 2, Status: domain.StatusPending, Scenario: "S3",
+                        Title:       "Разобраться с оформлением отсутствий",
+                        Description: "Отгул, отпуск, больничный: как оформить через сервис «Отсутствия» и кого предупредить."},
+                {ID: "first_one_on_one", Position: 7, Week: 2, Status: domain.StatusPending, Scenario: "S2",
+                        Title:       "Провести первую встречу 1:1 с наставником",
+                        Description: "Обсудить прогресс и вопросы, требующие участия сеньора. Гоффи подготовит бриф."},
+        }
+
+        checklist2 := []domain.ChecklistItem{
+                {ID: "access_repo", Position: 1, Week: 1, Status: domain.StatusCompleted,
+                        Title:       "Получить доступы к репозиторию avito-moderation-ml и стенду",
+                        Description: "Доступ к ML-репозиторию и кластеру обучения. Гоффи оформил через IAM.",
+                        Evidence:    "Доступы выданы через IAM"},
+                {ID: "meet_team", Position: 2, Week: 1, Status: domain.StatusCompleted,
+                        Title:       "Познакомиться с командой Модерации и наставником",
+                        Description: "Вводная встреча с командой Модерации и наставником Еленой Соколовой.",
+                        Evidence:    "Вводная встреча проведена"},
+                {ID: "local_env", Position: 3, Week: 1, Status: domain.StatusCompleted,
+                        Title:       "Настроить ML-окружение: Python, CUDA, DVC и Docker",
+                        Description: "Локальное окружение для инференса и запуска тестов моделей.",
+                        Evidence:    "Окружение развёрнуто по инструкции"},
+                {ID: "team_processes", Position: 4, Week: 2, Status: domain.StatusCompleted, Scenario: "S2",
+                        Title:       "Разобраться с ML-пайплайнами: DVC, Airflow и A/B-тесты",
+                        Description: "Как команда версионирует датасеты через DVC, запускает DAG в Airflow и катит модели.",
+                        Evidence:    "Изучены инструкции pb-ml-pipelines и pb-ml-ab-test"},
+                {ID: "first_task", Position: 5, Week: 3, Status: domain.StatusInProgress, Scenario: "S2",
+                        Title:       "Задача спринта: классификатор дубликатов в модерации",
+                        Description: "MOD-842: интеграция новой модели классификации под runtime-флагом и запуск A/B-теста.",
+                        Evidence:    "Модель обучена, идёт подготовка A/B-теста"},
+                {ID: "absence_rules", Position: 6, Week: 3, Status: domain.StatusPending, Scenario: "S3",
+                        Title:       "Разобраться с оформлением отсутствий",
+                        Description: "Отгул, отпуск, больничный: как оформить через сервис «Отсутствия» и кого предупредить."},
+                {ID: "first_one_on_one", Position: 7, Week: 3, Status: domain.StatusPending, Scenario: "S2",
+                        Title:       "Провести встречу 1:1 с наставником Еленой Соколовой",
+                        Description: "Обсудить результаты валидации модели и дизайн A/B-эксперимента. Гоффи подготовит бриф."},
+        }
+
+        task1 := domain.SprintTask{
+                Key: "AUT-1423", InternID: InternID, Status: string(domain.StatusInProgress),
+                Title:          "Первая задача в спринте",
+                Summary:        "Добавить поле mileage_verified в ответ ручки /v1/report/summary под фича-флагом",
+                Commits:        0,
+                DaysInProgress: 3,
+                Repository:     TeamRepo,
+                ArchitectureQuestion: "Где в avito-autoteka-api проходит граница между слоем сборки отчёта и агрегатором источников: " +
+                        "на каком слое вычислять mileage_verified, чтобы не сломать контракт /v1/report/summary для существующих клиентов?",
+        }
+
+        task2 := domain.SprintTask{
+                Key: "MOD-842", InternID: Intern2ID, Status: string(domain.StatusInProgress),
+                Title:          "Классификатор дубликатов в модерации",
+                Summary:        "Интеграция новой модели классификации под runtime-флагом и запуск A/B-теста",
+                Commits:        2,
+                DaysInProgress: 4,
+                Repository:     Team2Repo,
+                ArchitectureQuestion: "Как правильно организовать shadow-деплой модели модерации и распределить трафик в A/B-тесте, " +
+                        "чтобы минимизировать p99 latency инференса под фича-флагом?",
+        }
+
         return domain.SeedData{
                 Employees: []domain.Employee{
                         {ID: InternID, Name: "Алексей Смирнов", Role: domain.RoleInternBackend, RoleTitle: "Стажёр (Backend)", Team: Team, Token: InternToken, IsSynthetic: true},
+                        {ID: Intern2ID, Name: "Мария Козлова", Role: domain.RoleInternBackend, RoleTitle: "Стажёр (ML/Python)", Team: Team2, Token: Intern2Token, IsSynthetic: true},
                         {ID: MentorID, Name: "Мария Кузнецова", Role: domain.RoleMentor, RoleTitle: "Наставник (buddy)", Team: Team, Token: MentorToken, IsSynthetic: true},
+                        {ID: Mentor2ID, Name: "Елена Соколова", Role: domain.RoleMentor, RoleTitle: "Наставник (Senior ML Engineer)", Team: Team2, Token: Mentor2Token, IsSynthetic: true},
                         {ID: TeamLeadID, Name: "Дмитрий Орлов", Role: domain.RoleTeamLead, RoleTitle: "Руководитель команды", Team: Team, Token: LeadToken, IsSynthetic: true},
                         // Сервисный аккаунт крона: без токена, снаружи аутентифицироваться им нельзя.
                         {ID: CronID, Name: "ИИ-крон", Role: domain.RoleSystemCron, RoleTitle: "ИИ-крон (сервисный аккаунт)", Team: Team, IsSynthetic: true},
                 },
-                Intern: domain.InternProfile{
-                        ID: InternID, Name: "Алексей Смирнов", Role: domain.RoleInternBackend,
-                        Team: Team, Stack: "Go", Stage: "Week 1", Program: "Стажировка Backend, 6 месяцев",
-                        StartDate: "2026-11-09", Repository: TeamRepo,
-                        MentorID: MentorID, MentorName: "Мария Кузнецова",
-                        TeamLeadID: TeamLeadID, TeamLeadName: "Дмитрий Орлов", IsSynthetic: true,
-                },
-                Checklist: []domain.ChecklistItem{
-                        {ID: "access_repo", Position: 1, Week: 1, Status: domain.StatusPending, Scenario: "S1",
-                                Title:       "Получить доступы к репозиторию команды и тестовому стенду",
-                                Description: "Доступ к avito-autoteka-api и стенду с синтетическими данными. Гоффи оформит через IAM."},
-                        {ID: "meet_team", Position: 2, Week: 1, Status: domain.StatusCompleted,
-                                Title:       "Познакомиться с командой и наставником",
-                                Description: "Вводная встреча с командой Autoteka, знакомство с наставником и руководителем.",
-                                Evidence:    "Вводная встреча проведена в первый день"},
-                        {ID: "local_env", Position: 3, Week: 1, Status: domain.StatusCompleted,
-                                Title:       "Настроить рабочее окружение",
-                                Description: "Go, Docker, IDE и корпоративный VPN на рабочем ноутбуке.",
-                                Evidence:    "Окружение настроено по инструкции"},
-                        {ID: "team_processes", Position: 4, Week: 1, Status: domain.StatusPending, Scenario: "S2",
-                                Title:       "Изучить процессы команды: фича-флаги и код-ревью",
-                                Description: "Как команда катит задачи под фича-флагами и как проходит ревью. Спроси Гоффи."},
-                        {ID: "first_task", Position: 5, Week: 1, Status: domain.StatusInProgress, Scenario: "S2",
-                                Title:       "Первая задача в спринте",
-                                Description: "AUT-1423: добавить поле mileage_verified в сводку отчёта под фича-флагом.",
-                                Evidence:    "Задача взята в работу"},
-                        {ID: "absence_rules", Position: 6, Week: 2, Status: domain.StatusPending, Scenario: "S3",
-                                Title:       "Разобраться с оформлением отсутствий",
-                                Description: "Отгул, отпуск, больничный: как оформить через сервис «Отсутствия» и кого предупредить."},
-                        {ID: "first_one_on_one", Position: 7, Week: 2, Status: domain.StatusPending, Scenario: "S2",
-                                Title:       "Провести первую встречу 1:1 с наставником",
-                                Description: "Обсудить прогресс и вопросы, требующие участия сеньора. Гоффи подготовит бриф."},
-                },
-                Task: domain.SprintTask{
-                        Key: "AUT-1423", InternID: InternID, Status: string(domain.StatusInProgress),
-                        Title:          "Первая задача в спринте",
-                        Summary:        "Добавить поле mileage_verified в ответ ручки /v1/report/summary под фича-флагом",
-                        Commits:        0,
-                        DaysInProgress: 3,
-                        Repository:     TeamRepo,
-                        ArchitectureQuestion: "Где в avito-autoteka-api проходит граница между слоем сборки отчёта и агрегатором источников: " +
-                                "на каком слое вычислять mileage_verified, чтобы не сломать контракт /v1/report/summary для существующих клиентов?",
-                },
-                Planner: Planner,
+                Intern:     intern1,
+                Interns:    []domain.InternProfile{intern1, intern2},
+                Checklist:  checklist1,
+                Checklists: map[string][]domain.ChecklistItem{InternID: checklist1, Intern2ID: checklist2},
+                Task:       task1,
+                Tasks:      map[string]domain.SprintTask{InternID: task1, Intern2ID: task2},
+                Planner:    Planner,
                 Repositories: map[string]string{
                         "avito-autoteka-api":      Team,
                         "avito-autoteka-reports":  Team,
+                        "avito-moderation-ml":     Team2,
                         "avito-payments-core":     "Payments",
                         "avito-messenger-gateway": "Messenger",
                 },
                 Flags: []domain.FeatureFlag{
-                        {Key: "ai_buddy.proactive_cron", Enabled: true, Kind: domain.FlagRuntime, Description: "ИИ-крон: проактивные сообщения стажёру и бриф наставнику"},
+                        // Runtime Flags (переключаемые на лету: слайды 10–11)
+                        {Key: "proactive_ai_cron", Enabled: true, Kind: domain.FlagRuntime, Description: "ИИ-крон: проактивные сообщения стажёру и бриф наставнику"},
+                        {Key: "strict_rbac_guard", Enabled: true, Kind: domain.FlagRuntime, Description: "Строгая RBAC-защита: немедленная блокировка выгрузки ПДн (POL-SEC-001)"},
+                        {Key: "mentor_auto_brief", Enabled: true, Kind: domain.FlagRuntime, Description: "Автогенерация Structured 1:1 Brief наставнику при пробуксовке стажёра"},
+                        {Key: "ai_buddy.proactive_cron", Enabled: true, Kind: domain.FlagRuntime, Description: "ИИ-крон: фоновый запуск проверок (системный алиас)"},
                         {Key: "ai_buddy.absence_action_card", Enabled: true, Kind: domain.FlagRuntime, Description: "Интерактивная карточка оформления отгула в чате"},
                         {Key: "ai_buddy.llm_answers", Enabled: true, Kind: domain.FlagRuntime, Description: "Формулировка ответов внешней LLM (если задан LLM_API_KEY)"},
-                        {Key: "ai_buddy.mcp_jsonrpc", Enabled: true, Kind: domain.FlagCompileTime, Description: "MCP JSON-RPC endpoint POST /mcp"},
-                        {Key: "ai_buddy.synthetic_data_only", Enabled: true, Kind: domain.FlagCompileTime, Description: "Только синтетические данные и имитации сервисов"},
+
+                        // Compile-Time Flags (зафиксированные при сборке бинарника через embed/ldflags)
+                        {Key: "sdd_spec_enforcement", Enabled: true, Kind: domain.FlagCompileTime, Description: "Валидация контрактов OpenSpec в runtime через embed.FS"},
+                        {Key: "synthetic_data_watermark", Enabled: true, Kind: domain.FlagCompileTime, Description: "Водяные знаки синтетических данных и маскирование токенов"},
+                        {Key: "mcp_jsonrpc_v2", Enabled: true, Kind: domain.FlagCompileTime, Description: "Поддержка протокола MCP JSON-RPC 2.0"},
+                        {Key: "ai_buddy.mcp_jsonrpc", Enabled: true, Kind: domain.FlagCompileTime, Description: "MCP JSON-RPC endpoint POST /mcp (системный алиас)"},
                 },
                 Docs: []domain.KnowledgeDoc{
                         doc("pb-feature-flags", "Как катить задачу под фича-флагом",
@@ -4959,6 +5188,29 @@ func Data() domain.SeedData <span class="cov4" title="4">{
                                         "Ревью компетенций проводится на экваторе и перед выпуском.",
                                         "Оценку обсуждают наставник и руководитель; стажёр получает итог на встрече.",
                                 }, domain.RoleMentor, domain.RoleTeamLead),
+                        docTeam("pb-ml-pipelines", "ML-пайплайны: Airflow, DVC и версионирование датасетов",
+                                "Пайплайны обучения и валидации моделей модерации версионируются через DVC и запускаются в Airflow.",
+                                Team2,
+                                []string{"ml_pipeline", "feature_flags"},
+                                []string{"ml", "пайплайн", "pipeline", "dvc", "airflow", "версионирован", "датасет", "модел"},
+                                []string{
+                                        "Версионируй сырые данные и артефакты моделей через DVC; remote привязан к S3-совместимому MinIO команды.",
+                                        "DAG обучения и валидации описан в Apache Airflow (репозиторий avito-moderation-ml).",
+                                        "Перед сборкой пайплайна проверь воспроизводимость локально через dvc repro.",
+                                        "Метрики экспериментов (ROC-AUC, PR-AUC, latency) логируются в MLflow и доступны на командном дашборде.",
+                                }),
+                        docTeam("pb-ml-ab-test", "Как катить ML-модель под фича-флагом и запустить A/B-тест",
+                                "Новая модель классификации выкатывается под runtime-флагом moderation.&lt;модель&gt; и проверяется в A/B-эксперименте.",
+                                Team2,
+                                []string{"feature_flags", "ml_pipeline", "code_review"},
+                                []string{"a/b", "ab", "тест", "эксперимент", "модел", "фича", "флаг", "катить", "раскат", "деплой"},
+                                []string{
+                                        "Заведи runtime-флаг в сервисе Feature Flags: например moderation.model_v2_enabled, по умолчанию выключен.",
+                                        "Оберни вызов инференса новой модели в проверку флага, старый классификатор остаётся fallback-путем.",
+                                        "Запусти shadow deployment на 24 часа для проверки latency инференса и 99-го перцентиля нагрузки.",
+                                        "Настрой 50/50 сплит трафика в сервисе A/B-платформы Авито и мониторь целевые метрики модерации.",
+                                        "После статистически значимого выигрыша включи флаг на 100% и запланируй удаление старого веса.",
+                                }),
                 },
         }
 }</span>
@@ -4968,8 +5220,8 @@ const MeetBase = "https://meet.avito.example/"
 
 // Planner возвращает календарь первых недель относительно момента загрузки демо:
 // созвон 1:1 через три часа, синк и ревью на ближайшие дни, дедлайн первого PR в пятницу.
-func Planner(now time.Time) []domain.PlannerItem <span class="cov3" title="3">{
-        day := func(offset, hour, minute int) time.Time </span><span class="cov8" title="15">{
+func Planner(now time.Time, intern domain.InternProfile) []domain.PlannerItem <span class="cov3" title="3">{
+        day := func(offset, hour, minute int) time.Time </span><span class="cov7" title="15">{
                 d := now.AddDate(0, 0, offset)
                 return time.Date(d.Year(), d.Month(), d.Day(), hour, minute, 0, 0, now.Location())
         }</span>
@@ -4978,36 +5230,39 @@ func Planner(now time.Time) []domain.PlannerItem <span class="cov3" title="3">{
         if friday == 0 </span><span class="cov1" title="1">{
                 friday = 7
         }</span>
-        <span class="cov3" title="3">item := func(id, kind, title, desc string, at time.Time, duration int, link string, mandatory bool, by, byName string) domain.PlannerItem </span><span class="cov8" title="18">{
-                if link != "" </span><span class="cov7" title="12">{
+        <span class="cov3" title="3">item := func(id, kind, title, desc string, at time.Time, duration int, link string, mandatory bool, by, byName string) domain.PlannerItem </span><span class="cov7" title="18">{
+                if link != "" </span><span class="cov6" title="12">{
                         link = MeetBase + link
                 }</span>
-                <span class="cov8" title="18">return domain.PlannerItem{
-                        ID: id, InternID: InternID, Kind: kind, Title: title, Description: desc, StartsAt: at, DurationMin: duration,
+                <span class="cov7" title="18">if intern.ID != InternID </span><span class="cov0" title="0">{
+                        id = intern.ID + ":" + id // идентификаторы уникальны между стажёрами
+                }</span>
+                <span class="cov7" title="18">return domain.PlannerItem{
+                        ID: id, InternID: intern.ID, Kind: kind, Title: title, Description: desc, StartsAt: at, DurationMin: duration,
                         AllDay: duration == 0 &amp;&amp; kind != domain.PlannerDeadline, Link: link, Mandatory: mandatory,
                         CreatedBy: by, CreatedByName: byName, Status: domain.PlannerPlanned, IsSynthetic: true,
                 }</span>
         }
-        <span class="cov3" title="3">const mentor, lead = "Мария Кузнецова", "Дмитрий Орлов"
+        <span class="cov3" title="3">mentor, lead := intern.MentorName, intern.TeamLeadName
         return []domain.PlannerItem{
                 item("plan-1on1", domain.PlannerMeeting, "Созвон 1:1 с наставником",
                         "Первая встреча 1:1: прогресс по чек-листу и вопросы, где нужен опыт сеньора. Гоффи заранее отправит наставнику бриф.",
-                        oneOnOne, 30, "autoteka-1on1", true, MentorID, mentor),
+                        oneOnOne, 30, "autoteka-1on1", true, intern.MentorID, mentor),
                 item("plan-sync", domain.PlannerSync, "Командный синк Autoteka",
                         "Ежедневный синк команды: что сделано, что в работе, что мешает.",
-                        day(1, 11, 0), 15, "autoteka-daily", true, TeamLeadID, lead),
+                        day(1, 11, 0), 15, "autoteka-daily", true, intern.TeamLeadID, lead),
                 item("plan-review", domain.PlannerReview, "Код-ревью задачи AUT-1423",
                         "Разбор первого MR с наставником: фича-флаг, тесты, контракт ручки.",
-                        day(2, 15, 0), 45, "autoteka-review", true, MentorID, mentor),
+                        day(2, 15, 0), 45, "autoteka-review", true, intern.MentorID, mentor),
                 item("plan-first-pr", domain.PlannerDeadline, "Срок сдачи первого PR",
                         "Первый PR по задаче AUT-1423 должен быть отправлен на ревью.",
-                        day(friday, 18, 0), 0, "", true, MentorID, mentor),
+                        day(friday, 18, 0), 0, "", true, intern.MentorID, mentor),
                 item("plan-security-course", domain.PlannerTask, "Пройти курс по информационной безопасности",
                         "Обязательный вводный курс: работа с данными, ПДн, доступы.",
-                        day(5, 0, 0), 0, "", true, TeamLeadID, lead),
+                        day(5, 0, 0), 0, "", true, intern.TeamLeadID, lead),
                 item("plan-feedback", domain.PlannerMeeting, "Созвон по обратной связи за первую неделю",
                         "Руководитель и наставник: итоги недели, ожидания на следующую.",
-                        day(7, 16, 0), 30, "autoteka-feedback", true, TeamLeadID, lead),
+                        day(7, 16, 0), 30, "autoteka-feedback", true, intern.TeamLeadID, lead),
         }</span>
 }
 </pre>
@@ -5080,6 +5335,14 @@ type Scenario struct {
         Then  []string `yaml:"then"`
 }
 
+// AgentSkill — подключённый модульный скилл агента.
+type AgentSkill struct {
+        ID          string `yaml:"id" json:"id"`
+        Name        string `yaml:"name" json:"name"`
+        Description string `yaml:"description" json:"description"`
+        Active      bool   `yaml:"active" json:"active"`
+}
+
 // AgentSpec — спецификация поведения агента (01_agent_behavior).
 type AgentSpec struct {
         OpenSpec string   `yaml:"openspec"`
@@ -5105,6 +5368,7 @@ type AgentSpec struct {
                         } `yaml:"llm"`
                 } `yaml:"engine"`
         } `yaml:"agent"`
+        Skills           []AgentSkill      `yaml:"skills"`
         Intents          []Intent          `yaml:"intents"`
         FallbackIntent   Intent            `yaml:"fallback_intent"`
         ChecklistEffects []ChecklistEffect `yaml:"checklist_effects"`
@@ -5172,7 +5436,7 @@ type ToolsSpec struct {
 
 // ToolByName ищет инструмент по имени.
 func (t *ToolsSpec) ToolByName(name string) (Tool, bool) <span class="cov3" title="7">{
-        for _, tool := range t.Tools </span><span class="cov5" title="30">{
+        for _, tool := range t.Tools </span><span class="cov5" title="31">{
                 if tool.Name == name </span><span class="cov3" title="6">{
                         return tool, true
                 }</span>
@@ -5282,6 +5546,11 @@ func (b *Bundle) Validate() error <span class="cov5" title="43">{
         <span class="cov5" title="43">if strings.TrimSpace(b.Agent.Agent.SyntheticData.Disclaimer) == "" </span><span class="cov1" title="2">{
                 add("agent.synthetic_data.disclaimer пуст")
         }</span>
+        <span class="cov5" title="43">for _, sk := range b.Agent.Skills </span><span class="cov7" title="210">{
+                if sk.ID == "" || sk.Name == "" </span><span class="cov0" title="0">{
+                        add("skill с пустым id или name")
+                }</span>
+        }
 
         <span class="cov5" title="43">servers := map[string]bool{}
         for _, s := range b.Tools.Servers </span><span class="cov8" title="387">{
@@ -5345,28 +5614,28 @@ func (b *Bundle) Validate() error <span class="cov5" title="43">{
         }</span>
         <span class="cov5" title="43">covered := map[string]bool{}
         ids := map[string]bool{}
-        for _, p := range b.RBAC.Policies </span><span class="cov9" title="1031">{
+        for _, p := range b.RBAC.Policies </span><span class="cov9" title="1074">{
                 if p.ID == "" || ids[p.ID] </span><span class="cov1" title="1">{
                         add("rbac: политика с пустым или повторным id %q", p.ID)
                 }</span>
-                <span class="cov9" title="1031">ids[p.ID] = true
+                <span class="cov9" title="1074">ids[p.ID] = true
                 if p.Effect != "allow" &amp;&amp; p.Effect != "deny" </span><span class="cov1" title="1">{
                         add("rbac: политика %s: effect %q", p.ID, p.Effect)
                 }</span>
-                <span class="cov9" title="1031">for _, r := range p.Roles </span><span class="cov10" title="2060">{
+                <span class="cov9" title="1074">for _, r := range p.Roles </span><span class="cov10" title="2103">{
                         if r != "*" &amp;&amp; !roles[r] </span><span class="cov1" title="1">{
                                 add("rbac: политика %s: неизвестная роль %q", p.ID, r)
                         }</span>
                 }
-                <span class="cov9" title="1031">for _, c := range p.Constraints </span><span class="cov7" title="300">{
+                <span class="cov9" title="1074">for _, c := range p.Constraints </span><span class="cov7" title="300">{
                         if !constraints[c] </span><span class="cov1" title="1">{
                                 add("rbac: политика %s: неизвестное ограничение %q", p.ID, c)
                         }</span>
                 }
-                <span class="cov9" title="1031">if !strings.HasPrefix(p.Operation, "api.") &amp;&amp; !tools[p.Operation] </span><span class="cov4" title="17">{
+                <span class="cov9" title="1074">if !strings.HasPrefix(p.Operation, "api.") &amp;&amp; !tools[p.Operation] </span><span class="cov4" title="17">{
                         add("rbac: политика %s: неизвестная операция %q", p.ID, p.Operation)
                 }</span>
-                <span class="cov9" title="1031">covered[p.Operation] = true</span>
+                <span class="cov9" title="1074">covered[p.Operation] = true</span>
         }
         <span class="cov5" title="43">for name := range tools </span><span class="cov8" title="462">{
                 if !covered[name] </span><span class="cov1" title="2">{
@@ -5438,8 +5707,8 @@ func (s *Store) List(_ context.Context, kind domain.Kind, ownerID string) ([]dom
         s.mu.RLock()
         defer s.mu.RUnlock()
         out := make([]domain.Record, 0, len(s.data[kind]))
-        for _, r := range s.data[kind] </span><span class="cov10" title="1339">{
-                if ownerID == "" || r.OwnerID == ownerID </span><span class="cov9" title="1333">{
+        for _, r := range s.data[kind] </span><span class="cov10" title="1340">{
+                if ownerID == "" || r.OwnerID == ownerID </span><span class="cov9" title="1334">{
                         out = append(out, r)
                 }</span>
         }
@@ -5695,45 +5964,46 @@ import (
 
 // Execute выполняет MCP-инструмент по прямому подтверждению из интерфейса
 // (например, отправка формы отгула). Права проверяет RBAC-шлюз по роли вызывающего.
-func (s *Service) Execute(ctx context.Context, p domain.Principal, tool string, args map[string]any, messageID string) (ChatResult, error) <span class="cov8" title="25">{
+func (s *Service) Execute(ctx context.Context, p domain.Principal, tool string, args map[string]any, messageID string, targetInternID ...string) (ChatResult, error) <span class="cov8" title="27">{
         started := time.Now()
         var res ChatResult
         if strings.TrimSpace(tool) == "" </span><span class="cov1" title="1">{
                 return res, fmt.Errorf("%w: не указан инструмент", domain.ErrValidation)
         }</span>
-        <span class="cov7" title="24">s.Events.Track(ctx, s.internID, p, domain.EventKindClickstream, "ui.action_confirmed", domain.SeverityInfo,
+        <span class="cov8" title="26">internID := s.resolveInternID(p, targetInternID...)
+        s.Events.Track(ctx, internID, p, domain.EventKindClickstream, "ui.action_confirmed", domain.SeverityInfo,
                 map[string]any{"tool": tool, "message_id": messageID})
 
-        call := s.Gateway.Execute(ctx, p, s.internID, tool, args)
+        call := s.Gateway.Execute(ctx, p, internID, tool, args)
         verdict := call.RBAC
         res = ChatResult{ToolCalls: []domain.MCPToolCall{call}, RBAC: &amp;verdict, ChecklistUpdates: []domain.ChecklistItem{}}
 
         var updates []domain.ChecklistItem
-        if call.OK() </span><span class="cov6" title="14">{
+        if call.OK() </span><span class="cov7" title="16">{
                 var err error
-                if updates, err = s.applyEffects(ctx, p, res.ToolCalls, nil); err != nil </span><span class="cov1" title="1">{
+                if updates, err = s.applyEffects(ctx, p, res.ToolCalls, nil, internID); err != nil </span><span class="cov1" title="1">{
                         return res, err
                 }</span>
-                <span class="cov6" title="13">res.ChecklistUpdates = nonNil(updates)</span>
+                <span class="cov6" title="15">res.ChecklistUpdates = nonNil(updates)</span>
         }
-        <span class="cov7" title="23">checklist, err := domain.LoadChecklist(ctx, s.Store, s.internID)
+        <span class="cov8" title="25">checklist, err := domain.LoadChecklist(ctx, s.Store, internID)
         if err != nil </span><span class="cov1" title="1">{
                 return res, err
         }</span>
-        <span class="cov7" title="22">res.Checklist, res.Progress, res.NextStep = checklist, domain.ComputeProgress(checklist), domain.NextStep(checklist)
+        <span class="cov7" title="24">res.Checklist, res.Progress, res.NextStep = checklist, domain.ComputeProgress(checklist), domain.NextStep(checklist)
 
-        if call.OK() &amp;&amp; p.ID == s.internID </span><span class="cov5" title="9">{
+        if call.OK() &amp;&amp; p.ID == internID </span><span class="cov6" title="11">{
                 if messageID != "" </span><span class="cov2" title="2">{
-                        s.markCardSubmitted(ctx, messageID)
+                        s.markCardSubmitted(ctx, messageID, internID)
                 }</span>
-                <span class="cov5" title="9">text, card, saving := s.describeAction(call)
+                <span class="cov6" title="11">text, card, saving := s.describeAction(call)
                 if text == "" </span><span class="cov2" title="2">{
                         // «Тихое» действие (например, личная задача в календаре): чат не засоряем.
                         res.LatencyMS = float64(time.Since(started).Microseconds()) / 1000
                         return res, nil
                 }</span>
-                <span class="cov5" title="7">msg := domain.ChatMessage{
-                        ID: s.IDs.NewID("msg"), InternID: s.internID, Role: domain.MessageAssistant,
+                <span class="cov5" title="9">msg := domain.ChatMessage{
+                        ID: s.IDs.NewID("msg"), InternID: internID, Role: domain.MessageAssistant,
                         Text: text + checklistNote(updates, checklist), Intent: "action_confirmed", Engine: domain.EngineSmart,
                         Sources: []domain.DocRef{}, ResultCard: card, Suggestions: []string{"Что дальше по чек-листу?"},
                         ToolCallIDs: []string{call.ID}, CreatedAt: s.Clock.Now(),
@@ -5741,54 +6011,54 @@ func (s *Service) Execute(ctx context.Context, p domain.Principal, tool string, 
                 if err := s.saveMessage(ctx, msg); err != nil </span><span class="cov1" title="1">{
                         return res, err
                 }</span>
-                <span class="cov4" title="6">res.Message = &amp;msg
+                <span class="cov5" title="8">res.Message = &amp;msg
                 payload := map[string]any{"tool": tool, "engine": domain.EngineSmart, "answered": true}
-                if saving != "" </span><span class="cov4" title="4">{
+                if saving != "" </span><span class="cov4" title="6">{
                         payload["saving_key"] = saving
                 }</span>
-                <span class="cov4" title="6">s.Events.Track(ctx, s.internID, p, domain.EventKindAgent, "agent.action", domain.SeverityInfo, payload)</span>
+                <span class="cov5" title="8">s.Events.Track(ctx, internID, p, domain.EventKindAgent, "agent.action", domain.SeverityInfo, payload)</span>
         }
-        <span class="cov7" title="19">res.LatencyMS = float64(time.Since(started).Microseconds()) / 1000
+        <span class="cov7" title="21">res.LatencyMS = float64(time.Since(started).Microseconds()) / 1000
         return res, nil</span>
 }
 
 // markCardSubmitted помечает карточку исходного сообщения как отправленную (best-effort).
-func (s *Service) markCardSubmitted(ctx context.Context, messageID string) <span class="cov2" title="2">{
+func (s *Service) markCardSubmitted(ctx context.Context, messageID, internID string) <span class="cov2" title="2">{
         msg, err := domain.LoadOne[domain.ChatMessage](ctx, s.Store, domain.KindMessage, messageID)
-        if err != nil || msg.InternID != s.internID || msg.ActionCard == nil </span><span class="cov1" title="1">{
+        if err != nil || msg.InternID != internID || msg.ActionCard == nil </span><span class="cov1" title="1">{
                 return
         }</span>
         <span class="cov1" title="1">msg.ActionCard.Status = domain.ActionStatusDone
         _ = s.saveMessage(ctx, msg)</span>
 }
 
-func str(m map[string]any, key string) string <span class="cov8" title="32">{
+func str(m map[string]any, key string) string <span class="cov9" title="40">{
         v, _ := m[key].(string)
         return v
 }</span>
 
 // describeAction формирует подтверждение и карточку результата по итогам инструмента.
-func (s *Service) describeAction(call domain.MCPToolCall) (string, *domain.ResultCard, string) <span class="cov5" title="9">{
+func (s *Service) describeAction(call domain.MCPToolCall) (string, *domain.ResultCard, string) <span class="cov6" title="11">{
         r := call.Result
         switch call.Tool </span>{
-        case mcp.ToolCreateDayOff:<span class="cov4" title="4">
+        case mcp.ToolCreateDayOff:<span class="cov4" title="6">
                 when := agent.HumanDay(str(r, "date"))
                 if from := str(r, "time_from"); from != "" </span><span class="cov3" title="3">{
                         when += fmt.Sprintf(", %s–%s", from, str(r, "time_to"))
                 }</span>
-                <span class="cov4" title="4">var notified []string
-                if list, ok := r["notified"].([]any); ok </span><span class="cov4" title="4">{
-                        for _, n := range list </span><span class="cov5" title="8">{
-                                if name, ok := n.(string); ok </span><span class="cov5" title="8">{
+                <span class="cov4" title="6">var notified []string
+                if list, ok := r["notified"].([]any); ok </span><span class="cov4" title="6">{
+                        for _, n := range list </span><span class="cov6" title="12">{
+                                if name, ok := n.(string); ok </span><span class="cov6" title="12">{
                                         notified = append(notified, name)
                                 }</span>
                         }
                 }
-                <span class="cov4" title="4">who := strings.Join(notified, ", ")
+                <span class="cov4" title="6">who := strings.Join(notified, ", ")
                 if who == "" </span><span class="cov0" title="0">{
                         who = "—"
                 }</span>
-                <span class="cov4" title="4">number := str(r, "request_number")
+                <span class="cov4" title="6">number := str(r, "request_number")
                 text := fmt.Sprintf("Готово! Заявка **%s** создана в сервисе «Отсутствия»: %s. Уведомления отправлены: %s. "+
                         "Статус — ожидает согласования, результат придёт в уведомлениях.", number, when, who)
                 return text, &amp;domain.ResultCard{
@@ -5824,6 +6094,18 @@ func (s *Service) describeAction(call domain.MCPToolCall) (string, *domain.Resul
                 return text, &amp;domain.ResultCard{
                         Type: "report_sent", Status: domain.CardStatusSuccess, Title: "Отчёт отправлен Гоффи",
                         Lines: []domain.CardLine{{Label: "Событие", Value: str(r, "title")}, {Label: "Отчёт", Value: report}},
+                }, ""</span>
+        case mcp.ToolReviewDayOff:<span class="cov0" title="0">
+                number := str(r, "request_number")
+                decision := str(r, "decision")
+                text := fmt.Sprintf("Заявка %s рассмотрена: статус %s.", number, decision)
+                return text, &amp;domain.ResultCard{
+                        Type: "absence_reviewed", Status: domain.CardStatusSuccess, Title: "Заявка рассмотрена",
+                        Lines: []domain.CardLine{
+                                {Label: "Номер заявки", Value: number},
+                                {Label: "Решение", Value: decision},
+                        },
+                        Footnote: "Имитация сервиса «Отсутствия» · синтетические данные",
                 }, ""</span>
         }
         <span class="cov1" title="1">return fmt.Sprintf("Инструмент %s выполнен.", call.Tool), &amp;domain.ResultCard{
@@ -5883,7 +6165,7 @@ func (s *Service) learnedTopics(ctx context.Context) ([]string, error) <span cla
         <span class="cov6" title="11">for _, a := range absences </span><span class="cov0" title="0">{
                 topics = append(topics, fmt.Sprintf("Разобрался с оформлением отсутствий: заявка %s", a.Number))
         }</span>
-        <span class="cov6" title="11">planner, err := s.planner(ctx)
+        <span class="cov6" title="11">planner, err := s.planner(ctx, s.internID)
         if err != nil </span><span class="cov1" title="1">{
                 return nil, err
         }</span>
@@ -6163,6 +6445,7 @@ import (
         "aibuddy/backend/internal/domain"
         "aibuddy/backend/internal/mcp"
         "aibuddy/backend/internal/rbac"
+        "aibuddy/backend/internal/seed"
         "aibuddy/backend/internal/spec"
 )
 
@@ -6177,6 +6460,7 @@ const (
         OpTelemetryRead   = "api.telemetry.read"
         OpFlagsWrite      = "api.feature_flags.write"
         OpAbsencesTeam    = "api.absences.read_team"
+        OpAbsencesReview  = "api.absences.review"
         OpIncidentsRead   = "api.incidents.read"
 )
 
@@ -6216,7 +6500,7 @@ type Service struct {
 }
 
 // New создаёт сервис.
-func New(d Deps) *Service <span class="cov6" title="55">{
+func New(d Deps) *Service <span class="cov6" title="56">{
         return &amp;Service{Deps: d, internID: d.Seed.Intern.ID}
 }</span>
 
@@ -6231,38 +6515,53 @@ type session struct {
         Turns      int    `json:"turns"`
 }
 
-func (s *Service) sessionKey() string <span class="cov7" title="121">{ return "session:" + s.internID }</span>
+func (s *Service) resolveInternID(p domain.Principal, explicit ...string) string <span class="cov8" title="172">{
+        if len(explicit) &gt; 0 &amp;&amp; strings.TrimSpace(explicit[0]) != "" </span><span class="cov6" title="50">{
+                return strings.TrimSpace(explicit[0])
+        }</span>
+        <span class="cov7" title="122">if p.Role == domain.RoleInternBackend &amp;&amp; p.ID != "" </span><span class="cov7" title="97">{
+                return p.ID
+        }</span>
+        <span class="cov5" title="25">return s.internID</span>
+}
 
-func (s *Service) loadSession(ctx context.Context) session <span class="cov5" title="35">{
+func (s *Service) sessionKey(internID string) string <span class="cov8" title="236">{
+        if internID == "" </span><span class="cov0" title="0">{
+                internID = s.internID
+        }</span>
+        <span class="cov8" title="236">return "session:" + internID</span>
+}
+
+func (s *Service) loadSession(ctx context.Context, internID string) session <span class="cov5" title="35">{
         var sess session
-        if raw, ok, err := s.Cache.Get(ctx, s.sessionKey()); err == nil &amp;&amp; ok </span><span class="cov4" title="11">{
+        if raw, ok, err := s.Cache.Get(ctx, s.sessionKey(internID)); err == nil &amp;&amp; ok </span><span class="cov4" title="11">{
                 _ = json.Unmarshal([]byte(raw), &amp;sess)
         }</span>
         <span class="cov5" title="35">return sess</span>
 }
 
-func (s *Service) saveSession(ctx context.Context, sess session) <span class="cov5" title="30">{
+func (s *Service) saveSession(ctx context.Context, internID string, sess session) <span class="cov5" title="30">{
         if raw, err := json.Marshal(sess); err == nil </span><span class="cov5" title="30">{
-                _ = s.Cache.Set(ctx, s.sessionKey(), string(raw), sessionTTL)
+                _ = s.Cache.Set(ctx, s.sessionKey(internID), string(raw), sessionTTL)
         }</span>
 }
 
 // Authenticate находит сотрудника по демо-токену (имитация корпоративной авторизации).
-func (s *Service) Authenticate(token string) (domain.Principal, error) <span class="cov8" title="169">{
+func (s *Service) Authenticate(token string) (domain.Principal, error) <span class="cov8" title="172">{
         e, ok := s.Directory.ByToken(strings.TrimSpace(token))
         if !ok || token == "" </span><span class="cov2" title="3">{
                 return domain.Principal{}, ErrUnauthorized
         }</span>
-        <span class="cov8" title="166">return e.Principal(), nil</span>
+        <span class="cov8" title="169">return e.Principal(), nil</span>
 }
 
 // authorize проверяет операцию API по матрице RBAC и журналирует отказ.
-func (s *Service) authorize(ctx context.Context, p domain.Principal, op string) error <span class="cov7" title="130">{
+func (s *Service) authorize(ctx context.Context, p domain.Principal, op string) error <span class="cov7" title="134">{
         v := s.RBAC.Check(p, op, rbac.Resource{})
-        if v.Allowed </span><span class="cov7" title="123">{
+        if v.Allowed </span><span class="cov7" title="126">{
                 return nil
         }</span>
-        <span class="cov3" title="7">s.Events.Track(ctx, s.internID, p, domain.EventKindRBAC, "rbac.decision", domain.SeverityWarn, map[string]any{
+        <span class="cov3" title="8">s.Events.Track(ctx, s.internID, p, domain.EventKindRBAC, "rbac.decision", domain.SeverityWarn, map[string]any{
                 "operation": v.Operation, "role": string(v.Role), "allowed": false, "code": v.Code,
                 "policy_id": v.PolicyID, "reason": v.Reason,
         })
@@ -6274,51 +6573,72 @@ func (s *Service) can(p domain.Principal, op string) bool <span class="cov9" tit
 }</span>
 
 // seedRecords — исходные записи: seed + приветственное сообщение агента.
-func (s *Service) seedRecords() ([]domain.Record, error) <span class="cov6" title="57">{
+func (s *Service) seedRecords() ([]domain.Record, error) <span class="cov6" title="58">{
         now := s.Clock.Now()
         recs, err := s.Seed.Records(now)
         if err != nil </span><span class="cov0" title="0">{
                 return nil, err
         }</span>
-        <span class="cov6" title="57">in := s.Seed.Intern
-        greeting, _ := s.Spec.Agent.IntentByID(agent.IntentGreeting)
-        welcome := domain.ChatMessage{
-                ID: welcomeMessage, InternID: in.ID, Role: domain.MessageAssistant,
-                Text:   s.Spec.Agent.Response("greeting", map[string]string{"name": in.FirstName(), "team": in.Team}),
-                Intent: agent.IntentGreeting, Engine: domain.EngineSmart,
-                Sources: []domain.DocRef{}, Suggestions: append([]string{}, greeting.Suggestions...),
-                ToolCallIDs: []string{}, CreatedAt: now,
-        }
-        rec, err := domain.NewRecord(domain.KindMessage, welcome.ID, in.ID, now, welcome)
-        if err != nil </span><span class="cov0" title="0">{
-                return nil, err
+        <span class="cov6" title="58">interns := s.Seed.Interns
+        if len(interns) == 0 </span><span class="cov0" title="0">{
+                interns = []domain.InternProfile{s.Seed.Intern}
         }</span>
-        <span class="cov6" title="57">return append(recs, rec), nil</span>
+        <span class="cov6" title="58">for _, in := range interns </span><span class="cov7" title="116">{
+                greeting, _ := s.Spec.Agent.IntentByID(agent.IntentGreeting)
+                msgID := welcomeMessage
+                if in.ID != s.internID </span><span class="cov6" title="58">{
+                        msgID = welcomeMessage + "-" + in.ID
+                }</span>
+                <span class="cov7" title="116">suggestions := append([]string{}, greeting.Suggestions...)
+                if in.ID == seed.Intern2ID </span><span class="cov6" title="58">{
+                        suggestions = []string{
+                                "Как устроены ML-пайплайны в команде: DVC, Airflow и версионирование данных?",
+                                "Как в нашей команде катить ML-модель под фича-флагом и запустить A/B-тест?",
+                                "Что дальше по чек-листу?",
+                        }
+                }</span>
+                <span class="cov7" title="116">welcome := domain.ChatMessage{
+                        ID: msgID, InternID: in.ID, Role: domain.MessageAssistant,
+                        Text:   s.Spec.Agent.Response("greeting", map[string]string{"name": in.FirstName(), "team": in.Team}),
+                        Intent: agent.IntentGreeting, Engine: domain.EngineSmart,
+                        Sources: []domain.DocRef{}, Suggestions: suggestions,
+                        ToolCallIDs: []string{}, CreatedAt: now,
+                }
+                rec, err := domain.NewRecord(domain.KindMessage, welcome.ID, in.ID, now, welcome)
+                if err != nil </span><span class="cov0" title="0">{
+                        return nil, err
+                }</span>
+                <span class="cov7" title="116">recs = append(recs, rec)</span>
+        }
+        <span class="cov6" title="58">return recs, nil</span>
 }
 
 // EnsureSeed загружает синтетические данные при первом старте (пустое хранилище).
-func (s *Service) EnsureSeed(ctx context.Context) error <span class="cov6" title="57">{
+func (s *Service) EnsureSeed(ctx context.Context) error <span class="cov6" title="58">{
         _, err := s.Store.Get(ctx, domain.KindIntern, s.internID)
         if err == nil </span><span class="cov1" title="1">{
                 return nil
         }</span>
-        <span class="cov6" title="56">if !errors.Is(err, domain.ErrNotFound) </span><span class="cov1" title="1">{
+        <span class="cov6" title="57">if !errors.Is(err, domain.ErrNotFound) </span><span class="cov1" title="1">{
                 return err
         }</span>
-        <span class="cov6" title="55">return s.resetData(ctx)</span>
+        <span class="cov6" title="56">return s.resetData(ctx)</span>
 }
 
-func (s *Service) resetData(ctx context.Context) error <span class="cov6" title="57">{
+func (s *Service) resetData(ctx context.Context) error <span class="cov6" title="58">{
         recs, err := s.seedRecords()
         if err != nil </span><span class="cov0" title="0">{
                 return err
         }</span>
-        <span class="cov6" title="57">if err := s.Store.Reset(ctx, recs); err != nil </span><span class="cov1" title="1">{
+        <span class="cov6" title="58">if err := s.Store.Reset(ctx, recs); err != nil </span><span class="cov1" title="1">{
                 return err
         }</span>
-        <span class="cov6" title="56">_ = s.Services.Flags.Reset(ctx)
-        _ = s.Cache.Del(ctx, s.sessionKey())
-        return nil</span>
+        <span class="cov6" title="57">_ = s.Services.Flags.Reset(ctx)
+        _ = s.Cache.Del(ctx, s.sessionKey(s.internID))
+        for _, in := range s.Seed.Interns </span><span class="cov7" title="114">{
+                _ = s.Cache.Del(ctx, s.sessionKey(in.ID))
+        }</span>
+        <span class="cov6" title="57">return nil</span>
 }
 
 // ViewerInfo — кто смотрит workspace.
@@ -6356,6 +6676,7 @@ type WorkspaceView struct {
         Progress      domain.Progress         `json:"progress"`
         NextStep      *domain.ChecklistItem   `json:"next_step"`
         SprintTask    domain.SprintTask       `json:"sprint_task"`
+        Skills        []domain.AgentSkill     `json:"skills"`
         FeatureFlags  []domain.FeatureFlag    `json:"feature_flags"`
         Metrics       domain.MetricsSummary   `json:"metrics"`
         Messages      []domain.ChatMessage    `json:"messages"`
@@ -6383,8 +6704,15 @@ type openQuestion struct {
         AskedAt time.Time `json:"asked_at"`
 }
 
-func (s *Service) docsRead(ctx context.Context) ([]string, error) <span class="cov7" title="122">{
-        reads, err := domain.Load[docRead](ctx, s.Store, domain.KindDocRead, s.internID)
+func (s *Service) docsRead(ctx context.Context) ([]string, error) <span class="cov6" title="64">{
+        return s.docsReadFor(ctx, s.internID)
+}</span>
+
+func (s *Service) docsReadFor(ctx context.Context, internID string) ([]string, error) <span class="cov7" title="122">{
+        if internID == "" </span><span class="cov0" title="0">{
+                internID = s.internID
+        }</span>
+        <span class="cov7" title="122">reads, err := domain.Load[docRead](ctx, s.Store, domain.KindDocRead, internID)
         if err != nil </span><span class="cov2" title="3">{
                 return nil, err
         }</span>
@@ -6424,7 +6752,7 @@ func (s *Service) metrics(ctx context.Context, progress domain.Progress) (domain
         if err != nil </span><span class="cov1" title="1">{
                 return domain.MetricsSummary{}, err
         }</span>
-        <span class="cov6" title="47">planner, err := s.planner(ctx)
+        <span class="cov6" title="47">planner, err := s.planner(ctx, s.internID)
         if err != nil </span><span class="cov1" title="1">{
                 return domain.MetricsSummary{}, err
         }</span>
@@ -6446,8 +6774,8 @@ func (s *Service) metrics(ctx context.Context, progress domain.Progress) (domain
 }
 
 // planner возвращает события календаря и задачи стажёра по возрастанию времени.
-func (s *Service) planner(ctx context.Context) ([]domain.PlannerItem, error) <span class="cov7" title="103">{
-        items, err := domain.Load[domain.PlannerItem](ctx, s.Store, domain.KindPlanner, s.internID)
+func (s *Service) planner(ctx context.Context, internID string) ([]domain.PlannerItem, error) <span class="cov7" title="103">{
+        items, err := domain.Load[domain.PlannerItem](ctx, s.Store, domain.KindPlanner, internID)
         if err != nil </span><span class="cov1" title="2">{
                 return nil, err
         }</span>
@@ -6455,22 +6783,41 @@ func (s *Service) planner(ctx context.Context) ([]domain.PlannerItem, error) <sp
         <span class="cov7" title="101">return items, nil</span>
 }
 
+// PrometheusMetrics возвращает агрегированные метрики для экспорта в Prometheus / Grafana.
+func (s *Service) PrometheusMetrics(ctx context.Context) (domain.MetricsSummary, float64, error) <span class="cov0" title="0">{
+        checklist, err := domain.LoadChecklist(ctx, s.Store, s.internID)
+        if err != nil </span><span class="cov0" title="0">{
+                return domain.MetricsSummary{}, 0, err
+        }</span>
+        <span class="cov0" title="0">progress := domain.ComputeProgress(checklist)
+        m, err := s.metrics(ctx, progress)
+        if err != nil </span><span class="cov0" title="0">{
+                return domain.MetricsSummary{}, 0, err
+        }</span>
+        <span class="cov0" title="0">ratio := 0.0
+        if progress.Total &gt; 0 </span><span class="cov0" title="0">{
+                ratio = float64(progress.Completed) / float64(progress.Total)
+        }</span>
+        <span class="cov0" title="0">return m, ratio, nil</span>
+}
+
 // Workspace возвращает состояние с учётом прав роли: переписку видит только стажёр,
 // брифы — наставник и руководитель, инциденты безопасности — руководитель.
-func (s *Service) Workspace(ctx context.Context, p domain.Principal) (WorkspaceView, error) <span class="cov6" title="55">{
+func (s *Service) Workspace(ctx context.Context, p domain.Principal, targetInternID ...string) (WorkspaceView, error) <span class="cov6" title="55">{
         var v WorkspaceView
         if err := s.authorize(ctx, p, OpWorkspaceRead); err != nil </span><span class="cov1" title="1">{
                 return v, err
         }</span>
-        <span class="cov6" title="54">intern, err := domain.LoadOne[domain.InternProfile](ctx, s.Store, domain.KindIntern, s.internID)
+        <span class="cov6" title="54">internID := s.resolveInternID(p, targetInternID...)
+        intern, err := domain.LoadOne[domain.InternProfile](ctx, s.Store, domain.KindIntern, internID)
         if err != nil </span><span class="cov1" title="1">{
                 return v, err
         }</span>
-        <span class="cov6" title="53">checklist, err := domain.LoadChecklist(ctx, s.Store, s.internID)
+        <span class="cov6" title="53">checklist, err := domain.LoadChecklist(ctx, s.Store, internID)
         if err != nil </span><span class="cov1" title="1">{
                 return v, err
         }</span>
-        <span class="cov6" title="52">task, err := domain.LoadOne[domain.SprintTask](ctx, s.Store, domain.KindSprintTask, s.internID)
+        <span class="cov6" title="52">task, err := domain.LoadOne[domain.SprintTask](ctx, s.Store, domain.KindSprintTask, internID)
         if err != nil </span><span class="cov1" title="1">{
                 return v, err
         }</span>
@@ -6479,7 +6826,7 @@ func (s *Service) Workspace(ctx context.Context, p domain.Principal) (WorkspaceV
         if err != nil </span><span class="cov3" title="5">{
                 return v, err
         }</span>
-        <span class="cov6" title="46">read, err := s.docsRead(ctx)
+        <span class="cov6" title="46">read, err := s.docsReadFor(ctx, internID)
         if err != nil </span><span class="cov0" title="0">{
                 return v, err
         }</span>
@@ -6488,12 +6835,19 @@ func (s *Service) Workspace(ctx context.Context, p domain.Principal) (WorkspaceV
                 return v, err
         }</span>
 
+        <span class="cov6" title="45">skills := make([]domain.AgentSkill, 0, len(s.Spec.Agent.Skills))
+        for _, sk := range s.Spec.Agent.Skills </span><span class="cov8" title="225">{
+                skills = append(skills, domain.AgentSkill{
+                        ID: sk.ID, Name: sk.Name, Description: sk.Description, Active: sk.Active,
+                })
+        }</span>
+
         <span class="cov6" title="45">mode, model := s.Agent.Mode(ctx)
         v = WorkspaceView{
                 Viewer:    ViewerInfo{ID: p.ID, Name: p.Name, Role: p.Role, RoleTitle: s.RBAC.RoleTitle(p.Role), Team: p.Team},
                 Intern:    intern,
                 Checklist: checklist, Progress: progress, NextStep: domain.NextStep(checklist),
-                SprintTask: task, FeatureFlags: s.Services.Flags.List(ctx), Metrics: metrics,
+                SprintTask: task, Skills: skills, FeatureFlags: s.Services.Flags.List(ctx), Metrics: metrics,
                 Messages: []domain.ChatMessage{}, Notifications: reverse(notifications),
                 Briefs: []domain.MentorBrief{}, Absences: []domain.AbsenceRequest{},
                 AccessGrants: []domain.AccessGrant{}, Incidents: []domain.TelemetryEvent{},
@@ -6505,13 +6859,13 @@ func (s *Service) Workspace(ctx context.Context, p domain.Principal) (WorkspaceV
                         "telemetry": s.can(p, OpTelemetryRead), "flags_write": s.can(p, OpFlagsWrite),
                         "briefs": s.can(p, OpBriefsRead), "incidents": s.can(p, OpIncidentsRead),
                         "planner_add": s.RBAC.Can(p.Role, mcp.ToolAddTask), "planner_complete": s.RBAC.Can(p.Role, mcp.ToolCompleteItem),
-                        "absence_approve": s.RBAC.Can(p.Role, mcp.ToolApproveDayOff),
+                        "absence_approve": s.RBAC.Can(p.Role, mcp.ToolReviewDayOff),
                 },
                 Disclaimer: s.Spec.Agent.Agent.SyntheticData.Disclaimer,
         }
 
-        isOwner := p.ID == s.internID
-        if v.Planner, err = s.planner(ctx); err != nil </span><span class="cov0" title="0">{
+        isOwner := p.ID == internID
+        if v.Planner, err = s.planner(ctx, internID); err != nil </span><span class="cov0" title="0">{
                 return v, err
         }</span>
         <span class="cov6" title="45">v.Reminders = []domain.Reminder{}
@@ -6521,30 +6875,30 @@ func (s *Service) Workspace(ctx context.Context, p domain.Principal) (WorkspaceV
                 }</span>
         }
         <span class="cov6" title="45">if s.can(p, OpChatHistoryRead) &amp;&amp; isOwner </span><span class="cov5" title="30">{
-                if v.Messages, err = domain.Load[domain.ChatMessage](ctx, s.Store, domain.KindMessage, s.internID); err != nil </span><span class="cov1" title="1">{
+                if v.Messages, err = domain.Load[domain.ChatMessage](ctx, s.Store, domain.KindMessage, internID); err != nil </span><span class="cov1" title="1">{
                         return v, err
                 }</span>
         }
         <span class="cov6" title="44">if isOwner || s.can(p, OpAbsencesTeam) </span><span class="cov6" title="44">{
-                absences, err := domain.Load[domain.AbsenceRequest](ctx, s.Store, domain.KindAbsence, s.internID)
+                absences, err := domain.Load[domain.AbsenceRequest](ctx, s.Store, domain.KindAbsence, internID)
                 if err != nil </span><span class="cov1" title="1">{
                         return v, err
                 }</span>
-                <span class="cov6" title="43">grants, err := domain.Load[domain.AccessGrant](ctx, s.Store, domain.KindAccessGrant, s.internID)
+                <span class="cov6" title="43">grants, err := domain.Load[domain.AccessGrant](ctx, s.Store, domain.KindAccessGrant, internID)
                 if err != nil </span><span class="cov0" title="0">{
                         return v, err
                 }</span>
                 <span class="cov6" title="43">v.Absences, v.AccessGrants = reverse(absences), grants</span>
         }
         <span class="cov6" title="43">if s.can(p, OpBriefsRead) </span><span class="cov4" title="15">{
-                briefs, err := domain.Load[domain.MentorBrief](ctx, s.Store, domain.KindBrief, s.internID)
+                briefs, err := domain.Load[domain.MentorBrief](ctx, s.Store, domain.KindBrief, internID)
                 if err != nil </span><span class="cov1" title="1">{
                         return v, err
                 }</span>
                 <span class="cov4" title="14">v.Briefs = reverse(briefs)</span>
         }
         <span class="cov6" title="42">if s.can(p, OpIncidentsRead) </span><span class="cov3" title="7">{
-                events, err := domain.Load[domain.TelemetryEvent](ctx, s.Store, domain.KindEvent, s.internID)
+                events, err := domain.Load[domain.TelemetryEvent](ctx, s.Store, domain.KindEvent, internID)
                 if err != nil </span><span class="cov0" title="0">{
                         return v, err
                 }</span>
@@ -6555,6 +6909,86 @@ func (s *Service) Workspace(ctx context.Context, p domain.Principal) (WorkspaceV
                 }
         }
         <span class="cov6" title="42">return v, nil</span>
+}
+
+// ReviewAbsence согласовывает или отклоняет заявку на отгул руководителем.
+func (s *Service) ReviewAbsence(ctx context.Context, p domain.Principal, id, decision, comment string) (*domain.AbsenceRequest, error) <span class="cov2" title="4">{
+        if err := s.authorize(ctx, p, OpAbsencesReview); err != nil </span><span class="cov1" title="1">{
+                return nil, err
+        }</span>
+        <span class="cov2" title="3">id = strings.TrimSpace(id)
+        decision = strings.TrimSpace(decision)
+        comment = strings.TrimSpace(comment)
+        if id == "" </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("%w: не указан id заявки", domain.ErrValidation)
+        }</span>
+        <span class="cov2" title="3">if decision != domain.AbsenceStatusApproved &amp;&amp; decision != domain.AbsenceStatusRejected </span><span class="cov1" title="1">{
+                return nil, fmt.Errorf("%w: некорректное решение %q (ожидается approved или rejected)", domain.ErrValidation, decision)
+        }</span>
+
+        <span class="cov1" title="2">all, err := domain.Load[domain.AbsenceRequest](ctx, s.Store, domain.KindAbsence, "")
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+        <span class="cov1" title="2">var target *domain.AbsenceRequest
+        for i := range all </span><span class="cov2" title="3">{
+                if all[i].ID == id || all[i].Number == id </span><span class="cov1" title="2">{
+                        target = &amp;all[i]
+                        break</span>
+                }
+        }
+        <span class="cov1" title="2">if target == nil </span><span class="cov0" title="0">{
+                return nil, domain.ErrNotFound
+        }</span>
+
+        <span class="cov1" title="2">now := s.Clock.Now()
+        target.Status = decision
+        target.Decision = decision
+        target.Comment = comment
+        target.ReviewerID = p.ID
+        target.ReviewedAt = &amp;now
+
+        if err := domain.Save(ctx, s.Store, domain.KindAbsence, target.ID, target.InternID, target.CreatedAt, *target); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        // 1. Clickstream-событие absence.reviewed
+        <span class="cov1" title="2">s.Events.Track(ctx, target.InternID, p, domain.EventKindClickstream, "absence.reviewed", domain.SeverityInfo, map[string]any{
+                "id":          target.ID,
+                "number":      target.Number,
+                "decision":    decision,
+                "comment":     comment,
+                "reviewer_id": p.ID,
+        })
+
+        // 2. Системное уведомление от Гоффи в чат стажёра
+        var notifyText string
+        if decision == domain.AbsenceStatusApproved </span><span class="cov1" title="1">{
+                notifyText = fmt.Sprintf("✅ Руководитель согласовал твою заявку на отгул %s. Статус в системе «Отсутствия» обновлён.", target.Number)
+        }</span> else<span class="cov1" title="1"> {
+                notifyText = fmt.Sprintf("❌ Руководитель отклонил твою заявку на отгул %s. Статус в системе «Отсутствия» обновлён.", target.Number)
+                if comment != "" </span><span class="cov1" title="1">{
+                        notifyText += fmt.Sprintf("\nКомментарий: %s", comment)
+                }</span>
+        }
+
+        <span class="cov1" title="2">msg := domain.ChatMessage{
+                ID:        s.IDs.NewID("msg"),
+                InternID:  target.InternID,
+                Role:      domain.MessageAssistant,
+                Text:      notifyText,
+                Intent:    "absence_reviewed",
+                Engine:    domain.EngineSmart,
+                Sources:   []domain.DocRef{},
+                CreatedAt: now,
+        }
+        _ = s.saveMessage(ctx, msg)
+
+        // Уведомление во входящие
+        kind, body := mcp.ReviewNotice(*target)
+        _, _ = s.Services.Notifications.Send(ctx, target.InternID, "Решение по отгулу", body, kind, now)
+
+        return target, nil</span>
 }
 
 func reverse[T any](in []T) []T <span class="cov7" title="104">{
@@ -6578,7 +7012,7 @@ type ChatResult struct {
         LatencyMS        float64                `json:"latency_ms"`
 }
 
-func (s *Service) saveMessage(ctx context.Context, m domain.ChatMessage) error <span class="cov7" title="78">{
+func (s *Service) saveMessage(ctx context.Context, m domain.ChatMessage) error <span class="cov7" title="82">{
         return domain.Save(ctx, s.Store, domain.KindMessage, m.ID, m.InternID, m.CreatedAt, m)
 }</span>
 
@@ -6590,15 +7024,15 @@ func callIDs(calls []domain.MCPToolCall) []string <span class="cov5" title="35">
         <span class="cov5" title="35">return ids</span>
 }
 
-func nonNil[T any](in []T) []T <span class="cov7" title="133">{
-        if in == nil </span><span class="cov6" title="43">{
+func nonNil[T any](in []T) []T <span class="cov7" title="135">{
+        if in == nil </span><span class="cov6" title="44">{
                 return []T{}
         }</span>
-        <span class="cov7" title="90">return in</span>
+        <span class="cov7" title="91">return in</span>
 }
 
 // Chat обрабатывает сообщение стажёра: агент → MCP/RBAC → эффекты на чек-лист → ответ.
-func (s *Service) Chat(ctx context.Context, p domain.Principal, text string, emit func(agent.Stage)) (ChatResult, error) <span class="cov6" title="43">{
+func (s *Service) Chat(ctx context.Context, p domain.Principal, text string, emit func(agent.Stage), targetInternID ...string) (ChatResult, error) <span class="cov6" title="43">{
         started := time.Now()
         var res ChatResult
         if err := s.authorize(ctx, p, OpChatSend); err != nil </span><span class="cov1" title="2">{
@@ -6608,28 +7042,29 @@ func (s *Service) Chat(ctx context.Context, p domain.Principal, text string, emi
         if n := len([]rune(text)); n == 0 || n &gt; maxMessageLen </span><span class="cov2" title="3">{
                 return res, fmt.Errorf("%w: сообщение должно быть от 1 до %d символов", domain.ErrValidation, maxMessageLen)
         }</span>
-        <span class="cov6" title="38">intern, err := domain.LoadOne[domain.InternProfile](ctx, s.Store, domain.KindIntern, s.internID)
+        <span class="cov6" title="38">internID := s.resolveInternID(p, targetInternID...)
+        intern, err := domain.LoadOne[domain.InternProfile](ctx, s.Store, domain.KindIntern, internID)
         if err != nil </span><span class="cov1" title="1">{
                 return res, err
         }</span>
-        <span class="cov6" title="37">checklist, err := domain.LoadChecklist(ctx, s.Store, s.internID)
+        <span class="cov6" title="37">checklist, err := domain.LoadChecklist(ctx, s.Store, internID)
         if err != nil </span><span class="cov1" title="1">{
                 return res, err
         }</span>
-        <span class="cov6" title="36">task, err := domain.LoadOne[domain.SprintTask](ctx, s.Store, domain.KindSprintTask, s.internID)
+        <span class="cov6" title="36">task, err := domain.LoadOne[domain.SprintTask](ctx, s.Store, domain.KindSprintTask, internID)
         if err != nil </span><span class="cov1" title="1">{
                 return res, err
         }</span>
-        <span class="cov5" title="35">sess := s.loadSession(ctx)
+        <span class="cov5" title="35">sess := s.loadSession(ctx, internID)
 
         user := domain.ChatMessage{
-                ID: s.IDs.NewID("msg"), InternID: s.internID, Role: domain.MessageUser, Text: text,
+                ID: s.IDs.NewID("msg"), InternID: internID, Role: domain.MessageUser, Text: text,
                 Sources: []domain.DocRef{}, Suggestions: []string{}, ToolCallIDs: []string{}, CreatedAt: s.Clock.Now(),
         }
         if err := s.saveMessage(ctx, user); err != nil </span><span class="cov1" title="1">{
                 return res, err
         }</span>
-        <span class="cov5" title="34">s.Events.Track(ctx, s.internID, p, domain.EventKindClickstream, "chat.message_sent", domain.SeverityInfo,
+        <span class="cov5" title="34">s.Events.Track(ctx, internID, p, domain.EventKindClickstream, "chat.message_sent", domain.SeverityInfo,
                 map[string]any{"length": len([]rune(text))})
 
         reply := s.Agent.Handle(ctx, agent.Request{
@@ -6637,23 +7072,23 @@ func (s *Service) Chat(ctx context.Context, p domain.Principal, text string, emi
                 LastIntent: sess.LastIntent, Emit: emit,
         })
 
-        updates, err := s.applyEffects(ctx, p, reply.ToolCalls, reply.DocsRead)
+        updates, err := s.applyEffects(ctx, p, reply.ToolCalls, reply.DocsRead, internID)
         if err != nil </span><span class="cov2" title="3">{
                 return res, err
         }</span>
         <span class="cov5" title="31">if reply.OpenQuestion != "" </span><span class="cov3" title="5">{
                 q := openQuestion{Text: reply.OpenQuestion, AskedAt: s.Clock.Now()}
-                if err := domain.Save(ctx, s.Store, domain.KindOpenQuestion, s.IDs.NewID("q"), s.internID, q.AskedAt, q); err != nil </span><span class="cov1" title="1">{
+                if err := domain.Save(ctx, s.Store, domain.KindOpenQuestion, s.IDs.NewID("q"), internID, q.AskedAt, q); err != nil </span><span class="cov1" title="1">{
                         return res, err
                 }</span>
         }
-        <span class="cov5" title="30">checklist, err = domain.LoadChecklist(ctx, s.Store, s.internID)
+        <span class="cov5" title="30">checklist, err = domain.LoadChecklist(ctx, s.Store, internID)
         if err != nil </span><span class="cov0" title="0">{
                 return res, err
         }</span>
 
         <span class="cov5" title="30">assistant := domain.ChatMessage{
-                ID: s.IDs.NewID("msg"), InternID: s.internID, Role: domain.MessageAssistant,
+                ID: s.IDs.NewID("msg"), InternID: internID, Role: domain.MessageAssistant,
                 Text:   reply.Text + checklistNote(updates, checklist),
                 Intent: reply.Intent, Engine: reply.Engine, Sources: nonNil(reply.Sources),
                 ActionCard: reply.ActionCard, ResultCard: reply.ResultCard, Suggestions: nonNil(reply.Suggestions),
@@ -6662,7 +7097,7 @@ func (s *Service) Chat(ctx context.Context, p domain.Principal, text string, emi
         if err := s.saveMessage(ctx, assistant); err != nil </span><span class="cov0" title="0">{
                 return res, err
         }</span>
-        <span class="cov5" title="30">s.saveSession(ctx, session{LastIntent: reply.Intent, Turns: sess.Turns + 1})
+        <span class="cov5" title="30">s.saveSession(ctx, internID, session{LastIntent: reply.Intent, Turns: sess.Turns + 1})
 
         latency := float64(time.Since(started).Microseconds()) / 1000
         payload := map[string]any{
@@ -6672,9 +7107,9 @@ func (s *Service) Chat(ctx context.Context, p domain.Principal, text string, emi
         if reply.SavingKey != "" </span><span class="cov5" title="25">{
                 payload["saving_key"] = reply.SavingKey
         }</span>
-        <span class="cov5" title="30">s.Events.Track(ctx, s.internID, p, domain.EventKindAgent, "agent.answer", domain.SeverityInfo, payload)
+        <span class="cov5" title="30">s.Events.Track(ctx, internID, p, domain.EventKindAgent, "agent.answer", domain.SeverityInfo, payload)
         if reply.LLMFallback != "" </span><span class="cov1" title="1">{
-                s.Events.Track(ctx, s.internID, p, domain.EventKindAgent, "llm.fallback", domain.SeverityWarn,
+                s.Events.Track(ctx, internID, p, domain.EventKindAgent, "llm.fallback", domain.SeverityWarn,
                         map[string]any{"reason": reply.LLMFallback, "fallback": "smart_engine"})
         }</span>
 
@@ -6685,32 +7120,32 @@ func (s *Service) Chat(ctx context.Context, p domain.Principal, text string, emi
         }, nil</span>
 }
 
-func checklistNote(updates, checklist []domain.ChecklistItem) string <span class="cov6" title="37">{
-        if len(updates) == 0 </span><span class="cov5" title="18">{
+func checklistNote(updates, checklist []domain.ChecklistItem) string <span class="cov6" title="39">{
+        if len(updates) == 0 </span><span class="cov5" title="19">{
                 return ""
         }</span>
-        <span class="cov5" title="19">var b strings.Builder
+        <span class="cov5" title="20">var b strings.Builder
         b.WriteString("\n\n")
-        for _, u := range updates </span><span class="cov5" title="19">{
+        for _, u := range updates </span><span class="cov5" title="20">{
                 state := "выполнен"
                 if u.Status == domain.StatusInProgress </span><span class="cov1" title="1">{
                         state = "в работе"
                 }</span>
-                <span class="cov5" title="19">fmt.Fprintf(&amp;b, "Шаг чек-листа «%s» — %s. ", u.Title, state)</span>
+                <span class="cov5" title="20">fmt.Fprintf(&amp;b, "Шаг чек-листа «%s» — %s. ", u.Title, state)</span>
         }
-        <span class="cov5" title="19">if next := domain.NextStep(checklist); next != nil </span><span class="cov5" title="19">{
+        <span class="cov5" title="20">if next := domain.NextStep(checklist); next != nil </span><span class="cov5" title="20">{
                 fmt.Fprintf(&amp;b, "Следующий шаг: «%s».", next.Title)
         }</span> else<span class="cov0" title="0"> {
                 b.WriteString("Все шаги чек-листа выполнены!")
         }</span>
-        <span class="cov5" title="19">return strings.TrimRight(b.String(), " ")</span>
+        <span class="cov5" title="20">return strings.TrimRight(b.String(), " ")</span>
 }
 
-func evidence(call domain.MCPToolCall) string <span class="cov5" title="22">{
+func evidence(call domain.MCPToolCall) string <span class="cov5" title="24">{
         switch call.Tool </span>{
         case mcp.ToolRequestRepoAccess:<span class="cov4" title="12">
                 return fmt.Sprintf("Доступ к %v выдан через IAM (Гоффи)", call.Result["repository"])</span>
-        case mcp.ToolCreateDayOff:<span class="cov3" title="6">
+        case mcp.ToolCreateDayOff:<span class="cov3" title="8">
                 return fmt.Sprintf("Заявка %v оформлена через Гоффи", call.Result["request_number"])</span>
         case mcp.ToolSendBrief:<span class="cov2" title="4">
                 return "Бриф к 1:1 отправлен наставнику"</span>
@@ -6719,16 +7154,17 @@ func evidence(call domain.MCPToolCall) string <span class="cov5" title="22">{
 }
 
 // applyEffects применяет правила checklist_effects из спецификации агента.
-func (s *Service) applyEffects(ctx context.Context, p domain.Principal, calls []domain.MCPToolCall, docs []string) ([]domain.ChecklistItem, error) <span class="cov6" title="52">{
+func (s *Service) applyEffects(ctx context.Context, p domain.Principal, calls []domain.MCPToolCall, docs []string, targetInternID ...string) ([]domain.ChecklistItem, error) <span class="cov6" title="54">{
+        internID := s.resolveInternID(p, targetInternID...)
         now := s.Clock.Now()
         for _, id := range docs </span><span class="cov5" title="19">{
-                if err := domain.Save(ctx, s.Store, domain.KindDocRead, s.internID+":"+id, s.internID, now, docRead{DocID: id, ReadAt: now}); err != nil </span><span class="cov1" title="1">{
+                if err := domain.Save(ctx, s.Store, domain.KindDocRead, internID+":"+id, internID, now, docRead{DocID: id, ReadAt: now}); err != nil </span><span class="cov1" title="1">{
                         return nil, err
                 }</span>
         }
-        <span class="cov6" title="51">read := map[string]bool{}
+        <span class="cov6" title="53">read := map[string]bool{}
         if len(docs) &gt; 0 </span><span class="cov4" title="12">{
-                ids, err := s.docsRead(ctx)
+                ids, err := s.docsReadFor(ctx, internID)
                 if err != nil </span><span class="cov1" title="1">{
                         return nil, err
                 }</span>
@@ -6737,13 +7173,13 @@ func (s *Service) applyEffects(ctx context.Context, p domain.Principal, calls []
                 }</span>
         }
 
-        <span class="cov6" title="50">var updates []domain.ChecklistItem
-        for _, eff := range s.Spec.Agent.ChecklistEffects </span><span class="cov8" title="197">{
+        <span class="cov6" title="52">var updates []domain.ChecklistItem
+        for _, eff := range s.Spec.Agent.ChecklistEffects </span><span class="cov8" title="205">{
                 status, proof := domain.ChecklistStatus(""), ""
                 switch </span>{
-                case eff.Tool != "":<span class="cov7" title="148">
-                        for _, c := range calls </span><span class="cov8" title="157">{
-                                if c.Tool == eff.Tool &amp;&amp; c.OK() </span><span class="cov5" title="22">{
+                case eff.Tool != "":<span class="cov8" title="154">
+                        for _, c := range calls </span><span class="cov8" title="163">{
+                                if c.Tool == eff.Tool &amp;&amp; c.OK() </span><span class="cov5" title="24">{
                                         status, proof = domain.ChecklistStatus(eff.Status), evidence(c)
                                 }</span>
                         }
@@ -6761,28 +7197,28 @@ func (s *Service) applyEffects(ctx context.Context, p domain.Principal, calls []
                                 status, proof = domain.StatusInProgress, fmt.Sprintf("Изучено инструкций: %d из %d", done, len(eff.DocsRead))</span>
                         }
                 }
-                <span class="cov8" title="197">if status == "" </span><span class="cov8" title="168">{
+                <span class="cov8" title="205">if status == "" </span><span class="cov8" title="174">{
                         continue</span>
                 }
-                <span class="cov5" title="29">item, err := domain.LoadOne[domain.ChecklistItem](ctx, s.Store, domain.KindChecklist, domain.ChecklistRecordID(s.internID, eff.Item))
+                <span class="cov5" title="31">item, err := domain.LoadOne[domain.ChecklistItem](ctx, s.Store, domain.KindChecklist, domain.ChecklistRecordID(internID, eff.Item))
                 if errors.Is(err, domain.ErrNotFound) </span><span class="cov0" title="0">{
                         continue</span>
                 }
-                <span class="cov5" title="29">if err != nil </span><span class="cov0" title="0">{
+                <span class="cov5" title="31">if err != nil </span><span class="cov0" title="0">{
                         return nil, err
                 }</span>
-                <span class="cov5" title="29">next, changed, err := item.Advance(status, proof, now)
-                if err != nil || !changed </span><span class="cov2" title="3">{
+                <span class="cov5" title="31">next, changed, err := item.Advance(status, proof, now)
+                if err != nil || !changed </span><span class="cov2" title="4">{
                         continue</span> // шаг уже в этом или более позднем статусе
                 }
-                <span class="cov5" title="26">if err := domain.SaveChecklistItem(ctx, s.Store, s.internID, next); err != nil </span><span class="cov1" title="2">{
+                <span class="cov5" title="27">if err := domain.SaveChecklistItem(ctx, s.Store, internID, next); err != nil </span><span class="cov1" title="2">{
                         return nil, err
                 }</span>
-                <span class="cov5" title="24">updates = append(updates, next)
-                s.Events.Track(ctx, s.internID, p, domain.EventKindClickstream, "checklist.updated", domain.SeverityInfo,
+                <span class="cov5" title="25">updates = append(updates, next)
+                s.Events.Track(ctx, internID, p, domain.EventKindClickstream, "checklist.updated", domain.SeverityInfo,
                         map[string]any{"item": next.ID, "status": string(next.Status), "evidence": next.Evidence})</span>
         }
-        <span class="cov6" title="48">return updates, nil</span>
+        <span class="cov6" title="50">return updates, nil</span>
 }
 </pre>
 		

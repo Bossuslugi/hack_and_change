@@ -3,6 +3,7 @@ import { chatStream, fakeFetch, fixtures, json, sse } from '../test/helpers';
 import { getApiInternId, setApiInternId } from './auth';
 import { ApiError, createApiClient } from './client';
 import {
+  absenceSchema,
   chatResultSchema,
   cronResultSchema,
   featureFlagSchema,
@@ -25,7 +26,8 @@ describe('контракт API: схемы принимают реальные �
     ['execute: личная задача', chatResultSchema, fixtures.executeAddTask],
     ['execute: обязательная задача', chatResultSchema, fixtures.executeAssignTask],
     ['execute: отчёт Гоффи', chatResultSchema, fixtures.executeReport],
-    ['execute: согласование отгула', chatResultSchema, fixtures.executeApprove],
+    ['согласование отгула', absenceSchema, fixtures.reviewAbsence],
+    ['workspace второго стажёра', workspaceSchema, fixtures.workspaceIntern2],
     ['крон', cronResultSchema, fixtures.cron],
     ['телеметрия', telemetrySchema, fixtures.telemetry],
     ['флаг', featureFlagSchema, fixtures.flag],
