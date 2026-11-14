@@ -7,6 +7,10 @@ import chatProcess from './fixtures/chat_process.json';
 import cron from './fixtures/cron.json';
 import errorForbidden from './fixtures/error_forbidden.json';
 import executeAbsence from './fixtures/execute_absence.json';
+import executeAddTask from './fixtures/execute_add_task.json';
+import executeApprove from './fixtures/execute_approve.json';
+import executeAssignTask from './fixtures/execute_assign_task.json';
+import executeReport from './fixtures/execute_report.json';
 import executeDuplicate from './fixtures/execute_duplicate.json';
 import executeForbidden from './fixtures/execute_forbidden.json';
 import flag from './fixtures/flag.json';
@@ -24,6 +28,10 @@ export const fixtures = {
   cron,
   errorForbidden,
   executeAbsence,
+  executeAddTask,
+  executeApprove,
+  executeAssignTask,
+  executeReport,
   executeDuplicate,
   executeForbidden,
   flag,

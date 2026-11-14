@@ -29,12 +29,13 @@ const (
 	KindEvent        Kind = "telemetry_events"
 	KindDocRead      Kind = "doc_progress"
 	KindOpenQuestion Kind = "open_questions"
+	KindPlanner      Kind = "planner_items"
 )
 
 // AllKinds — все виды записей в порядке создания таблиц.
 var AllKinds = []Kind{
 	KindIntern, KindChecklist, KindSprintTask, KindMessage, KindToolCall, KindAbsence,
-	KindAccessGrant, KindNotification, KindBrief, KindEvent, KindDocRead, KindOpenQuestion,
+	KindAccessGrant, KindNotification, KindBrief, KindEvent, KindDocRead, KindOpenQuestion, KindPlanner,
 }
 
 // Record — запись хранилища: индексируемые поля + JSON-документ.
@@ -193,6 +194,8 @@ type SeedData struct {
 	Flags     []FeatureFlag
 	// Repositories — каталог репозиториев: имя → команда-владелец.
 	Repositories map[string]string
+	// Planner — события календаря и задачи первых недель относительно момента загрузки.
+	Planner func(now time.Time) []PlannerItem
 }
 
 // Records превращает seed в записи хранилища.
@@ -215,7 +218,17 @@ func (d SeedData) Records(now time.Time) ([]Record, error) {
 	if err != nil {
 		return nil, err
 	}
-	return append(out, rec), nil
+	out = append(out, rec)
+	if d.Planner != nil {
+		for _, item := range d.Planner(now) {
+			rec, err := NewRecord(KindPlanner, item.ID, d.Intern.ID, now, item)
+			if err != nil {
+				return nil, err
+			}
+			out = append(out, rec)
+		}
+	}
+	return out, nil
 }
 
 // Directory — имитация корпоративного справочника сотрудников и авторизации.

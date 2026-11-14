@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import type { ChatMessage, DocRef, ResultCard as ResultCardData, Workspace } from '../../api/schemas';
-import { ENGINE_LABEL, formatTime } from '../../lib/format';
+import { formatTime } from '../../lib/format';
 import { chatInputSchema, MAX_MESSAGE_LENGTH } from '../../lib/validation';
 import { useUi, type StreamState } from '../../store/ui';
-import { Badge, Button, Card, RichText, Spinner, SyntheticBadge, cn } from '../ui/primitives';
+import { GoffyAvatar } from '../GoffyAvatar';
+import { Badge, Button, Card, OnlineDot, RichText, SyntheticBadge, cn } from '../ui/primitives';
 import { AbsenceForm } from './AbsenceForm';
 
 /** Быстрый запуск сценариев для проверки жюри. */
@@ -14,15 +15,7 @@ export const SCENARIOS: Array<{ label: string; text: string }> = [
   { label: '3 · Отгул', text: 'Мне нужно уйти в пятницу после обеда на зачёт в универ, как оформить отгул и надо ли писать руководителю?' },
 ];
 
-function Avatar() {
-  return (
-    <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand-500 text-white" aria-hidden="true">
-      <svg viewBox="0 0 24 24" className="h-4 w-4">
-        <path d="M5 17V8a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v5a3 3 0 0 1-3 3h-5l-6 4z" fill="currentColor" />
-      </svg>
-    </div>
-  );
-}
+const Avatar = () => <GoffyAvatar size="sm" />;
 
 function Sources({ sources }: { sources: DocRef[] }) {
   if (sources.length === 0) return null;
@@ -86,12 +79,11 @@ function MessageBubble({ message, isLast, onAsk, busy }: { message: ChatMessage;
       <Avatar />
       <div className="min-w-0 max-w-[92%] flex-1">
         <div className="mb-1 flex flex-wrap items-center gap-1.5 text-[11px] text-ink-400">
-          <span className="font-medium text-ink-700">AI-Buddy</span>
-          {message.engine && <Badge tone={message.engine === 'llm' ? 'ok' : 'neutral'}>{ENGINE_LABEL[message.engine] ?? message.engine}</Badge>}
+          <span className="font-medium text-ink-700">Гоффи</span>
           {message.proactive && <Badge tone="brand">Проактивно</Badge>}
           <span>{formatTime(message.created_at)}</span>
         </div>
-        <div className="rounded-2xl rounded-tl-md bg-white px-3.5 py-3 text-ink-900 shadow-card ring-1 ring-paper-200">
+        <div className="rounded-2xl rounded-tl-md bg-paper-0 px-3.5 py-3 text-ink-900 shadow-card ring-1 ring-paper-200">
           <RichText text={message.text} />
           <Sources sources={message.sources} />
           {message.result_card && <ResultCard card={message.result_card} />}
@@ -105,7 +97,7 @@ function MessageBubble({ message, isLast, onAsk, busy }: { message: ChatMessage;
                 type="button"
                 disabled={busy}
                 onClick={() => onAsk(s)}
-                className="rounded-full border border-brand-100 bg-white px-3 py-1 text-left text-xs text-brand-700 transition-colors hover:bg-brand-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-500 disabled:opacity-50"
+                className="rounded-full border border-brand-100 bg-paper-0 px-3 py-1 text-left text-xs text-brand-700 transition-colors hover:bg-brand-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-500 disabled:opacity-50"
               >
                 {s}
               </button>
@@ -117,31 +109,25 @@ function MessageBubble({ message, isLast, onAsk, busy }: { message: ChatMessage;
   );
 }
 
-/** Ответ в процессе: этапы обработки (статус ожидания) и уже пришедший текст. */
+/** Ответ в процессе: дружелюбный статус ожидания и уже пришедший текст. Служебные детали — в «Инспекторе жюри». */
 function StreamingBubble({ stream }: { stream: StreamState }) {
   const current = stream.stages[stream.stages.length - 1];
   return (
-    <div className="flex gap-2.5" aria-live="polite" data-testid="streaming">
+    <div className="flex animate-fade-up gap-2.5" aria-live="polite" data-testid="streaming">
       <Avatar />
       <div className="min-w-0 max-w-[92%] flex-1">
-        <div className="rounded-2xl rounded-tl-md bg-white px-3.5 py-3 shadow-card ring-1 ring-paper-200">
+        <div className="rounded-2xl rounded-tl-md bg-paper-0 px-3.5 py-3 shadow-card ring-1 ring-paper-200">
           {stream.text === '' ? (
-            <div className="flex items-center gap-2 text-sm text-ink-500">
-              <Spinner className="text-brand-500" />
-              <span>{current?.label ?? 'AI-Buddy печатает…'}</span>
-              {current?.tool && <span className="font-mono text-[11px] text-ink-400">{current.tool}</span>}
+            <div className="flex items-center gap-2.5 text-sm text-ink-500">
+              <span className="flex gap-1" aria-hidden="true">
+                {[0, 1, 2].map((i) => (
+                  <span key={i} className="h-1.5 w-1.5 animate-bounce rounded-full bg-brand-500" style={{ animationDelay: `${i * 120}ms` }} />
+                ))}
+              </span>
+              <span>{current?.label ?? 'Гоффи печатает…'}</span>
             </div>
           ) : (
             <RichText text={stream.text} className="text-ink-900" />
-          )}
-          {stream.stages.length > 0 && (
-            <ol className="mt-2 flex flex-wrap gap-1.5 border-t border-paper-100 pt-2">
-              {stream.stages.map((stage, i) => (
-                <li key={i} className="rounded-full bg-paper-100 px-2 py-0.5 text-[11px] text-ink-500">
-                  {stage.kind === 'rbac' ? 'RBAC' : stage.kind === 'tool' ? `MCP${stage.tool ? ` · ${stage.tool}` : ''}` : stage.label.replace('…', '')}
-                </li>
-              ))}
-            </ol>
           )}
         </div>
       </div>
@@ -174,7 +160,7 @@ function Composer({ onSend, busy }: { onSend: (text: string) => void; busy: bool
   };
 
   return (
-    <form onSubmit={submit} className="border-t border-paper-200 bg-white p-3">
+    <form onSubmit={submit} className="border-t border-paper-200 bg-paper-0 p-3">
       <div className="mb-2 flex flex-wrap items-center gap-1.5">
         <span className="text-[11px] font-medium text-ink-400">Сценарии:</span>
         {SCENARIOS.map((s) => (
@@ -192,7 +178,7 @@ function Composer({ onSend, busy }: { onSend: (text: string) => void; busy: bool
       </div>
       <div className="flex items-end gap-2">
         <label htmlFor="chat-input" className="sr-only">
-          Сообщение AI-Buddy
+          Сообщение Гоффи
         </label>
         <textarea
           id="chat-input"
@@ -206,7 +192,7 @@ function Composer({ onSend, busy }: { onSend: (text: string) => void; busy: bool
           }}
           onKeyDown={onKeyDown}
           aria-invalid={error !== null}
-          className="min-h-[44px] flex-1 resize-none rounded-xl border border-paper-200 bg-paper-50 px-3 py-2 text-sm text-ink-900 placeholder:text-ink-400 focus:border-brand-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-brand-100"
+          className="min-h-[44px] flex-1 resize-none rounded-xl border border-paper-200 bg-paper-50 px-3 py-2 text-sm text-ink-900 placeholder:text-ink-400 focus:border-brand-500 focus:bg-paper-0 focus:outline-none focus:ring-2 focus:ring-brand-100"
         />
         <Button type="submit" variant="primary" loading={busy} className="h-11">
           Отправить
@@ -242,16 +228,28 @@ export function ChatPanel({ workspace, onSend, busy }: { workspace: Workspace; o
   return (
     <Card className="flex h-[calc(100vh-150px)] min-h-[520px] flex-col overflow-hidden">
       <div className="flex items-center justify-between border-b border-paper-200 px-4 py-3">
-        <div>
-          <h1 className="text-sm font-semibold text-ink-900">Чат с AI-Buddy</h1>
-          <p className="text-[11px] text-ink-500">
-            Наставник: {workspace.intern.mentor_name} · руководитель: {workspace.intern.team_lead_name}
-          </p>
+        <div className="flex items-center gap-3">
+          <GoffyAvatar size="md" pulse />
+          <div>
+            <h1 className="flex items-center gap-2 text-sm font-semibold text-ink-900">
+              Гоффи <OnlineDot /> <span className="text-[11px] font-normal text-ok-700">на связи</span>
+            </h1>
+            <p className="text-[11px] text-ink-500">
+              Твой ИИ-наставник · живой наставник: {workspace.intern.mentor_name} · руководитель: {workspace.intern.team_lead_name}
+            </p>
+          </div>
         </div>
         <Badge tone="neutral">Переписку видишь только ты</Badge>
       </div>
 
-      <div ref={logRef} className="flex-1 space-y-4 overflow-y-auto bg-paper-50 px-4 py-4" role="log" aria-label="История чата">
+      <div ref={logRef} className="flex-1 space-y-4 overflow-y-auto bg-paper-50/40 px-4 py-4" role="log" aria-label="История чата">
+        {messages.length <= 1 && !busy && (
+          <div className="flex flex-col items-center gap-2 pb-2 pt-4 text-center" data-testid="goffy-hero">
+            <GoffyAvatar size="lg" pulse />
+            <p className="text-base font-semibold text-ink-900">Гоффи на связи</p>
+            <p className="max-w-sm text-xs text-ink-500">Доступы, процессы команды, отгулы и напоминания — спрашивай как коллегу. Выбери сценарий ниже или напиши вопрос.</p>
+          </div>
+        )}
         {messages.map((m, i) => (
           <MessageBubble key={m.id} message={m} isLast={i === messages.length - 1 && !busy} onAsk={onSend} busy={busy} />
         ))}

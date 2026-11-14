@@ -7,7 +7,7 @@ import { formatDate } from '../../lib/format';
 import { Badge, Button, cn } from '../ui/primitives';
 
 const inputClass =
-  'w-full rounded-lg border border-paper-200 bg-white px-2.5 py-1.5 text-sm text-ink-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100 disabled:bg-paper-50 disabled:text-ink-500';
+  'w-full rounded-lg border border-paper-200 bg-paper-0 px-2.5 py-1.5 text-sm text-ink-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100 disabled:bg-paper-50 disabled:text-ink-500';
 
 function Field({ label, error, children, htmlFor }: { label: string; error?: string; children: React.ReactNode; htmlFor: string }) {
   return (
@@ -115,7 +115,7 @@ export function AbsenceForm({ card, messageId }: { card: ActionCard; messageId: 
             <Button type="submit" variant="primary" loading={execute.isPending}>
               {card.submit_label}
             </Button>
-            <span className="font-mono text-[11px] text-ink-400">MCP · {card.tool}</span>
+            <span className="text-[11px] text-ink-400">Гоффи отправит заявку только после нажатия</span>
           </>
         )}
       </div>

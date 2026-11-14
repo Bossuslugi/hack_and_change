@@ -46,6 +46,7 @@ type Services struct {
 	Notifications *Notifications
 	Tracker       *Tracker
 	Flags         *Flags
+	Calendar      *Calendar
 }
 
 // NewServices создаёт имитации сервисов.
@@ -59,6 +60,7 @@ func NewServices(d Deps) *Services {
 		Mentor:        &Mentor{store: d.Store, ids: d.IDs, notifications: notifications},
 		Notifications: notifications,
 		Tracker:       &Tracker{store: d.Store},
+		Calendar:      &Calendar{store: d.Store, ids: d.IDs, notifications: notifications},
 		Flags:         NewFlags(d.Cache, d.Seed.Flags),
 	}
 }
@@ -78,6 +80,9 @@ func (s *Services) BindAll(r *Registry) error {
 		{ToolSendNotification, s.Notifications.SendTool, nil},
 		{ToolTaskActivity, s.Tracker.TaskActivity, nil},
 		{ToolListFlags, s.Flags.ListTool, nil},
+		{ToolApproveDayOff, s.Absences.ApproveDayOff, nil},
+		{ToolAddTask, s.Calendar.AddTask, nil},
+		{ToolCompleteItem, s.Calendar.CompleteItem, nil},
 	}
 	for _, b := range bindings {
 		if err := r.Bind(b.name, b.handler, b.attrs); err != nil {
@@ -452,7 +457,7 @@ func (s *Mentor) SendBrief(ctx context.Context, c Call) (map[string]any, error) 
 	if err := domain.Save(ctx, s.store, domain.KindBrief, brief.ID, internID, c.Now, brief); err != nil {
 		return nil, err
 	}
-	body := fmt.Sprintf("Стажёр уже разобрал сам через AI-Buddy тем: %d. Нужен ты: %s", len(brief.LearnedTopics), brief.ArchitectureQuestion)
+	body := fmt.Sprintf("Стажёр уже разобрал сам через Гоффи тем: %d. Нужен ты: %s", len(brief.LearnedTopics), brief.ArchitectureQuestion)
 	if _, err := s.notifications.Send(ctx, mentorID, "Structured 1:1 Brief: "+intern.Name, body, "brief", c.Now); err != nil {
 		return nil, err
 	}
@@ -496,7 +501,7 @@ type Flags struct {
 	defaults []domain.FeatureFlag
 }
 
-// Ключи флагов AI-Buddy.
+// Ключи флагов Гоффи.
 const (
 	FlagProactiveCron = "ai_buddy.proactive_cron"
 	FlagAbsenceCard   = "ai_buddy.absence_action_card"

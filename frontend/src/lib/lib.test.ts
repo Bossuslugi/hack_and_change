@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { getApiRole } from '../api/auth';
-import { useUi } from '../store/ui';
+import { applyTheme, useUi } from '../store/ui';
 import { formatDate, formatDateTime, formatMinutes, formatTime, plural, prettyJson, todayIso } from './format';
 import { parseInline, parseRichText } from './richText';
 import { absenceDefaults, chatInputSchema, validateAbsence } from './validation';
@@ -129,7 +129,7 @@ describe('ui store', () => {
     ui().setRole('lead');
     expect(ui()).toMatchObject({ role: 'lead', pendingText: null });
     expect(getApiRole()).toBe('lead');
-    expect(JSON.parse(localStorage.getItem('ai-buddy-ui') ?? '{}').state).toEqual({ role: 'lead' });
+    expect(JSON.parse(localStorage.getItem('ai-buddy-ui') ?? '{}').state).toMatchObject({ role: 'lead' });
 
     ui().openInspector('rbac');
     expect(ui()).toMatchObject({ inspectorOpen: true, inspectorTab: 'rbac' });
@@ -145,5 +145,28 @@ describe('ui store', () => {
     ui().setCronResult(null);
     expect(ui()).toMatchObject({ toast: null, cronResult: null });
     ui().setRole('intern');
+  });
+
+  it('переключает тему, применяет её к документу и сохраняет выбор', () => {
+    const ui = () => useUi.getState();
+    useUi.setState({ theme: 'light' });
+    applyTheme('light');
+    expect(document.documentElement.classList.contains('dark')).toBe(false);
+    ui().toggleTheme();
+    expect(ui().theme).toBe('dark');
+    expect(document.documentElement.classList.contains('dark')).toBe(true);
+    expect(JSON.parse(localStorage.getItem('ai-buddy-ui') ?? '{}').state.theme).toBe('dark');
+    ui().toggleTheme();
+    expect(ui().theme).toBe('light');
+    expect(document.documentElement.classList.contains('dark')).toBe(false);
+  });
+
+  it('запоминает показанные напоминания без дублей', () => {
+    const ui = () => useUi.getState();
+    ui().markRemindersSeen(['a', 'b']);
+    ui().markRemindersSeen(['b', 'c']);
+    expect(ui().seenReminders).toEqual(['a', 'b', 'c']);
+    ui().resetSession();
+    expect(ui().seenReminders).toEqual([]);
   });
 });

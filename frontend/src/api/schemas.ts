@@ -191,6 +191,10 @@ export const metricsSchema = z.object({
   mentor_hours_baseline_max: z.number(),
   saving_percent: z.number(),
   avg_response_ms: z.number(),
+  deflection_rate: z.number(),
+  access_grants: z.number(),
+  tasks_done: z.number(),
+  tasks_total: z.number(),
 });
 export type Metrics = z.infer<typeof metricsSchema>;
 
@@ -260,6 +264,36 @@ export const telemetryEventSchema = z.object({
 });
 export type TelemetryEvent = z.infer<typeof telemetryEventSchema>;
 
+export const plannerItemSchema = z.object({
+  id: z.string(),
+  intern_id: z.string(),
+  kind: z.enum(['meeting', 'review', 'sync', 'deadline', 'task']),
+  title: z.string(),
+  description: z.string(),
+  starts_at: z.string(),
+  duration_min: z.number(),
+  all_day: z.boolean(),
+  link: z.string(),
+  mandatory: z.boolean(),
+  created_by: z.string(),
+  created_by_name: z.string(),
+  status: z.enum(['planned', 'done']),
+  report: z.string(),
+  completed_at: z.string().nullish(),
+  is_synthetic: z.boolean(),
+});
+export type PlannerItem = z.infer<typeof plannerItemSchema>;
+
+export const reminderSchema = z.object({
+  id: z.string(),
+  kind: z.string(),
+  text: z.string(),
+  at: z.string(),
+  item_id: z.string().optional(),
+  urgent: z.boolean(),
+});
+export type Reminder = z.infer<typeof reminderSchema>;
+
 export const workspaceSchema = z.object({
   viewer: z.object({
     id: z.string(),
@@ -286,6 +320,8 @@ export const workspaceSchema = z.object({
   storage: z.object({ store: z.string(), cache: z.string() }),
   permissions: z.record(z.boolean()),
   disclaimer: z.string(),
+  planner: list(plannerItemSchema),
+  reminders: list(reminderSchema),
 });
 export type Workspace = z.infer<typeof workspaceSchema>;
 

@@ -233,28 +233,38 @@ func rephrasable(intent string) bool {
 }
 
 func (e *Engine) call(ctx context.Context, req Request, tool string, args map[string]any, label string) domain.MCPToolCall {
-	emit(req, StageRBAC, fmt.Sprintf("Проверяю права роли %s…", req.Principal.Role), tool)
+	emit(req, StageRBAC, "Проверяю, можно ли это сделать…", tool)
 	emit(req, StageTool, label, tool)
 	e.pause(ctx)
 	return e.tools.Execute(ctx, req.Principal, req.Intern.ID, tool, args)
 }
 
+// friendlyReason объясняет отказ человеческим языком. Идентификаторы политик и коды RBAC
+// стажёру не показываются — они доступны экспертам в «Инспекторе жюри».
+func friendlyReason(v domain.RBACVerdict) string {
+	switch {
+	case v.Constraint == "team_scope":
+		return "Этот ресурс принадлежит другой команде"
+	case v.Constraint == "self_only":
+		return "Такое действие можно выполнять только для себя"
+	case v.Incident:
+		return "Данные с персональной и финансовой информацией закрыты для всех ролей"
+	}
+	return "У твоей роли нет прав на это действие"
+}
+
 func deniedCard(v domain.RBACVerdict) *domain.ResultCard {
 	card := &domain.ResultCard{
 		Type: domain.CardRBACDenied, Status: domain.CardStatusDenied,
-		Title: "Доступ запрещён · FORBIDDEN (403)",
-		Lines: []domain.CardLine{
-			{Label: "Операция", Value: v.Operation},
-			{Label: "Роль", Value: string(v.Role)},
-			{Label: "Политика", Value: v.PolicyID},
-			{Label: "Причина", Value: v.Reason},
-		},
+		Title:    "Действие недоступно",
+		Lines:    []domain.CardLine{{Label: "Почему", Value: friendlyReason(v)}},
+		Footnote: "Решение принимает политика безопасности, а не Гоффи",
 	}
 	if v.Incident {
-		card.Lines = append(card.Lines, domain.CardLine{Label: "Инцидент", Value: "зафиксирован в журнале безопасности"})
+		card.Lines = append(card.Lines, domain.CardLine{Label: "Журнал безопасности", Value: "запрос отмечен автоматически — это штатная процедура"})
 	}
 	if v.SafeAlternative != "" {
-		card.Lines = append(card.Lines, domain.CardLine{Label: "Безопасная альтернатива", Value: v.SafeAlternative})
+		card.Lines = append(card.Lines, domain.CardLine{Label: "Что можно вместо этого", Value: v.SafeAlternative})
 	}
 	return card
 }
@@ -275,7 +285,7 @@ func (e *Engine) restricted(ctx context.Context, req Request, intent spec.Intent
 	}
 	call := e.call(ctx, req, intent.Tool, map[string]any{
 		"dataset": dataset, "reason": truncate(req.Text, 500), "requested_by": req.Principal.ID,
-	}, "Обращаюсь к db_admin через RBAC-шлюз…")
+	}, "Сверяюсь с политикой безопасности…")
 
 	r := Reply{ToolCalls: []domain.MCPToolCall{call}, Answered: true, SavingKey: domain.SavingBlocked}
 	v := call.RBAC
@@ -309,7 +319,7 @@ func (e *Engine) access(ctx context.Context, req Request, intent spec.Intent) Re
 	call := e.call(ctx, req, intent.Tool, map[string]any{
 		"intern_id": req.Intern.ID, "repository": repo, "stand": stand, "access_level": "developer",
 		"justification": "Онбординг стажёра: " + req.Intern.ContextLine(),
-	}, "Запрашиваю доступ в IAM…")
+	}, "Оформляю доступ…")
 	r := Reply{ToolCalls: []domain.MCPToolCall{call}, Answered: true}
 
 	switch call.Status {
@@ -329,8 +339,7 @@ func (e *Engine) access(ctx context.Context, req Request, intent spec.Intent) Re
 		if already {
 			fmt.Fprintf(&b, "Доступ к **%s** у тебя уже есть — повторно выдавать не нужно.\n\n", repo)
 		} else {
-			fmt.Fprintf(&b, "Готово! Проверил твою роль (%s, команда %s) — доступ разрешён политикой %s, и я оформил его через IAM.\n\n",
-				req.Principal.Role, req.Intern.Team, call.RBAC.PolicyID)
+			b.WriteString("Готово! Я проверил твои права и оформил доступ — можно работать.\n\n")
 		}
 		fmt.Fprintf(&b, "- Репозиторий: **%s**, уровень %s\n", repo, level)
 		if standName != "" {
@@ -352,7 +361,6 @@ func (e *Engine) access(ctx context.Context, req Request, intent spec.Intent) Re
 		lines = append(lines,
 			domain.CardLine{Label: "Токен", Value: token},
 			domain.CardLine{Label: "Действует до", Value: expires},
-			domain.CardLine{Label: "RBAC", Value: fmt.Sprintf("%s · %s", call.RBAC.Code, call.RBAC.PolicyID)},
 		)
 		r.ResultCard = &domain.ResultCard{
 			Type: domain.CardAccessGranted, Status: domain.CardStatusSuccess, Title: "Доступ выдан",
@@ -360,10 +368,10 @@ func (e *Engine) access(ctx context.Context, req Request, intent spec.Intent) Re
 		}
 	case domain.ToolForbidden:
 		r.Text = fmt.Sprintf(
-			"Не могу выдать доступ к **%s**: %s (политика %s, FORBIDDEN). "+
+			"Не могу выдать доступ к **%s**: %s. "+
 				"Доступ к репозиториям других команд запрашивает руководитель — %s.\n\n"+
 				"Могу оформить доступ к репозиторию твоей команды: **%s**.",
-			repo, call.RBAC.Reason, call.RBAC.PolicyID, req.Intern.TeamLeadName, req.Intern.Repository)
+			repo, lowerFirst(friendlyReason(call.RBAC)), req.Intern.TeamLeadName, req.Intern.Repository)
 		r.ResultCard = deniedCard(call.RBAC)
 		r.Suggestions = []string{fmt.Sprintf("Дай доступ к репозиторию %s и тестовому стенду", req.Intern.Repository)}
 	default:
@@ -705,7 +713,7 @@ func (e *Engine) runLLMTool(ctx context.Context, req Request, tc LLMToolCall, r 
 			"note":   "Пользователю показана карточка подтверждения. Действие будет выполнено только после его подтверждения в интерфейсе.",
 		})
 	}
-	call := e.call(ctx, req, name, args, fmt.Sprintf("Вызываю %s…", name))
+	call := e.call(ctx, req, name, args, "Обращаюсь к корпоративному сервису…")
 	r.ToolCalls = append(r.ToolCalls, call)
 	if call.OK() && name == mcp.ToolSearchDocs {
 		docs := mcp.DocRefs(call.Result)
@@ -716,4 +724,12 @@ func (e *Engine) runLLMTool(ctx context.Context, req Request, tc LLMToolCall, r 
 		"status": call.Status, "result": call.Result, "error_code": call.ErrorCode, "error": call.Error,
 		"rbac": map[string]any{"code": call.RBAC.Code, "policy_id": call.RBAC.PolicyID, "reason": call.RBAC.Reason},
 	})
+}
+
+func lowerFirst(s string) string {
+	r := []rune(s)
+	if len(r) == 0 {
+		return s
+	}
+	return strings.ToLower(string(r[0])) + string(r[1:])
 }

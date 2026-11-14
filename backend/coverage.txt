@@ -2,20 +2,20 @@
 # Go: go1.26.11
 
 ## По пакетам
-ok  	aibuddy/backend/cmd/server	3.998s	coverage: 73.1% of statements
-ok  	aibuddy/backend/internal/agent	4.361s	coverage: 99.8% of statements
-ok  	aibuddy/backend/internal/app	7.567s	coverage: 88.8% of statements
-ok  	aibuddy/backend/internal/cache	10.530s	coverage: 100.0% of statements
-ok  	aibuddy/backend/internal/config	2.670s	coverage: 100.0% of statements
-ok  	aibuddy/backend/internal/domain	9.295s	coverage: 97.6% of statements
-ok  	aibuddy/backend/internal/http	4.747s	coverage: 98.6% of statements
-ok  	aibuddy/backend/internal/mcp	3.414s	coverage: 99.6% of statements
-ok  	aibuddy/backend/internal/rbac	3.116s	coverage: 100.0% of statements
-ok  	aibuddy/backend/internal/seed	3.634s	coverage: 100.0% of statements
-ok  	aibuddy/backend/internal/spec	2.256s	coverage: 99.0% of statements
-ok  	aibuddy/backend/internal/storage/memory	2.422s	coverage: 100.0% of statements
-ok  	aibuddy/backend/internal/storage/postgres	2.956s	coverage: 94.8% of statements
-ok  	aibuddy/backend/internal/usecase	2.813s	coverage: 95.2% of statements
+ok  	aibuddy/backend/cmd/server	1.874s	coverage: 73.1% of statements
+ok  	aibuddy/backend/internal/agent	4.007s	coverage: 99.0% of statements
+ok  	aibuddy/backend/internal/app	6.339s	coverage: 88.8% of statements
+ok  	aibuddy/backend/internal/cache	9.562s	coverage: 100.0% of statements
+ok  	aibuddy/backend/internal/config	1.826s	coverage: 100.0% of statements
+ok  	aibuddy/backend/internal/domain	6.000s	coverage: 97.9% of statements
+ok  	aibuddy/backend/internal/http	3.266s	coverage: 98.6% of statements
+ok  	aibuddy/backend/internal/mcp	2.957s	coverage: 99.6% of statements
+ok  	aibuddy/backend/internal/rbac	1.666s	coverage: 100.0% of statements
+ok  	aibuddy/backend/internal/seed	4.047s	coverage: 100.0% of statements
+ok  	aibuddy/backend/internal/spec	1.732s	coverage: 99.0% of statements
+ok  	aibuddy/backend/internal/storage/memory	1.402s	coverage: 100.0% of statements
+ok  	aibuddy/backend/internal/storage/postgres	1.819s	coverage: 94.8% of statements
+ok  	aibuddy/backend/internal/usecase	1.498s	coverage: 95.1% of statements
 
 ## По функциям
 aibuddy/backend/cmd/server/main.go:20:			main			0.0%
@@ -30,28 +30,30 @@ aibuddy/backend/internal/agent/engine.go:152:		Handle			100.0%
 aibuddy/backend/internal/agent/engine.go:211:		pickVerdict		100.0%
 aibuddy/backend/internal/agent/engine.go:227:		rephrasable		100.0%
 aibuddy/backend/internal/agent/engine.go:235:		call			100.0%
-aibuddy/backend/internal/agent/engine.go:242:		deniedCard		100.0%
-aibuddy/backend/internal/agent/engine.go:262:		toolFailure		100.0%
-aibuddy/backend/internal/agent/engine.go:271:		restricted		100.0%
-aibuddy/backend/internal/agent/engine.go:300:		access			100.0%
-aibuddy/backend/internal/agent/engine.go:378:		search			100.0%
-aibuddy/backend/internal/agent/engine.go:397:		writeDoc		100.0%
-aibuddy/backend/internal/agent/engine.go:408:		docIDs			100.0%
-aibuddy/backend/internal/agent/engine.go:416:		knowledge		100.0%
-aibuddy/backend/internal/agent/engine.go:458:		absence			100.0%
-aibuddy/backend/internal/agent/engine.go:512:		nextStep		100.0%
-aibuddy/backend/internal/agent/engine.go:535:		mentorContact		100.0%
-aibuddy/backend/internal/agent/engine.go:546:		greeting		100.0%
-aibuddy/backend/internal/agent/engine.go:554:		affirmative		100.0%
-aibuddy/backend/internal/agent/engine.go:578:		systemPrompt		100.0%
-aibuddy/backend/internal/agent/engine.go:593:		rephrase		100.0%
-aibuddy/backend/internal/agent/engine.go:615:		keepsFacts		100.0%
-aibuddy/backend/internal/agent/engine.go:626:		llmToolName		100.0%
-aibuddy/backend/internal/agent/engine.go:627:		mcpToolName		100.0%
-aibuddy/backend/internal/agent/engine.go:628:		jsonText		100.0%
-aibuddy/backend/internal/agent/engine.go:629:		hasProperty		100.0%
-aibuddy/backend/internal/agent/engine.go:638:		llmAgent		100.0%
-aibuddy/backend/internal/agent/engine.go:682:		runLLMTool		100.0%
+aibuddy/backend/internal/agent/engine.go:244:		friendlyReason		60.0%
+aibuddy/backend/internal/agent/engine.go:256:		deniedCard		100.0%
+aibuddy/backend/internal/agent/engine.go:272:		toolFailure		100.0%
+aibuddy/backend/internal/agent/engine.go:281:		restricted		100.0%
+aibuddy/backend/internal/agent/engine.go:310:		access			100.0%
+aibuddy/backend/internal/agent/engine.go:386:		search			100.0%
+aibuddy/backend/internal/agent/engine.go:405:		writeDoc		100.0%
+aibuddy/backend/internal/agent/engine.go:416:		docIDs			100.0%
+aibuddy/backend/internal/agent/engine.go:424:		knowledge		100.0%
+aibuddy/backend/internal/agent/engine.go:466:		absence			100.0%
+aibuddy/backend/internal/agent/engine.go:520:		nextStep		100.0%
+aibuddy/backend/internal/agent/engine.go:543:		mentorContact		100.0%
+aibuddy/backend/internal/agent/engine.go:554:		greeting		100.0%
+aibuddy/backend/internal/agent/engine.go:562:		affirmative		100.0%
+aibuddy/backend/internal/agent/engine.go:586:		systemPrompt		100.0%
+aibuddy/backend/internal/agent/engine.go:601:		rephrase		100.0%
+aibuddy/backend/internal/agent/engine.go:623:		keepsFacts		100.0%
+aibuddy/backend/internal/agent/engine.go:634:		llmToolName		100.0%
+aibuddy/backend/internal/agent/engine.go:635:		mcpToolName		100.0%
+aibuddy/backend/internal/agent/engine.go:636:		jsonText		100.0%
+aibuddy/backend/internal/agent/engine.go:637:		hasProperty		100.0%
+aibuddy/backend/internal/agent/engine.go:646:		llmAgent		100.0%
+aibuddy/backend/internal/agent/engine.go:690:		runLLMTool		100.0%
+aibuddy/backend/internal/agent/engine.go:729:		lowerFirst		75.0%
 aibuddy/backend/internal/agent/llm.go:78:		NewOpenAIClient		100.0%
 aibuddy/backend/internal/agent/llm.go:95:		Model			100.0%
 aibuddy/backend/internal/agent/llm.go:98:		Complete		96.9%
@@ -102,24 +104,32 @@ aibuddy/backend/internal/domain/models.go:388:		Validate		100.0%
 aibuddy/backend/internal/domain/models.go:424:		AbsenceNumber		100.0%
 aibuddy/backend/internal/domain/models.go:442:		MaskToken		100.0%
 aibuddy/backend/internal/domain/models.go:496:		Stalled			100.0%
-aibuddy/backend/internal/domain/models.go:577:		ComputeMetrics		100.0%
-aibuddy/backend/internal/domain/models.go:620:		round1			100.0%
-aibuddy/backend/internal/domain/ports.go:86:		Now			100.0%
-aibuddy/backend/internal/domain/ports.go:92:		Now			100.0%
-aibuddy/backend/internal/domain/ports.go:101:		NewID			75.0%
-aibuddy/backend/internal/domain/ports.go:113:		NewID			100.0%
-aibuddy/backend/internal/domain/ports.go:118:		NewRecord		100.0%
-aibuddy/backend/internal/domain/ports.go:130:		Save			100.0%
-aibuddy/backend/internal/domain/ports.go:139:		Load			90.0%
-aibuddy/backend/internal/domain/ports.go:156:		LoadOne			100.0%
-aibuddy/backend/internal/domain/ports.go:169:		ChecklistRecordID	100.0%
-aibuddy/backend/internal/domain/ports.go:172:		LoadChecklist		83.3%
-aibuddy/backend/internal/domain/ports.go:182:		SaveChecklistItem	100.0%
-aibuddy/backend/internal/domain/ports.go:199:		Records			86.7%
-aibuddy/backend/internal/domain/ports.go:229:		NewDirectory		100.0%
-aibuddy/backend/internal/domain/ports.go:242:		ByToken			100.0%
-aibuddy/backend/internal/domain/ports.go:248:		ByID			100.0%
-aibuddy/backend/internal/domain/ports.go:254:		ByRole			100.0%
+aibuddy/backend/internal/domain/models.go:585:		ComputeMetrics		100.0%
+aibuddy/backend/internal/domain/models.go:634:		round1			100.0%
+aibuddy/backend/internal/domain/planner.go:48:		IsEvent			100.0%
+aibuddy/backend/internal/domain/planner.go:53:		Validate		100.0%
+aibuddy/backend/internal/domain/planner.go:67:		Complete		100.0%
+aibuddy/backend/internal/domain/planner.go:90:		dayStart		100.0%
+aibuddy/backend/internal/domain/planner.go:94:		pluralRu		100.0%
+aibuddy/backend/internal/domain/planner.go:110:		RelativeWhen		100.0%
+aibuddy/backend/internal/domain/planner.go:137:		upperFirst		100.0%
+aibuddy/backend/internal/domain/planner.go:146:		BuildReminders		100.0%
+aibuddy/backend/internal/domain/ports.go:87:		Now			100.0%
+aibuddy/backend/internal/domain/ports.go:93:		Now			100.0%
+aibuddy/backend/internal/domain/ports.go:102:		NewID			75.0%
+aibuddy/backend/internal/domain/ports.go:114:		NewID			100.0%
+aibuddy/backend/internal/domain/ports.go:119:		NewRecord		100.0%
+aibuddy/backend/internal/domain/ports.go:131:		Save			100.0%
+aibuddy/backend/internal/domain/ports.go:140:		Load			90.0%
+aibuddy/backend/internal/domain/ports.go:157:		LoadOne			100.0%
+aibuddy/backend/internal/domain/ports.go:170:		ChecklistRecordID	100.0%
+aibuddy/backend/internal/domain/ports.go:173:		LoadChecklist		83.3%
+aibuddy/backend/internal/domain/ports.go:183:		SaveChecklistItem	100.0%
+aibuddy/backend/internal/domain/ports.go:202:		Records			86.4%
+aibuddy/backend/internal/domain/ports.go:242:		NewDirectory		100.0%
+aibuddy/backend/internal/domain/ports.go:255:		ByToken			100.0%
+aibuddy/backend/internal/domain/ports.go:261:		ByID			100.0%
+aibuddy/backend/internal/domain/ports.go:267:		ByRole			100.0%
 aibuddy/backend/internal/domain/text.go:9:		Normalize		100.0%
 aibuddy/backend/internal/domain/text.go:16:		Tokens			100.0%
 aibuddy/backend/internal/domain/text.go:26:		MatchTerm		100.0%
@@ -149,6 +159,9 @@ aibuddy/backend/internal/http/server.go:365:		telemetry		100.0%
 aibuddy/backend/internal/http/server.go:374:		setFlag			100.0%
 aibuddy/backend/internal/http/server.go:394:		trackEvent		100.0%
 aibuddy/backend/internal/http/server.go:412:		mcpRPC			100.0%
+aibuddy/backend/internal/mcp/calendar.go:28:		AddTask			100.0%
+aibuddy/backend/internal/mcp/calendar.go:64:		CompleteItem		100.0%
+aibuddy/backend/internal/mcp/calendar.go:84:		ApproveDayOff		100.0%
 aibuddy/backend/internal/mcp/gateway.go:39:		Error			100.0%
 aibuddy/backend/internal/mcp/gateway.go:42:		Errorf			100.0%
 aibuddy/backend/internal/mcp/gateway.go:69:		NewRegistry		100.0%
@@ -177,35 +190,35 @@ aibuddy/backend/internal/mcp/schema.go:185:		argString		100.0%
 aibuddy/backend/internal/mcp/schema.go:191:		argStrings		100.0%
 aibuddy/backend/internal/mcp/schema.go:208:		argInt			100.0%
 aibuddy/backend/internal/mcp/schema.go:216:		toMap			100.0%
-aibuddy/backend/internal/mcp/servers.go:52:		NewServices		100.0%
-aibuddy/backend/internal/mcp/servers.go:67:		BindAll			100.0%
-aibuddy/backend/internal/mcp/servers.go:93:		loadIntern		100.0%
-aibuddy/backend/internal/mcp/servers.go:112:		Attrs			100.0%
-aibuddy/backend/internal/mcp/servers.go:116:		syntheticToken		100.0%
-aibuddy/backend/internal/mcp/servers.go:122:		standName		100.0%
-aibuddy/backend/internal/mcp/servers.go:134:		RequestRepoAccess	100.0%
-aibuddy/backend/internal/mcp/servers.go:181:		Reached			100.0%
-aibuddy/backend/internal/mcp/servers.go:184:		ExportProdPII		100.0%
-aibuddy/backend/internal/mcp/servers.go:199:		Search			100.0%
-aibuddy/backend/internal/mcp/servers.go:239:		intersects		100.0%
-aibuddy/backend/internal/mcp/servers.go:251:		VisibleCount		100.0%
-aibuddy/backend/internal/mcp/servers.go:262:		Doc			100.0%
-aibuddy/backend/internal/mcp/servers.go:272:		SearchTool		100.0%
-aibuddy/backend/internal/mcp/servers.go:286:		DocRefs			100.0%
-aibuddy/backend/internal/mcp/servers.go:316:		Send			100.0%
-aibuddy/backend/internal/mcp/servers.go:328:		SendTool		100.0%
-aibuddy/backend/internal/mcp/servers.go:345:		humanDate		100.0%
-aibuddy/backend/internal/mcp/servers.go:354:		CreateDayOff		97.1%
-aibuddy/backend/internal/mcp/servers.go:417:		toAny			100.0%
-aibuddy/backend/internal/mcp/servers.go:435:		SendBrief		100.0%
-aibuddy/backend/internal/mcp/servers.go:462:		orEmpty			100.0%
-aibuddy/backend/internal/mcp/servers.go:477:		TaskActivity		100.0%
-aibuddy/backend/internal/mcp/servers.go:508:		NewFlags		100.0%
-aibuddy/backend/internal/mcp/servers.go:513:		List			100.0%
-aibuddy/backend/internal/mcp/servers.go:527:		Enabled			100.0%
-aibuddy/backend/internal/mcp/servers.go:537:		Set			100.0%
-aibuddy/backend/internal/mcp/servers.go:559:		Reset			100.0%
-aibuddy/backend/internal/mcp/servers.go:568:		ListTool		100.0%
+aibuddy/backend/internal/mcp/servers.go:53:		NewServices		100.0%
+aibuddy/backend/internal/mcp/servers.go:69:		BindAll			100.0%
+aibuddy/backend/internal/mcp/servers.go:98:		loadIntern		100.0%
+aibuddy/backend/internal/mcp/servers.go:117:		Attrs			100.0%
+aibuddy/backend/internal/mcp/servers.go:121:		syntheticToken		100.0%
+aibuddy/backend/internal/mcp/servers.go:127:		standName		100.0%
+aibuddy/backend/internal/mcp/servers.go:139:		RequestRepoAccess	100.0%
+aibuddy/backend/internal/mcp/servers.go:186:		Reached			100.0%
+aibuddy/backend/internal/mcp/servers.go:189:		ExportProdPII		100.0%
+aibuddy/backend/internal/mcp/servers.go:204:		Search			100.0%
+aibuddy/backend/internal/mcp/servers.go:244:		intersects		100.0%
+aibuddy/backend/internal/mcp/servers.go:256:		VisibleCount		100.0%
+aibuddy/backend/internal/mcp/servers.go:267:		Doc			100.0%
+aibuddy/backend/internal/mcp/servers.go:277:		SearchTool		100.0%
+aibuddy/backend/internal/mcp/servers.go:291:		DocRefs			100.0%
+aibuddy/backend/internal/mcp/servers.go:321:		Send			100.0%
+aibuddy/backend/internal/mcp/servers.go:333:		SendTool		100.0%
+aibuddy/backend/internal/mcp/servers.go:350:		humanDate		100.0%
+aibuddy/backend/internal/mcp/servers.go:359:		CreateDayOff		97.1%
+aibuddy/backend/internal/mcp/servers.go:422:		toAny			100.0%
+aibuddy/backend/internal/mcp/servers.go:440:		SendBrief		100.0%
+aibuddy/backend/internal/mcp/servers.go:467:		orEmpty			100.0%
+aibuddy/backend/internal/mcp/servers.go:482:		TaskActivity		100.0%
+aibuddy/backend/internal/mcp/servers.go:513:		NewFlags		100.0%
+aibuddy/backend/internal/mcp/servers.go:518:		List			100.0%
+aibuddy/backend/internal/mcp/servers.go:532:		Enabled			100.0%
+aibuddy/backend/internal/mcp/servers.go:542:		Set			100.0%
+aibuddy/backend/internal/mcp/servers.go:564:		Reset			100.0%
+aibuddy/backend/internal/mcp/servers.go:573:		ListTool		100.0%
 aibuddy/backend/internal/rbac/engine.go:41:		New			100.0%
 aibuddy/backend/internal/rbac/engine.go:56:		appliesTo		100.0%
 aibuddy/backend/internal/rbac/engine.go:65:		forbidden		100.0%
@@ -216,8 +229,9 @@ aibuddy/backend/internal/rbac/engine.go:144:		Can			100.0%
 aibuddy/backend/internal/rbac/engine.go:165:		Matrix			100.0%
 aibuddy/backend/internal/rbac/engine.go:180:		Roles			100.0%
 aibuddy/backend/internal/rbac/engine.go:183:		RoleTitle		100.0%
-aibuddy/backend/internal/seed/seed.go:24:		doc			100.0%
-aibuddy/backend/internal/seed/seed.go:33:		Data			100.0%
+aibuddy/backend/internal/seed/seed.go:26:		doc			100.0%
+aibuddy/backend/internal/seed/seed.go:35:		Data			100.0%
+aibuddy/backend/internal/seed/seed.go:190:		Planner			100.0%
 aibuddy/backend/internal/spec/spec.go:103:		Response		100.0%
 aibuddy/backend/internal/spec/spec.go:112:		IntentByID		100.0%
 aibuddy/backend/internal/spec/spec.go:160:		ToolByName		100.0%
@@ -246,41 +260,42 @@ aibuddy/backend/internal/storage/postgres/store.go:201:	Ping			100.0%
 aibuddy/backend/internal/storage/postgres/store.go:204:	Name			100.0%
 aibuddy/backend/internal/storage/postgres/store.go:207:	Close			100.0%
 aibuddy/backend/internal/usecase/actions.go:20:		Execute			100.0%
-aibuddy/backend/internal/usecase/actions.go:73:		markCardSubmitted	100.0%
-aibuddy/backend/internal/usecase/actions.go:82:		str			100.0%
-aibuddy/backend/internal/usecase/actions.go:88:		describeAction		94.7%
-aibuddy/backend/internal/usecase/actions.go:153:	sameStrings		83.3%
-aibuddy/backend/internal/usecase/actions.go:166:	learnedTopics		95.0%
-aibuddy/backend/internal/usecase/actions.go:200:	CronTrigger		91.3%
-aibuddy/backend/internal/usecase/actions.go:323:	toAny			100.0%
-aibuddy/backend/internal/usecase/actions.go:332:	Reset			100.0%
-aibuddy/backend/internal/usecase/actions.go:361:	latest			75.0%
-aibuddy/backend/internal/usecase/actions.go:370:	Telemetry		100.0%
-aibuddy/backend/internal/usecase/actions.go:395:	SetFlag			100.0%
-aibuddy/backend/internal/usecase/actions.go:411:	TrackUI			100.0%
-aibuddy/backend/internal/usecase/actions.go:434:	HandleMCP		100.0%
-aibuddy/backend/internal/usecase/actions.go:439:	Health			100.0%
-aibuddy/backend/internal/usecase/service.go:42:		Error			100.0%
-aibuddy/backend/internal/usecase/service.go:70:		New			100.0%
-aibuddy/backend/internal/usecase/service.go:85:		sessionKey		100.0%
-aibuddy/backend/internal/usecase/service.go:87:		loadSession		100.0%
-aibuddy/backend/internal/usecase/service.go:95:		saveSession		100.0%
-aibuddy/backend/internal/usecase/service.go:102:	Authenticate		100.0%
-aibuddy/backend/internal/usecase/service.go:111:	authorize		100.0%
-aibuddy/backend/internal/usecase/service.go:123:	can			100.0%
-aibuddy/backend/internal/usecase/service.go:128:	seedRecords		81.8%
-aibuddy/backend/internal/usecase/service.go:151:	EnsureSeed		100.0%
-aibuddy/backend/internal/usecase/service.go:162:	resetData		87.5%
-aibuddy/backend/internal/usecase/service.go:235:	docsRead		100.0%
-aibuddy/backend/internal/usecase/service.go:247:	openQuestions		100.0%
-aibuddy/backend/internal/usecase/service.go:259:	metrics			100.0%
-aibuddy/backend/internal/usecase/service.go:284:	Workspace		95.9%
-aibuddy/backend/internal/usecase/service.go:373:	reverse			100.0%
-aibuddy/backend/internal/usecase/service.go:394:	saveMessage		100.0%
-aibuddy/backend/internal/usecase/service.go:398:	callIDs			100.0%
-aibuddy/backend/internal/usecase/service.go:406:	nonNil			100.0%
-aibuddy/backend/internal/usecase/service.go:414:	Chat			95.5%
-aibuddy/backend/internal/usecase/service.go:501:	checklistNote		92.3%
-aibuddy/backend/internal/usecase/service.go:522:	evidence		80.0%
-aibuddy/backend/internal/usecase/service.go:535:	applyEffects		95.0%
+aibuddy/backend/internal/usecase/actions.go:78:		markCardSubmitted	100.0%
+aibuddy/backend/internal/usecase/actions.go:87:		str			100.0%
+aibuddy/backend/internal/usecase/actions.go:93:		describeAction		96.0%
+aibuddy/backend/internal/usecase/actions.go:170:	sameStrings		83.3%
+aibuddy/backend/internal/usecase/actions.go:183:	learnedTopics		96.2%
+aibuddy/backend/internal/usecase/actions.go:226:	CronTrigger		91.3%
+aibuddy/backend/internal/usecase/actions.go:349:	toAny			100.0%
+aibuddy/backend/internal/usecase/actions.go:358:	Reset			100.0%
+aibuddy/backend/internal/usecase/actions.go:387:	latest			75.0%
+aibuddy/backend/internal/usecase/actions.go:396:	Telemetry		100.0%
+aibuddy/backend/internal/usecase/actions.go:421:	SetFlag			100.0%
+aibuddy/backend/internal/usecase/actions.go:437:	TrackUI			100.0%
+aibuddy/backend/internal/usecase/actions.go:460:	HandleMCP		100.0%
+aibuddy/backend/internal/usecase/actions.go:465:	Health			100.0%
+aibuddy/backend/internal/usecase/service.go:43:		Error			100.0%
+aibuddy/backend/internal/usecase/service.go:71:		New			100.0%
+aibuddy/backend/internal/usecase/service.go:86:		sessionKey		100.0%
+aibuddy/backend/internal/usecase/service.go:88:		loadSession		100.0%
+aibuddy/backend/internal/usecase/service.go:96:		saveSession		100.0%
+aibuddy/backend/internal/usecase/service.go:103:	Authenticate		100.0%
+aibuddy/backend/internal/usecase/service.go:112:	authorize		100.0%
+aibuddy/backend/internal/usecase/service.go:124:	can			100.0%
+aibuddy/backend/internal/usecase/service.go:129:	seedRecords		81.8%
+aibuddy/backend/internal/usecase/service.go:152:	EnsureSeed		100.0%
+aibuddy/backend/internal/usecase/service.go:163:	resetData		87.5%
+aibuddy/backend/internal/usecase/service.go:238:	docsRead		100.0%
+aibuddy/backend/internal/usecase/service.go:250:	openQuestions		100.0%
+aibuddy/backend/internal/usecase/service.go:262:	metrics			100.0%
+aibuddy/backend/internal/usecase/service.go:301:	planner			100.0%
+aibuddy/backend/internal/usecase/service.go:312:	Workspace		92.7%
+aibuddy/backend/internal/usecase/service.go:412:	reverse			100.0%
+aibuddy/backend/internal/usecase/service.go:433:	saveMessage		100.0%
+aibuddy/backend/internal/usecase/service.go:437:	callIDs			100.0%
+aibuddy/backend/internal/usecase/service.go:445:	nonNil			100.0%
+aibuddy/backend/internal/usecase/service.go:453:	Chat			95.5%
+aibuddy/backend/internal/usecase/service.go:540:	checklistNote		92.3%
+aibuddy/backend/internal/usecase/service.go:561:	evidence		80.0%
+aibuddy/backend/internal/usecase/service.go:574:	applyEffects		95.0%
 total:							(statements)		97.5%

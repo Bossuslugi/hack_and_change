@@ -2,20 +2,105 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Дизайн-токены. Светлая тема — по умолчанию, тёмная («мокрый асфальт и космос») — класс .dark на <html>. */
 @layer base {
+  :root {
+    --paper-0: 255 255 255;
+    --paper-50: 245 247 251;
+    --paper-100: 236 240 246;
+    --paper-200: 222 227 236;
+    --ink-900: 20 24 33;
+    --ink-700: 47 54 69;
+    --ink-500: 91 100 117;
+    --ink-400: 135 145 163;
+    --ink-300: 182 189 202;
+    --brand-50: 235 245 255;
+    --brand-100: 214 234 255;
+    --brand-500: 0 136 238;
+    --brand-600: 0 116 210;
+    --brand-700: 0 92 172;
+    --accent-50: 243 238 255;
+    --accent-500: 124 58 237;
+    --accent-700: 91 33 182;
+    --ok-50: 230 248 240;
+    --ok-500: 16 163 108;
+    --ok-700: 6 115 76;
+    --warn-50: 255 246 224;
+    --warn-500: 217 138 0;
+    --warn-700: 147 92 0;
+    --danger-50: 255 236 236;
+    --danger-500: 224 49 49;
+    --danger-700: 166 30 30;
+    --shadow: 20 24 33;
+    color-scheme: light;
+  }
+
+  .dark {
+    --paper-0: 22 27 38; /* #161B26 — карточки */
+    --paper-50: 11 15 25; /* #0B0F19 — фон */
+    --paper-100: 30 37 51;
+    --paper-200: 38 45 60; /* ≈ rgba(255,255,255,.06) поверх карточки */
+    --ink-900: 226 232 240; /* #E2E8F0 */
+    --ink-700: 203 213 225;
+    --ink-500: 148 163 184;
+    --ink-400: 113 128 150;
+    --ink-300: 71 85 105;
+    --brand-50: 10 38 60;
+    --brand-100: 14 58 90;
+    --brand-500: 0 170 255; /* #00AAFF */
+    --brand-600: 0 146 222;
+    --brand-700: 110 205 255;
+    --accent-50: 36 26 66;
+    --accent-500: 139 92 246; /* #8B5CF6 */
+    --accent-700: 196 181 253;
+    --ok-50: 10 44 34;
+    --ok-500: 16 185 129; /* #10B981 */
+    --ok-700: 74 222 170;
+    --warn-50: 48 37 12;
+    --warn-500: 245 158 11;
+    --warn-700: 252 199 84;
+    --danger-50: 52 20 24;
+    --danger-500: 239 68 68;
+    --danger-700: 252 129 129;
+    --shadow: 0 0 0;
+    color-scheme: dark;
+  }
+
   html {
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
+
   body {
-    @apply bg-paper-50;
+    @apply bg-paper-50 text-ink-900 transition-colors duration-300;
   }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
     *::after {
       animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
     }
+  }
+}
+
+@layer components {
+  /* Фон «Cyber-Bento»: мягкие цветные пятна под стеклянными карточками. */
+  .app-backdrop {
+    background-image:
+      radial-gradient(60rem 36rem at 8% -10%, rgb(var(--brand-500) / 0.14), transparent 60%),
+      radial-gradient(48rem 32rem at 100% 0%, rgb(var(--accent-500) / 0.12), transparent 60%),
+      radial-gradient(44rem 30rem at 50% 110%, rgb(var(--ok-500) / 0.08), transparent 60%);
+    background-attachment: fixed;
+  }
+
+  /* Стеклянная карточка с подсветкой обводки при наведении. */
+  .bento {
+    @apply rounded-bento bg-paper-0/80 shadow-card ring-1 ring-paper-200 backdrop-blur-xl transition-[box-shadow,transform,background-color] duration-300;
+  }
+  .bento:hover {
+    @apply shadow-glow;
   }
 }

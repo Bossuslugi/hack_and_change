@@ -58,6 +58,7 @@ export const TOOL_STATUS_LABEL: Record<string, string> = {
 
 export const ABSENCE_STATUS_LABEL: Record<string, string> = {
   pending_approval: 'Ожидает согласования',
+  approved: 'Согласовано',
 };
 
 /** Сегодняшняя дата в формате YYYY-MM-DD (локальное время). */

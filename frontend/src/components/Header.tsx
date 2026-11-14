@@ -2,6 +2,7 @@ import { api, DEMO_ROLES, DEMO_USERS, type DemoRole } from '../api/auth';
 import type { Workspace } from '../api/schemas';
 import { useReset } from '../hooks/useBuddy';
 import { useUi } from '../store/ui';
+import { GoffyAvatar } from './GoffyAvatar';
 import { Badge, Button, cn } from './ui/primitives';
 
 function RoleSwitcher() {
@@ -15,7 +16,7 @@ function RoleSwitcher() {
   };
 
   return (
-    <div role="radiogroup" aria-label="Роль пользователя" className="inline-flex rounded-xl bg-paper-100 p-1">
+    <div role="radiogroup" aria-label="Роль пользователя" className="inline-flex rounded-2xl bg-paper-100 p-1">
       {DEMO_ROLES.map((r) => (
         <button
           key={r}
@@ -25,15 +26,47 @@ function RoleSwitcher() {
           title={`${DEMO_USERS[r].label}: ${DEMO_USERS[r].name}`}
           onClick={() => choose(r)}
           className={cn(
-            'rounded-lg px-3 py-1.5 text-sm font-medium transition-colors',
+            'rounded-xl px-3 py-1.5 text-sm font-medium transition-all duration-200',
             'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-brand-500',
-            role === r ? 'bg-white text-ink-900 shadow-card' : 'text-ink-500 hover:text-ink-900',
+            role === r ? 'bg-paper-0 text-ink-900 shadow-card' : 'text-ink-500 hover:text-ink-900',
           )}
         >
           {DEMO_USERS[r].label}
         </button>
       ))}
     </div>
+  );
+}
+
+/** Переключатель светлой и тёмной темы; выбор сохраняется в localStorage. */
+function ThemeToggle() {
+  const theme = useUi((s) => s.theme);
+  const toggle = useUi((s) => s.toggleTheme);
+  const dark = theme === 'dark';
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={dark}
+      aria-label="Тёмная тема"
+      title={dark ? 'Включить светлую тему' : 'Включить тёмную тему'}
+      onClick={() => {
+        toggle();
+        void api.trackEvent('ui.theme_switched', { theme: dark ? 'light' : 'dark' });
+      }}
+      className="grid h-9 w-9 place-items-center rounded-xl bg-paper-100 text-ink-700 transition-all duration-300 hover:text-brand-500 hover:shadow-glow focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-500"
+    >
+      <svg viewBox="0 0 24 24" className={cn('h-[18px] w-[18px] transition-transform duration-500', dark ? 'rotate-0' : 'rotate-90')} aria-hidden="true">
+        {dark ? (
+          <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" fill="currentColor" />
+        ) : (
+          <g fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <circle cx="12" cy="12" r="4" fill="currentColor" stroke="none" />
+            <path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+          </g>
+        )}
+      </svg>
+    </button>
   );
 }
 
@@ -49,16 +82,14 @@ export function Header({ workspace }: { workspace?: Workspace }) {
   };
 
   return (
-    <header className="sticky top-0 z-20 border-b border-paper-200 bg-white/95 backdrop-blur">
-      <div className="mx-auto flex max-w-[1440px] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5">
+    <header className="sticky top-0 z-20 border-b border-paper-200 bg-paper-0/70 backdrop-blur-xl transition-colors duration-300">
+      <div className="mx-auto flex max-w-[1600px] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5">
         <div className="flex items-center gap-2.5">
-          <div className="grid h-9 w-9 place-items-center rounded-xl bg-brand-500 text-white" aria-hidden="true">
-            <svg viewBox="0 0 24 24" className="h-5 w-5">
-              <path d="M5 17V8a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v5a3 3 0 0 1-3 3h-5l-6 4z" fill="currentColor" />
-            </svg>
-          </div>
+          <GoffyAvatar size="sm" className="h-9 w-9" />
           <div className="leading-tight">
-            <p className="text-sm font-semibold text-ink-900">AI-Buddy</p>
+            <p className="text-sm font-semibold text-ink-900">
+              Гоффи <span className="font-normal text-ink-400">· Avito Start</span>
+            </p>
             <p className="text-[11px] text-ink-500">ИИ-наставник для стажёров · прототип</p>
           </div>
         </div>
@@ -68,32 +99,25 @@ export function Header({ workspace }: { workspace?: Workspace }) {
             <Badge>{workspace.intern.name}</Badge>
             <Badge tone="brand">Команда {workspace.intern.team}</Badge>
             <Badge tone="brand">{workspace.intern.stack}</Badge>
-            <Badge tone="brand">{workspace.intern.stage}</Badge>
+            <Badge tone="accent">{workspace.intern.stage}</Badge>
           </div>
         )}
 
         <div className="ml-auto flex flex-wrap items-center gap-2">
-          {workspace && (
-            <Badge
-              tone={workspace.engine.mode === 'llm' ? 'ok' : 'neutral'}
-              title={`Хранилище: ${workspace.storage.store} · кэш: ${workspace.storage.cache}`}
-            >
-              {workspace.engine.mode === 'llm' ? `LLM · ${workspace.engine.model}` : 'Smart Engine'}
-            </Badge>
-          )}
           <RoleSwitcher />
-          <Button onClick={toggleInspector} aria-pressed={inspectorOpen} title="MCP · RBAC · Clickstream">
+          <ThemeToggle />
+          <Button onClick={toggleInspector} aria-pressed={inspectorOpen} title="MCP · JSON-RPC · RBAC · Clickstream">
             <svg viewBox="0 0 20 20" className="h-4 w-4" aria-hidden="true">
               <path d="M3 5h14M3 10h9M3 15h12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" fill="none" />
             </svg>
-            Инспектор
+            Инспектор жюри
           </Button>
           <Button variant="ghost" onClick={() => reset.mutate()} loading={reset.isPending} title="Вернуть демо-данные в исходное состояние">
             Сбросить демо
           </Button>
         </div>
       </div>
-      <p className="border-t border-warn-500/20 bg-warn-50 px-4 py-1 text-center text-[11px] text-warn-700">
+      <p className="border-t border-warn-500/20 bg-warn-50/80 px-4 py-1 text-center text-[11px] text-warn-700">
         Синтетические данные: сотрудники, инструкции и корпоративные сервисы — имитации. Инструкции не являются регламентами Авито.
       </p>
     </header>

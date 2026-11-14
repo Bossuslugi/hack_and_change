@@ -1,6 +1,11 @@
 /** @type {import('tailwindcss').Config} */
+const token = (name) => `rgb(var(--${name}) / <alpha-value>)`;
+const scale = (name, steps) => Object.fromEntries(steps.map((s) => [s, token(`${name}-${s}`)]));
+
 export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
+  // Тема переключается классом .dark на <html>; цвета — CSS-переменные из src/index.css.
+  darkMode: 'class',
   theme: {
     extend: {
       fontFamily: {
@@ -8,22 +13,36 @@ export default {
         mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace'],
       },
       colors: {
-        ink: { 900: '#141821', 700: '#2f3645', 500: '#5b6475', 400: '#8791a3', 300: '#b6bdca' },
-        paper: { 0: '#ffffff', 50: '#f7f8fa', 100: '#eff1f5', 200: '#e3e6ec' },
-        brand: { 50: '#eef4ff', 100: '#dbe7ff', 500: '#2f6bff', 600: '#1f55e0', 700: '#1843b5' },
-        ok: { 50: '#e9f8ef', 500: '#12a150', 700: '#0b7a3b' },
-        warn: { 50: '#fff6e0', 500: '#d98a00', 700: '#935c00' },
-        danger: { 50: '#ffecec', 500: '#e03131', 700: '#a61e1e' },
+        ink: scale('ink', [900, 700, 500, 400, 300]),
+        paper: scale('paper', [0, 50, 100, 200]),
+        brand: scale('brand', [50, 100, 500, 600, 700]),
+        accent: scale('accent', [50, 500, 700]),
+        ok: scale('ok', [50, 500, 700]),
+        warn: scale('warn', [50, 500, 700]),
+        danger: scale('danger', [50, 500, 700]),
       },
+      borderRadius: { bento: '20px' },
       boxShadow: {
-        card: '0 1px 2px rgba(20,24,33,.06), 0 4px 16px rgba(20,24,33,.04)',
-        drawer: '-12px 0 40px rgba(20,24,33,.14)',
+        card: '0 1px 2px rgb(var(--shadow) / .08), 0 8px 28px rgb(var(--shadow) / .06)',
+        glow: '0 0 0 1px rgb(var(--brand-500) / .28), 0 10px 36px rgb(var(--brand-500) / .14)',
+        drawer: '-12px 0 40px rgb(var(--shadow) / .25)',
       },
       keyframes: {
-        'fade-up': { from: { opacity: '0', transform: 'translateY(6px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
-        blink: { '0%, 80%, 100%': { opacity: '.25' }, '40%': { opacity: '1' } },
+        'fade-up': { from: { opacity: '0', transform: 'translateY(10px) scale(.98)' }, to: { opacity: '1', transform: 'translateY(0) scale(1)' } },
+        pop: { '0%': { transform: 'scale(.4)' }, '60%': { transform: 'scale(1.25)' }, '80%': { transform: 'scale(.92)' }, '100%': { transform: 'scale(1)' } },
+        wink: { '0%, 92%, 100%': { transform: 'scaleY(1)' }, '95%': { transform: 'scaleY(.1)' } },
+        float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-3px)' } },
+        'pulse-ring': { '0%': { transform: 'scale(.9)', opacity: '.7' }, '100%': { transform: 'scale(1.9)', opacity: '0' } },
+        'slide-in': { from: { opacity: '0', transform: 'translateY(14px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
       },
-      animation: { 'fade-up': 'fade-up .22s ease-out both', blink: 'blink 1.2s infinite both' },
+      animation: {
+        'fade-up': 'fade-up .32s cubic-bezier(.2,.9,.3,1.2) both',
+        pop: 'pop .45s cubic-bezier(.2,.9,.3,1.4) both',
+        wink: 'wink 4.5s ease-in-out infinite',
+        float: 'float 3.6s ease-in-out infinite',
+        'pulse-ring': 'pulse-ring 1.8s ease-out infinite',
+        'slide-in': 'slide-in .3s ease-out both',
+      },
     },
   },
   plugins: [],

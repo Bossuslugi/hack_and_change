@@ -1,4 +1,4 @@
-// Package domain содержит модели и чистые бизнес-правила AI-Buddy.
+// Package domain содержит модели и чистые бизнес-правила Гоффи.
 // Пакет не зависит от инфраструктуры: хранилища и кэш подключаются через порты (ports.go).
 package domain
 
@@ -291,7 +291,7 @@ type ResultCard struct {
 	Footnote string     `json:"footnote,omitempty"`
 }
 
-// ChatMessage — сообщение чата стажёра с AI-Buddy.
+// ChatMessage — сообщение чата стажёра с Гоффи.
 type ChatMessage struct {
 	ID          string      `json:"id"`
 	InternID    string      `json:"intern_id"`
@@ -542,7 +542,7 @@ const (
 	SavingBlocked  = "rbac_blocked"
 )
 
-// MetricsSummary — метрики пользы AI-Buddy.
+// MetricsSummary — метрики пользы Гоффи.
 type MetricsSummary struct {
 	QuestionsAnswered      int     `json:"questions_answered"`
 	ActionsAutomated       int     `json:"actions_automated"`
@@ -558,6 +558,11 @@ type MetricsSummary struct {
 	MentorHoursBaselineMax int     `json:"mentor_hours_baseline_max"`
 	SavingPercent          float64 `json:"saving_percent"`
 	AvgResponseMS          float64 `json:"avg_response_ms"`
+	// DeflectionRate — «показатель самостоятельности»: % вопросов, закрытых без наставника.
+	DeflectionRate int `json:"deflection_rate"`
+	AccessGrants   int `json:"access_grants"`
+	TasksDone      int `json:"tasks_done"`
+	TasksTotal     int `json:"tasks_total"`
 }
 
 // MetricsInput — исходные данные для расчёта метрик.
@@ -570,6 +575,9 @@ type MetricsInput struct {
 	DocsRead         int
 	DocsTotal        int
 	OpenQuestions    int
+	AccessGrants     int
+	TasksDone        int
+	TasksTotal       int
 }
 
 // ComputeMetrics считает метрики по событиям телеметрии.
@@ -581,6 +589,9 @@ func ComputeMetrics(in MetricsInput) MetricsSummary {
 		MentorHoursBaselineMin: in.BaselineHoursMin,
 		MentorHoursBaselineMax: in.BaselineHoursMax,
 		UnansweredQuestions:    in.OpenQuestions,
+		AccessGrants:           in.AccessGrants,
+		TasksDone:              in.TasksDone,
+		TasksTotal:             in.TasksTotal,
 	}
 	var latencySum float64
 	var latencyN int
@@ -607,6 +618,9 @@ func ComputeMetrics(in MetricsInput) MetricsSummary {
 		case SavingBlocked:
 			m.RBACBlocks++
 		}
+	}
+	if asked := m.QuestionsAnswered + m.UnansweredQuestions; asked > 0 {
+		m.DeflectionRate = m.QuestionsAnswered * 100 / asked
 	}
 	if latencyN > 0 {
 		m.AvgResponseMS = round1(latencySum / float64(latencyN))

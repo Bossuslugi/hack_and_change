@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { Telemetry, TelemetryEvent, ToolCall } from '../../api/schemas';
+import type { Telemetry, TelemetryEvent, ToolCall, Workspace } from '../../api/schemas';
 import { errorText, useTelemetry } from '../../hooks/useBuddy';
 import { formatTime, TOOL_STATUS_LABEL } from '../../lib/format';
 import { useUi, type InspectorTab } from '../../store/ui';
@@ -18,7 +18,7 @@ const SEVERITY_TONE = { info: 'neutral', warn: 'warn', security: 'danger' } as c
 function ToolCallRow({ call }: { call: ToolCall }) {
   const [open, setOpen] = useState(false);
   return (
-    <li className="rounded-xl border border-paper-200 bg-white" data-testid="tool-call">
+    <li className="rounded-xl border border-paper-200 bg-paper-0" data-testid="tool-call">
       <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="flex w-full items-center gap-2 px-3 py-2.5 text-left">
         <Badge tone={STATUS_TONE[call.status]}>{TOOL_STATUS_LABEL[call.status]}</Badge>
         <span className="min-w-0 flex-1 truncate font-mono text-xs font-medium text-ink-900">{call.tool}</span>
@@ -39,7 +39,10 @@ function ToolCallRow({ call }: { call: ToolCall }) {
           </p>
           <p className="text-xs text-ink-500">{call.rbac.reason}</p>
           {call.error && <p className="text-xs text-danger-700">{call.error_code}: {call.error}</p>}
-          <JsonBlock label="Аргументы" value={call.arguments} />
+          <JsonBlock
+            label="JSON-RPC · tools/call"
+            value={{ jsonrpc: '2.0', method: 'tools/call', params: { name: call.tool, arguments: call.arguments } }}
+          />
           {call.status === 'success' && <JsonBlock label="Результат" value={call.result} />}
         </div>
       )}
@@ -54,7 +57,7 @@ function EventRow({ event }: { event: TelemetryEvent }) {
     .map(([k, v]) => `${k}=${String(v)}`)
     .join(' · ');
   return (
-    <li className="rounded-xl border border-paper-200 bg-white px-3 py-2" data-testid="event">
+    <li className="rounded-xl border border-paper-200 bg-paper-0 px-3 py-2" data-testid="event">
       <div className="flex items-center gap-2">
         <Badge tone={SEVERITY_TONE[event.severity]}>{event.severity}</Badge>
         <span className="min-w-0 flex-1 truncate font-mono text-xs font-medium text-ink-900">{event.name}</span>
@@ -69,7 +72,7 @@ function EventRow({ event }: { event: TelemetryEvent }) {
 
 function Matrix({ data }: { data: Telemetry }) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-paper-200 bg-white">
+    <div className="overflow-x-auto rounded-xl border border-paper-200 bg-paper-0">
       <table className="w-full text-left text-[11px]">
         <thead className="bg-paper-50 text-ink-500">
           <tr>
@@ -152,7 +155,7 @@ function TabContent({ tab, data }: { tab: InspectorTab; data: Telemetry }) {
   return (
     <ul className="space-y-2">
       {data.tools.map((t) => (
-        <li key={t.name} className="rounded-xl border border-paper-200 bg-white px-3 py-2.5">
+        <li key={t.name} className="rounded-xl border border-paper-200 bg-paper-0 px-3 py-2.5">
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-mono text-xs font-medium text-ink-900">{t.name}</span>
             <Badge tone={t.allowed_for_viewer ? 'ok' : 'danger'}>{t.allowed_for_viewer ? 'доступен роли' : 'запрещён роли'}</Badge>
@@ -167,7 +170,7 @@ function TabContent({ tab, data }: { tab: InspectorTab; data: Telemetry }) {
 }
 
 /** Выдвижной инспектор телеметрии: аудит MCP, решения RBAC, Clickstream и реестр инструментов. */
-export function Inspector() {
+export function Inspector({ workspace }: { workspace?: Workspace }) {
   const open = useUi((s) => s.inspectorOpen);
   const tab = useUi((s) => s.inspectorTab);
   const setTab = useUi((s) => s.setInspectorTab);
@@ -195,19 +198,25 @@ export function Inspector() {
   return (
     <aside
       role="dialog"
-      aria-label="Инспектор телеметрии"
+      aria-label="Инспектор жюри"
       className="fixed inset-y-0 right-0 z-30 flex w-full max-w-[520px] flex-col border-l border-paper-200 bg-paper-50 shadow-drawer"
     >
-      <div className="flex items-center justify-between border-b border-paper-200 bg-white px-4 py-3">
+      <div className="flex items-center justify-between border-b border-paper-200 bg-paper-0 px-4 py-3">
         <div>
-          <h2 className="text-sm font-semibold text-ink-900">Инспектор телеметрии</h2>
-          <p className="text-[11px] text-ink-500">MCP-вызовы · решения RBAC · Clickstream · обновляется автоматически</p>
+          <h2 className="text-sm font-semibold text-ink-900">Инспектор жюри</h2>
+          <p className="text-[11px] text-ink-500">Техническая подноготная: MCP / JSON-RPC, решения RBAC, Clickstream. Стажёр этого не видит</p>
         </div>
         <Button variant="ghost" size="sm" onClick={close} aria-label="Закрыть инспектор">
           Закрыть
         </Button>
       </div>
-      <div role="tablist" aria-label="Разделы инспектора" className="flex gap-1 border-b border-paper-200 bg-white px-3 py-2">
+      {workspace && (
+        <p className="border-b border-paper-200 bg-paper-0 px-4 py-2 text-[11px] text-ink-500" data-testid="engine-info">
+          Режим агента: <span className="font-medium text-ink-900">{workspace.engine.mode === 'llm' ? `LLM · ${workspace.engine.model}` : 'Smart Engine'}</span> ·
+          хранилище: {workspace.storage.store} · кэш: {workspace.storage.cache}
+        </p>
+      )}
+      <div role="tablist" aria-label="Разделы инспектора" className="flex gap-1 border-b border-paper-200 bg-paper-0 px-3 py-2">
         {TABS.map((t) => (
           <button
             key={t.id}

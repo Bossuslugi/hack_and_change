@@ -460,7 +460,7 @@ func TestFeatureFlagsAndEvents(t *testing.T) {
 func TestMCPEndpoint(t *testing.T) {
 	a := newAPI(t, config.Config{})
 	r := a.do("POST", "/mcp", seed.InternToken, `{"jsonrpc":"2.0","id":1,"method":"tools/list"}`)
-	if tools, _ := obj(r.body, "result")["tools"].([]any); r.status != 200 || len(tools) != 8 {
+	if tools, _ := obj(r.body, "result")["tools"].([]any); r.status != 200 || len(tools) != 11 {
 		t.Fatalf("tools/list: %d %s", r.status, r.raw)
 	}
 	r = a.do("POST", "/mcp", seed.InternToken, `{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"db_admin.export_prod_pii","arguments":{"dataset":"payroll"}}}`)

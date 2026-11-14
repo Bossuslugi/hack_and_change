@@ -1,5 +1,6 @@
 import type { Brief, Notification, Workspace } from '../api/schemas';
-import { useCron, useSetFlag } from '../hooks/useBuddy';
+import { errorText, useCron, useExecuteAction, useSetFlag } from '../hooks/useBuddy';
+import { useUi } from '../store/ui';
 import { ABSENCE_STATUS_LABEL, formatDate, formatDateTime } from '../lib/format';
 import { Badge, Button, Card, CardTitle, EmptyState, cn } from './ui/primitives';
 
@@ -13,7 +14,7 @@ function BriefCard({ brief }: { brief: Brief }) {
         <span className="text-[11px] text-ink-400">{formatDateTime(brief.created_at)}</span>
       </div>
 
-      <h3 className="mt-3 text-xs font-semibold uppercase tracking-wide text-ink-400">Уже разобрал сам через AI-Buddy</h3>
+      <h3 className="mt-3 text-xs font-semibold uppercase tracking-wide text-ink-400">Уже разобрал сам через Гоффи</h3>
       <ul className="mt-1.5 space-y-1 text-sm text-ink-700">
         {brief.learned_topics.map((topic) => (
           <li key={topic} className="flex gap-2">
@@ -101,12 +102,22 @@ function Notifications({ items }: { items: Notification[] }) {
 }
 
 function Absences({ workspace }: { workspace: Workspace }) {
+  const approve = useExecuteAction();
+  const canApprove = workspace.permissions.absence_approve === true;
+  const onApprove = (number: string) =>
+    approve.mutate(
+      { tool: 'absences.approve_day_off', args: { request_number: number } },
+      {
+        onSuccess: () => useUi.getState().showToast({ kind: 'success', text: `Отгул ${number} согласован — стажёр получит уведомление` }),
+        onError: (e) => useUi.getState().showToast({ kind: 'error', text: errorText(e) }),
+      },
+    );
   return (
     <Card className="p-4">
       <CardTitle aside={<Badge>{workspace.absences.length}</Badge>}>Заявки на отсутствие</CardTitle>
       <div className="mt-3">
         {workspace.absences.length === 0 ? (
-          <EmptyState title="Заявок нет" hint="Стажёр оформляет отгул в чате AI-Buddy через сервис «Отсутствия»." />
+          <EmptyState title="Заявок нет" hint="Стажёр оформляет отгул в чате Гоффи через сервис «Отсутствия»." />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
@@ -130,7 +141,14 @@ function Absences({ workspace }: { workspace: Workspace }) {
                     </td>
                     <td className="py-2 pr-3 text-ink-700">{a.reason}</td>
                     <td className="py-2">
-                      <Badge tone="warn">{ABSENCE_STATUS_LABEL[a.status] ?? a.status}</Badge>
+                      <span className="flex flex-wrap items-center gap-2">
+                        <Badge tone={a.status === 'approved' ? 'ok' : 'warn'}>{ABSENCE_STATUS_LABEL[a.status] ?? a.status}</Badge>
+                        {canApprove && a.status !== 'approved' && (
+                          <Button size="sm" variant="primary" loading={approve.isPending} onClick={() => onApprove(a.number)}>
+                            Согласовать
+                          </Button>
+                        )}
+                      </span>
                     </td>
                   </tr>
                 ))}
@@ -200,7 +218,7 @@ function Flags({ workspace }: { workspace: Workspace }) {
                     locked && 'cursor-not-allowed opacity-50',
                   )}
                 >
-                  <span className={cn('absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-[left]', f.enabled ? 'left-[18px]' : 'left-0.5')} />
+                  <span className={cn('absolute top-0.5 h-5 w-5 rounded-full bg-paper-0 shadow transition-[left]', f.enabled ? 'left-[18px]' : 'left-0.5')} />
                 </button>
               </div>
             </li>
@@ -228,7 +246,7 @@ export function MentorPanel({ workspace }: { workspace: Workspace }) {
       <PanelHeader
         title="Кабинет наставника"
         workspace={workspace}
-        note={`Стажёр ${workspace.intern.name}: рутину закрывает AI-Buddy, вам остаются вопросы, где нужен опыт.`}
+        note={`Стажёр ${workspace.intern.name}: рутину закрывает Гоффи, вам остаются вопросы, где нужен опыт.`}
       />
       <Briefs workspace={workspace} />
       <Notifications items={workspace.notifications} />

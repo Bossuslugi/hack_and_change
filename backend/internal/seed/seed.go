@@ -1,8 +1,10 @@
-// Package seed содержит синтетические демо-данные AI-Buddy.
+// Package seed содержит синтетические демо-данные Гоффи.
 // Все люди, команды, инструкции и задачи вымышлены; реальных ПДн и регламентов Авито здесь нет.
 package seed
 
 import (
+	"time"
+
 	"aibuddy/backend/internal/domain"
 )
 
@@ -49,7 +51,7 @@ func Data() domain.SeedData {
 		Checklist: []domain.ChecklistItem{
 			{ID: "access_repo", Position: 1, Week: 1, Status: domain.StatusPending, Scenario: "S1",
 				Title:       "Получить доступы к репозиторию команды и тестовому стенду",
-				Description: "Доступ к avito-autoteka-api и стенду с синтетическими данными. AI-Buddy оформит через IAM."},
+				Description: "Доступ к avito-autoteka-api и стенду с синтетическими данными. Гоффи оформит через IAM."},
 			{ID: "meet_team", Position: 2, Week: 1, Status: domain.StatusCompleted,
 				Title:       "Познакомиться с командой и наставником",
 				Description: "Вводная встреча с командой Autoteka, знакомство с наставником и руководителем.",
@@ -60,7 +62,7 @@ func Data() domain.SeedData {
 				Evidence:    "Окружение настроено по инструкции"},
 			{ID: "team_processes", Position: 4, Week: 1, Status: domain.StatusPending, Scenario: "S2",
 				Title:       "Изучить процессы команды: фича-флаги и код-ревью",
-				Description: "Как команда катит задачи под фича-флагами и как проходит ревью. Спроси AI-Buddy."},
+				Description: "Как команда катит задачи под фича-флагами и как проходит ревью. Спроси Гоффи."},
 			{ID: "first_task", Position: 5, Week: 1, Status: domain.StatusInProgress, Scenario: "S2",
 				Title:       "Первая задача в спринте",
 				Description: "AUT-1423: добавить поле mileage_verified в сводку отчёта под фича-флагом.",
@@ -70,7 +72,7 @@ func Data() domain.SeedData {
 				Description: "Отгул, отпуск, больничный: как оформить через сервис «Отсутствия» и кого предупредить."},
 			{ID: "first_one_on_one", Position: 7, Week: 2, Status: domain.StatusPending, Scenario: "S2",
 				Title:       "Провести первую встречу 1:1 с наставником",
-				Description: "Обсудить прогресс и вопросы, требующие участия сеньора. AI-Buddy подготовит бриф."},
+				Description: "Обсудить прогресс и вопросы, требующие участия сеньора. Гоффи подготовит бриф."},
 		},
 		Task: domain.SprintTask{
 			Key: "AUT-1423", InternID: InternID, Status: string(domain.StatusInProgress),
@@ -82,6 +84,7 @@ func Data() domain.SeedData {
 			ArchitectureQuestion: "Где в avito-autoteka-api проходит граница между слоем сборки отчёта и агрегатором источников: " +
 				"на каком слое вычислять mileage_verified, чтобы не сломать контракт /v1/report/summary для существующих клиентов?",
 		},
+		Planner: Planner,
 		Repositories: map[string]string{
 			"avito-autoteka-api":      Team,
 			"avito-autoteka-reports":  Team,
@@ -134,7 +137,7 @@ func Data() domain.SeedData {
 				[]string{"access"},
 				[]string{"доступ", "репозитор", "стенд", "gitlab", "песочниц", "синтетическ", "vpn"},
 				[]string{
-					"Доступ к репозиториям команды запрашивается через IAM — AI-Buddy сделает это за тебя.",
+					"Доступ к репозиториям команды запрашивается через IAM — Гоффи сделает это за тебя.",
 					"Стажёру выдаётся уровень developer: ветки и MR, без прав на защищённые ветки.",
 					"Для отладки используй тестовый стенд: на нём только синтетические данные.",
 					"Доступ к репозиториям других команд запрашивает руководитель, а не стажёр.",
@@ -147,15 +150,15 @@ func Data() domain.SeedData {
 					"Прочитай описание задачи и найди в коде ручку или модуль, которые она затрагивает.",
 					"Разбей задачу на шаги и запиши план в комментарии к задаче — наставник увидит ход мысли.",
 					"Сделай первый маленький коммит в первый же день: даже тест или заготовка помогают получить обратную связь.",
-					"Если застрял дольше чем на час — сформулируй вопрос и принеси наставнику; AI-Buddy поможет собрать контекст.",
+					"Если застрял дольше чем на час — сформулируй вопрос и принеси наставнику; Гоффи поможет собрать контекст.",
 				}),
 			doc("pb-one-on-one", "Встречи 1:1 с наставником",
-				"1:1 — время для вопросов, где нужен опыт сеньора. Рутинные вопросы закрывает AI-Buddy.",
+				"1:1 — время для вопросов, где нужен опыт сеньора. Рутинные вопросы закрывает Гоффи.",
 				[]string{"one_on_one"},
 				[]string{"встреч", "one-on-one", "обратн", "фидбек"},
 				[]string{
 					"1:1 проходит раз в неделю, 30 минут. Повестку готовит стажёр.",
-					"Перед встречей AI-Buddy отправляет наставнику бриф: что уже изучено и какой вопрос требует сеньора.",
+					"Перед встречей Гоффи отправляет наставнику бриф: что уже изучено и какой вопрос требует сеньора.",
 					"Приноси архитектурные и карьерные вопросы — на них 1:1 даёт максимум пользы.",
 				}),
 			doc("pb-data-safety", "Работа с данными: прод и ПДн",
@@ -163,7 +166,7 @@ func Data() domain.SeedData {
 				[]string{"security"},
 				[]string{"данны", "пдн", "персональн", "прод$", "production", "безопасност", "дамп"},
 				[]string{
-					"Выгрузки production-баз с персональными данными запрещены для всех ролей AI-Buddy.",
+					"Выгрузки production-баз с персональными данными запрещены для всех ролей Гоффи.",
 					"Для отладки и тестов используй тестовый стенд с синтетическими данными.",
 					"Если задаче нужны реалистичные данные — попроси наставника помочь с генератором синтетики.",
 				}),
@@ -176,5 +179,53 @@ func Data() domain.SeedData {
 					"Оценку обсуждают наставник и руководитель; стажёр получает итог на встрече.",
 				}, domain.RoleMentor, domain.RoleTeamLead),
 		},
+	}
+}
+
+// MeetBase — адрес имитации сервиса видеовстреч (несуществующий домен .example).
+const MeetBase = "https://meet.avito.example/"
+
+// Planner возвращает календарь первых недель относительно момента загрузки демо:
+// созвон 1:1 через три часа, синк и ревью на ближайшие дни, дедлайн первого PR в пятницу.
+func Planner(now time.Time) []domain.PlannerItem {
+	day := func(offset, hour, minute int) time.Time {
+		d := now.AddDate(0, 0, offset)
+		return time.Date(d.Year(), d.Month(), d.Day(), hour, minute, 0, 0, now.Location())
+	}
+	oneOnOne := now.Add(3 * time.Hour).Truncate(time.Minute)
+	friday := (int(time.Friday) - int(now.Weekday()) + 7) % 7
+	if friday == 0 {
+		friday = 7
+	}
+	item := func(id, kind, title, desc string, at time.Time, duration int, link string, mandatory bool, by, byName string) domain.PlannerItem {
+		if link != "" {
+			link = MeetBase + link
+		}
+		return domain.PlannerItem{
+			ID: id, InternID: InternID, Kind: kind, Title: title, Description: desc, StartsAt: at, DurationMin: duration,
+			AllDay: duration == 0 && kind != domain.PlannerDeadline, Link: link, Mandatory: mandatory,
+			CreatedBy: by, CreatedByName: byName, Status: domain.PlannerPlanned, IsSynthetic: true,
+		}
+	}
+	const mentor, lead = "Мария Кузнецова", "Дмитрий Орлов"
+	return []domain.PlannerItem{
+		item("plan-1on1", domain.PlannerMeeting, "Созвон 1:1 с наставником",
+			"Первая встреча 1:1: прогресс по чек-листу и вопросы, где нужен опыт сеньора. Гоффи заранее отправит наставнику бриф.",
+			oneOnOne, 30, "autoteka-1on1", true, MentorID, mentor),
+		item("plan-sync", domain.PlannerSync, "Командный синк Autoteka",
+			"Ежедневный синк команды: что сделано, что в работе, что мешает.",
+			day(1, 11, 0), 15, "autoteka-daily", true, TeamLeadID, lead),
+		item("plan-review", domain.PlannerReview, "Код-ревью задачи AUT-1423",
+			"Разбор первого MR с наставником: фича-флаг, тесты, контракт ручки.",
+			day(2, 15, 0), 45, "autoteka-review", true, MentorID, mentor),
+		item("plan-first-pr", domain.PlannerDeadline, "Срок сдачи первого PR",
+			"Первый PR по задаче AUT-1423 должен быть отправлен на ревью.",
+			day(friday, 18, 0), 0, "", true, MentorID, mentor),
+		item("plan-security-course", domain.PlannerTask, "Пройти курс по информационной безопасности",
+			"Обязательный вводный курс: работа с данными, ПДн, доступы.",
+			day(5, 0, 0), 0, "", true, TeamLeadID, lead),
+		item("plan-feedback", domain.PlannerMeeting, "Созвон по обратной связи за первую неделю",
+			"Руководитель и наставник: итоги недели, ожидания на следующую.",
+			day(7, 16, 0), 30, "autoteka-feedback", true, TeamLeadID, lead),
 	}
 }

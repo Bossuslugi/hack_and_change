@@ -1,4 +1,4 @@
-// Package usecase — прикладные сценарии AI-Buddy: workspace, чат, подтверждение действий,
+// Package usecase — прикладные сценарии Гоффи: workspace, чат, подтверждение действий,
 // ИИ-крон, сброс демо. Связывает агента, MCP-шлюз, RBAC и хранилище.
 package usecase
 
@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -60,7 +61,7 @@ type Deps struct {
 	CronID    string
 }
 
-// Service — прикладной сервис AI-Buddy.
+// Service — прикладной сервис Гоффи.
 type Service struct {
 	Deps
 	internID string
@@ -220,6 +221,8 @@ type WorkspaceView struct {
 	Storage       StorageInfo             `json:"storage"`
 	Permissions   map[string]bool         `json:"permissions"`
 	Disclaimer    string                  `json:"disclaimer"`
+	Planner       []domain.PlannerItem    `json:"planner"`
+	Reminders     []domain.Reminder       `json:"reminders"`
 }
 
 type docRead struct {
@@ -269,14 +272,39 @@ func (s *Service) metrics(ctx context.Context, progress domain.Progress) (domain
 	if err != nil {
 		return domain.MetricsSummary{}, err
 	}
+	grants, err := domain.Load[domain.AccessGrant](ctx, s.Store, domain.KindAccessGrant, s.internID)
+	if err != nil {
+		return domain.MetricsSummary{}, err
+	}
+	planner, err := s.planner(ctx)
+	if err != nil {
+		return domain.MetricsSummary{}, err
+	}
+	tasksDone := 0
+	for _, it := range planner {
+		if it.Status == domain.PlannerDone {
+			tasksDone++
+		}
+	}
 	m := s.Spec.Agent.Metrics
 	return domain.ComputeMetrics(domain.MetricsInput{
+		AccessGrants: len(grants), TasksDone: tasksDone, TasksTotal: len(planner),
 		Events: events, MinutesSaved: m.MinutesSaved,
 		BaselineHoursMin: m.MentorHoursBaselineMin, BaselineHoursMax: m.MentorHoursBaselineMax,
 		Progress: progress, DocsRead: len(read),
 		DocsTotal:     s.Services.Playbook.VisibleCount(s.Seed.Intern.Role, s.Seed.Intern.Team),
 		OpenQuestions: len(open),
 	}), nil
+}
+
+// planner возвращает события календаря и задачи стажёра по возрастанию времени.
+func (s *Service) planner(ctx context.Context) ([]domain.PlannerItem, error) {
+	items, err := domain.Load[domain.PlannerItem](ctx, s.Store, domain.KindPlanner, s.internID)
+	if err != nil {
+		return nil, err
+	}
+	sort.SliceStable(items, func(i, j int) bool { return items[i].StartsAt.Before(items[j].StartsAt) })
+	return items, nil
 }
 
 // Workspace возвращает состояние с учётом прав роли: переписку видит только стажёр,
@@ -328,11 +356,22 @@ func (s *Service) Workspace(ctx context.Context, p domain.Principal) (WorkspaceV
 			"chat": s.can(p, OpChatSend), "cron": s.can(p, OpCronTrigger), "reset": s.can(p, OpReset),
 			"telemetry": s.can(p, OpTelemetryRead), "flags_write": s.can(p, OpFlagsWrite),
 			"briefs": s.can(p, OpBriefsRead), "incidents": s.can(p, OpIncidentsRead),
+			"planner_add": s.RBAC.Can(p.Role, mcp.ToolAddTask), "planner_complete": s.RBAC.Can(p.Role, mcp.ToolCompleteItem),
+			"absence_approve": s.RBAC.Can(p.Role, mcp.ToolApproveDayOff),
 		},
 		Disclaimer: s.Spec.Agent.Agent.SyntheticData.Disclaimer,
 	}
 
 	isOwner := p.ID == s.internID
+	if v.Planner, err = s.planner(ctx); err != nil {
+		return v, err
+	}
+	v.Reminders = []domain.Reminder{}
+	if isOwner {
+		if r := domain.BuildReminders(v.Planner, notifications, s.Clock.Now()); r != nil {
+			v.Reminders = r
+		}
+	}
 	if s.can(p, OpChatHistoryRead) && isOwner {
 		if v.Messages, err = domain.Load[domain.ChatMessage](ctx, s.Store, domain.KindMessage, s.internID); err != nil {
 			return v, err
@@ -522,13 +561,13 @@ func checklistNote(updates, checklist []domain.ChecklistItem) string {
 func evidence(call domain.MCPToolCall) string {
 	switch call.Tool {
 	case mcp.ToolRequestRepoAccess:
-		return fmt.Sprintf("Доступ к %v выдан через IAM (AI-Buddy)", call.Result["repository"])
+		return fmt.Sprintf("Доступ к %v выдан через IAM (Гоффи)", call.Result["repository"])
 	case mcp.ToolCreateDayOff:
-		return fmt.Sprintf("Заявка %v оформлена через AI-Buddy", call.Result["request_number"])
+		return fmt.Sprintf("Заявка %v оформлена через Гоффи", call.Result["request_number"])
 	case mcp.ToolSendBrief:
 		return "Бриф к 1:1 отправлен наставнику"
 	}
-	return "Выполнено через AI-Buddy"
+	return "Выполнено через Гоффи"
 }
 
 // applyEffects применяет правила checklist_effects из спецификации агента.
@@ -569,7 +608,7 @@ func (s *Service) applyEffects(ctx context.Context, p domain.Principal, calls []
 			}
 			switch {
 			case done == len(eff.DocsRead):
-				status, proof = domain.ChecklistStatus(eff.Status), "Инструкции изучены через AI-Buddy"
+				status, proof = domain.ChecklistStatus(eff.Status), "Инструкции изучены через Гоффи"
 			case done > 0:
 				status, proof = domain.StatusInProgress, fmt.Sprintf("Изучено инструкций: %d из %d", done, len(eff.DocsRead))
 			}

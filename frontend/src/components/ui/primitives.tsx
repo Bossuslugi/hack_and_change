@@ -6,7 +6,7 @@ export function cn(...parts: Array<string | false | null | undefined>): string {
   return parts.filter(Boolean).join(' ');
 }
 
-type Tone = 'neutral' | 'brand' | 'ok' | 'warn' | 'danger';
+type Tone = 'neutral' | 'brand' | 'ok' | 'warn' | 'danger' | 'accent';
 
 const BADGE_TONE: Record<Tone, string> = {
   neutral: 'bg-paper-100 text-ink-700',
@@ -14,6 +14,7 @@ const BADGE_TONE: Record<Tone, string> = {
   ok: 'bg-ok-50 text-ok-700',
   warn: 'bg-warn-50 text-warn-700',
   danger: 'bg-danger-50 text-danger-700',
+  accent: 'bg-accent-50 text-accent-700',
 };
 
 export function Badge({ tone = 'neutral', children, className, title }: { tone?: Tone; children: ReactNode; className?: string; title?: string }) {
@@ -43,9 +44,9 @@ type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 
 const BUTTON_VARIANT: Record<ButtonVariant, string> = {
   primary: 'bg-brand-500 text-white hover:bg-brand-600 active:bg-brand-700 disabled:bg-ink-300',
-  secondary: 'bg-white text-ink-900 ring-1 ring-inset ring-paper-200 hover:bg-paper-50 disabled:text-ink-300',
+  secondary: 'bg-paper-0 text-ink-900 ring-1 ring-inset ring-paper-200 hover:bg-paper-50 disabled:text-ink-300',
   ghost: 'text-ink-700 hover:bg-paper-100 disabled:text-ink-300',
-  danger: 'bg-white text-danger-700 ring-1 ring-inset ring-danger-500/30 hover:bg-danger-50 disabled:text-ink-300',
+  danger: 'bg-paper-0 text-danger-700 ring-1 ring-inset ring-danger-500/30 hover:bg-danger-50 disabled:text-ink-300',
 };
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -62,7 +63,7 @@ export function Button({ variant = 'secondary', loading = false, size = 'md', cl
       disabled={disabled || loading}
       aria-busy={loading || undefined}
       className={cn(
-        'inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors',
+        'inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-all duration-200 active:scale-[.97]',
         'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500',
         'disabled:cursor-not-allowed',
         size === 'sm' ? 'px-2.5 py-1.5 text-xs' : 'px-3.5 py-2 text-sm',
@@ -86,7 +87,7 @@ export function Spinner({ className }: { className?: string }) {
 }
 
 export function Card({ children, className }: { children: ReactNode; className?: string }) {
-  return <section className={cn('rounded-2xl bg-white shadow-card ring-1 ring-paper-200', className)}>{children}</section>;
+  return <section className={cn('bento', className)}>{children}</section>;
 }
 
 export function CardTitle({ children, aside }: { children: ReactNode; aside?: ReactNode }) {
@@ -156,9 +157,19 @@ export function JsonBlock({ value, label }: { value: unknown; label: string }) {
   return (
     <div>
       <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-ink-400">{label}</p>
-      <pre className="max-h-48 overflow-auto rounded-lg bg-ink-900 p-2.5 font-mono text-[11px] leading-relaxed text-paper-100">
+      <pre className="max-h-48 overflow-auto rounded-lg bg-[#0B0F19] p-2.5 font-mono text-[11px] leading-relaxed text-slate-200 ring-1 ring-white/5">
         {JSON.stringify(value, null, 2)}
       </pre>
     </div>
+  );
+}
+
+/** Пульсирующая точка «онлайн». */
+export function OnlineDot({ className }: { className?: string }) {
+  return (
+    <span className={cn('relative inline-flex h-2 w-2', className)} aria-hidden="true">
+      <span className="absolute inset-0 animate-pulse-ring rounded-full bg-ok-500" />
+      <span className="relative h-2 w-2 rounded-full bg-ok-500" />
+    </span>
   );
 }

@@ -21,6 +21,10 @@ describe('контракт API: схемы принимают реальные �
     ['чат: процессы', chatResultSchema, fixtures.chatProcess],
     ['чат: отгул', chatResultSchema, fixtures.chatAbsence],
     ['execute: отгул', chatResultSchema, fixtures.executeAbsence],
+    ['execute: личная задача', chatResultSchema, fixtures.executeAddTask],
+    ['execute: обязательная задача', chatResultSchema, fixtures.executeAssignTask],
+    ['execute: отчёт Гоффи', chatResultSchema, fixtures.executeReport],
+    ['execute: согласование отгула', chatResultSchema, fixtures.executeApprove],
     ['крон', cronResultSchema, fixtures.cron],
     ['телеметрия', telemetrySchema, fixtures.telemetry],
     ['флаг', featureFlagSchema, fixtures.flag],
@@ -48,6 +52,27 @@ describe('контракт API: схемы принимают реальные �
     const ws = workspaceSchema.parse(raw);
     expect(ws.briefs).toEqual([]);
     expect(ws.messages).toEqual([]);
+  });
+
+  it('workspace содержит календарь, напоминания и статистику стажёра', () => {
+    const ws = workspaceSchema.parse(fixtures.workspaceInitial);
+    expect(ws.planner).toHaveLength(6);
+    expect(ws.planner.find((p) => p.id === 'plan-1on1')).toMatchObject({ kind: 'meeting', mandatory: true, status: 'planned', is_synthetic: true });
+    expect(ws.planner.find((p) => p.id === 'plan-1on1')?.link).toMatch(/^https:\/\/meet\.avito\.example\//);
+    expect(ws.reminders[0]).toMatchObject({ urgent: true, item_id: 'plan-1on1', text: '🚨 Через 3 часа — Созвон 1:1 с наставником' });
+    expect(ws.metrics).toMatchObject({ deflection_rate: 0, access_grants: 0, tasks_done: 0, tasks_total: 6 });
+    const after = workspaceSchema.parse(fixtures.workspaceIntern);
+    expect(after.reminders.some((r) => r.text.startsWith('🔔 Руководитель согласовал твой отгул #ABS-2026-84'))).toBe(true);
+    expect(after.metrics.access_grants).toBe(1);
+    expect(after.metrics.deflection_rate).toBe(100);
+  });
+
+  it('служебные детали не попадают в текст и карточки чата', () => {
+    for (const fixture of [fixtures.chatAccess, fixtures.chatPii, fixtures.chatProcess, fixtures.chatAbsence, fixtures.executeAbsence]) {
+      const message = chatResultSchema.parse(fixture).message!;
+      const visible = [message.text, message.result_card?.title, ...(message.result_card?.lines ?? []).flatMap((l) => [l.label, l.value])].join(' ');
+      expect(visible).not.toMatch(/POL-|FORBIDDEN|ALLOWED|RBAC|iam_access|db_admin|playbook\.|absences\.|intern_backend/);
+    }
   });
 
   it('отказ RBAC несёт вердикт FORBIDDEN (403)', () => {
@@ -134,7 +159,7 @@ describe('API-клиент', () => {
     await api.executeTool('feature_flags.list', {});
     expect((await api.triggerCron()).brief?.architecture_question).toContain('mileage_verified');
     expect((await api.reset()).messages).toHaveLength(1);
-    expect((await api.getTelemetry()).tools).toHaveLength(8);
+    expect((await api.getTelemetry()).tools).toHaveLength(11);
     await api.trackEvent('ui.role_switched', { role: 'mentor' });
     await api.trackEvent('ui.opened');
 

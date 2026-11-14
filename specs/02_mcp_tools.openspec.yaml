@@ -1,4 +1,4 @@
-# OpenSpec · Контракты MCP-инструментов AI-Buddy
+# OpenSpec · Контракты MCP-инструментов Гоффи
 # Источник истины для internal/mcp: реестр строится из этого файла, обработчики
 # привязываются по имени. Тест конформности падает, если у инструмента из спеки нет
 # обработчика (или наоборот). Входные аргументы валидируются по input_schema.
@@ -18,6 +18,7 @@ servers:
   - { id: mentor,        title: "Наставничество",         description: "Доставка Structured 1:1 Brief наставнику" }
   - { id: notifications, title: "Уведомления",            description: "Имитация корпоративных уведомлений" }
   - { id: tracker,       title: "Трекер задач",           description: "Имитация трекера: активность по задачам спринта" }
+  - { id: calendar,      title: "Календарь и задачи",     description: "Имитация корпоративного календаря: встречи, дедлайны и задачи адаптации" }
   - { id: feature_flags, title: "Feature Flags",          description: "Имитация runtime/compile-time флагов" }
 
 tools:
@@ -140,7 +141,7 @@ tools:
   - name: mentor.send_1on1_brief
     server: mentor
     title: "Отправить наставнику Structured 1:1 Brief"
-    description: "Сохраняет и доставляет наставнику бриф: что стажёр изучил сам через AI-Buddy и один архитектурный вопрос, требующий сеньора."
+    description: "Сохраняет и доставляет наставнику бриф: что стажёр изучил сам через Гоффи и один архитектурный вопрос, требующий сеньора."
     side_effects: "write"
     input_schema:
       type: object
@@ -164,7 +165,7 @@ tools:
   - name: notifications.send
     server: notifications
     title: "Отправить уведомление"
-    description: "Отправляет уведомление сотруднику во входящие AI-Buddy."
+    description: "Отправляет уведомление сотруднику во входящие Гоффи."
     side_effects: "write"
     input_schema:
       type: object
@@ -206,7 +207,7 @@ tools:
   - name: feature_flags.list
     server: feature_flags
     title: "Список feature flags"
-    description: "Возвращает активные runtime и compile-time флаги AI-Buddy."
+    description: "Возвращает активные runtime и compile-time флаги Гоффи."
     side_effects: "read"
     input_schema:
       type: object
@@ -217,3 +218,71 @@ tools:
       required: [flags]
       properties:
         flags: { type: array, items: { type: object } }
+
+  - name: absences.approve_day_off
+    server: absences
+    title: "Согласовать заявку на отгул"
+    description: "Руководитель согласует заявку на отгул; сотрудник получает уведомление."
+    side_effects: "write"
+    input_schema:
+      type: object
+      additionalProperties: false
+      required: [request_number]
+      properties:
+        request_number: { type: string, pattern: "^#ABS-\\d{4}-\\d+$", description: "Номер заявки, например #ABS-2026-84" }
+    output_schema:
+      type: object
+      required: [request_number, status]
+      properties:
+        request_number: { type: string }
+        status:         { type: string, enum: [approved] }
+    errors:
+      - { code: "INVALID_ARGUMENTS", description: "Заявка не найдена или уже согласована" }
+
+  - name: calendar.add_task
+    server: calendar
+    title: "Добавить задачу в календарь"
+    description: "Стажёр добавляет личную задачу; наставник или руководитель назначают обязательную (стажёр получает уведомление)."
+    side_effects: "write"
+    input_schema:
+      type: object
+      additionalProperties: false
+      required: [intern_id, title, date]
+      properties:
+        intern_id:   { type: string, minLength: 1 }
+        title:       { type: string, minLength: 3, maxLength: 120 }
+        description: { type: string, maxLength: 500 }
+        date:        { type: string, pattern: "^\\d{4}-\\d{2}-\\d{2}$", description: "Срок или дата, YYYY-MM-DD" }
+        time:        { type: string, pattern: "^([01]\\d|2[0-3]):[0-5]\\d$", description: "Время, HH:MM (необязательно)" }
+    output_schema:
+      type: object
+      required: [id, title, starts_at, mandatory]
+      properties:
+        id:        { type: string }
+        title:     { type: string }
+        starts_at: { type: string }
+        mandatory: { type: boolean }
+    errors:
+      - { code: "INVALID_ARGUMENTS", description: "Дата в прошлом" }
+
+  - name: calendar.complete_item
+    server: calendar
+    title: "Отметить событие выполненным и отправить отчёт"
+    description: "Стажёр отмечает событие или задачу выполненной и при желании отправляет Гоффи короткий отчёт — он попадёт в бриф наставнику."
+    side_effects: "write"
+    input_schema:
+      type: object
+      additionalProperties: false
+      required: [intern_id, item_id]
+      properties:
+        intern_id: { type: string, minLength: 1 }
+        item_id:   { type: string, minLength: 1 }
+        report:    { type: string, maxLength: 1000 }
+    output_schema:
+      type: object
+      required: [id, status]
+      properties:
+        id:     { type: string }
+        status: { type: string, enum: [done] }
+    errors:
+      - { code: "INVALID_ARGUMENTS", description: "Событие не найдено или уже выполнено" }

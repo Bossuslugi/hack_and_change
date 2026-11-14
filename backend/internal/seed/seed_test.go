@@ -1,6 +1,9 @@
 package seed
 
 import (
+	"strings"
+	"time"
+
 	"testing"
 
 	"aibuddy/backend/internal/domain"
@@ -98,5 +101,39 @@ func TestSeedChecklistAndTask(t *testing.T) {
 	}
 	if kinds[domain.FlagRuntime] == 0 || kinds[domain.FlagCompileTime] == 0 {
 		t.Errorf("нужны и runtime, и compile-time флаги: %v", kinds)
+	}
+}
+
+func TestSeedPlanner(t *testing.T) {
+	// Понедельник, пятница и воскресенье: дедлайн первого PR всегда в ближайшую будущую пятницу.
+	for _, day := range []int{9, 13, 15} {
+		now := time.Date(2026, 11, day, 10, 7, 30, 0, time.UTC)
+		items := Planner(now)
+		ids := map[string]domain.PlannerItem{}
+		for _, it := range items {
+			if ids[it.ID].ID != "" || !it.IsSynthetic || it.InternID != InternID || it.Status != domain.PlannerPlanned || it.Title == "" {
+				t.Fatalf("событие %s некорректно: %+v", it.ID, it)
+			}
+			if it.StartsAt.Before(now.Truncate(24 * time.Hour)) {
+				t.Errorf("событие %s в прошлом", it.ID)
+			}
+			if it.IsEvent() && (!strings.HasPrefix(it.Link, MeetBase) || it.DurationMin == 0) {
+				t.Errorf("у встречи %s должна быть ссылка и длительность", it.ID)
+			}
+			ids[it.ID] = it
+		}
+		if got := ids["plan-1on1"].StartsAt.Sub(now); got < 179*time.Minute || got > 180*time.Minute {
+			t.Errorf("созвон 1:1 должен быть через три часа: %v", got)
+		}
+		pr := ids["plan-first-pr"]
+		if pr.StartsAt.Weekday() != time.Friday || !pr.StartsAt.After(now) || pr.StartsAt.Sub(now) > 8*24*time.Hour || pr.AllDay {
+			t.Errorf("день %d: дедлайн первого PR %v", day, pr.StartsAt)
+		}
+		if course := ids["plan-security-course"]; !course.AllDay || !course.Mandatory || course.CreatedBy != TeamLeadID {
+			t.Errorf("курс ИБ: %+v", course)
+		}
+	}
+	if Data().Planner == nil {
+		t.Fatal("календарь должен входить в seed")
 	}
 }

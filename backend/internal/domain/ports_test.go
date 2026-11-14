@@ -91,7 +91,7 @@ func TestSeedRecords(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if want := 1 + len(data.Checklist) + 1; len(recs) != want {
+	if want := 1 + len(data.Checklist) + 1 + len(data.Planner(now)); len(recs) != want {
 		t.Fatalf("записей %d, want %d", len(recs), want)
 	}
 	kinds := map[domain.Kind]int{}
