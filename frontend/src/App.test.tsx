@@ -54,7 +54,12 @@ function backend(overrides: Route = () => undefined) {
         apply(result);
         const item = (result.tool_calls[0] as unknown as { result: Json }).result;
         const planner = intern.planner as Json[];
-        if (body.tool === 'calendar.add_task') intern = { ...intern, planner: [...planner, item] };
+        // Задача «на весь день» хранится полночью по времени сервера; в тесте привязываем её к выбранному дню
+        // в локальном часовом поясе, чтобы результат не зависел от пояса машины (CI работает в UTC).
+        if (body.tool === 'calendar.add_task') {
+          const [y, m, d] = String(body.arguments.date).split('-').map(Number);
+          intern = { ...intern, planner: [...planner, { ...item, starts_at: new Date(y!, m! - 1, d!).toISOString() }] };
+        }
         if (body.tool === 'calendar.complete_item') intern = { ...intern, planner: planner.map((p) => (p.id === item.id ? item : p)) };
       }
       return json(result);
