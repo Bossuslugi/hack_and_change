@@ -126,8 +126,8 @@ export function Header({ workspace }: { workspace?: Workspace }) {
   };
 
   return (
-    <header className="sticky top-0 z-20 border-b border-paper-200 bg-paper-0/70 backdrop-blur-xl transition-colors duration-300">
-      <div className="mx-auto flex max-w-[1600px] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5">
+    <header className="sticky top-0 z-20 shrink-0 border-b border-paper-200 bg-paper-0/70 backdrop-blur-xl transition-colors duration-300">
+      <div className="mx-auto flex max-w-[1920px] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5">
         <div className="flex items-center gap-2.5">
           <GoffyAvatar size="sm" className="h-9 w-9" />
           <div className="leading-tight">

@@ -101,7 +101,7 @@ export function CardTitle({ children, aside }: { children: ReactNode; aside?: Re
 
 export function EmptyState({ title, hint, action }: { title: string; hint?: string; action?: ReactNode }) {
   return (
-    <div className="rounded-xl border border-dashed border-paper-200 bg-paper-50 px-4 py-6 text-center">
+    <div className="rounded-2xl border border-dashed border-paper-200 bg-paper-50 px-4 py-6 text-center">
       <p className="text-sm font-medium text-ink-700">{title}</p>
       {hint && <p className="mx-auto mt-1 max-w-md text-xs text-ink-500">{hint}</p>}
       {action && <div className="mt-3 flex justify-center">{action}</div>}
@@ -157,7 +157,7 @@ export function JsonBlock({ value, label }: { value: unknown; label: string }) {
   return (
     <div>
       <p className="mb-1 text-[11px] font-medium uppercase tracking-wide text-ink-400">{label}</p>
-      <pre className="max-h-48 overflow-auto rounded-lg bg-[#0B0F19] p-2.5 font-mono text-[11px] leading-relaxed text-slate-200 ring-1 ring-white/5">
+      <pre className="max-h-48 overflow-auto rounded-xl bg-[#0B0F19] p-2.5 font-mono text-[11px] leading-relaxed text-slate-200 ring-1 ring-white/5">
         {JSON.stringify(value, null, 2)}
       </pre>
     </div>

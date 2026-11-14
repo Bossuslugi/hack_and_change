@@ -7,7 +7,7 @@ import { formatDate } from '../../lib/format';
 import { Badge, Button, cn } from '../ui/primitives';
 
 const inputClass =
-  'w-full rounded-lg border border-paper-200 bg-paper-0 px-2.5 py-1.5 text-sm text-ink-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100 disabled:bg-paper-50 disabled:text-ink-500';
+  'w-full rounded-xl border border-paper-200 bg-paper-0 px-2.5 py-1.5 text-sm text-ink-900 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100 disabled:bg-paper-50 disabled:text-ink-500';
 
 function Field({ label, error, children, htmlFor }: { label: string; error?: string; children: React.ReactNode; htmlFor: string }) {
   return (
@@ -63,7 +63,7 @@ export function AbsenceForm({ card, messageId }: { card: ActionCard; messageId: 
   };
 
   return (
-    <form onSubmit={submit} noValidate aria-label={card.title} className="mt-3 rounded-xl border border-brand-100 bg-brand-50/60 p-3">
+    <form onSubmit={submit} noValidate aria-label={card.title} className="mt-3 rounded-2xl border border-brand-100 bg-brand-50/60 p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm font-semibold text-ink-900">{card.title}</p>
         <Badge tone={submitted ? 'ok' : 'brand'}>{submitted ? 'Отправлено' : 'Ждёт подтверждения'}</Badge>
@@ -102,7 +102,7 @@ export function AbsenceForm({ card, messageId }: { card: ActionCard; messageId: 
       </fieldset>
 
       {serverError && (
-        <p role="alert" className="mt-3 rounded-lg bg-danger-50 px-2.5 py-2 text-xs text-danger-700">
+        <p role="alert" className="mt-3 rounded-xl bg-danger-50 px-2.5 py-2 text-xs text-danger-700">
           {serverError}
         </p>
       )}

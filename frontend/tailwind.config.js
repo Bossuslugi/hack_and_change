@@ -7,18 +7,6 @@ export default {
   // Тема переключается классом .dark на <html>; цвета — CSS-переменные из src/index.css.
   darkMode: 'class',
   theme: {
-    borderRadius: {
-      none: '0',
-      tag: '6px', // бейджи, теги, мелкие кнопки
-      card: '12px', // карточки, инпуты, кнопки
-      panel: '16px', // панели и контейнеры
-      full: '9999px', // точки статуса, аватары, тумблеры
-    },
-    fontSize: {
-      meta: ['12px', { lineHeight: '16px' }],
-      body: ['14px', { lineHeight: '20px' }],
-      display: ['32px', { lineHeight: '36px', letterSpacing: '-0.02em' }],
-    },
     extend: {
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
@@ -33,9 +21,11 @@ export default {
         warn: scale('warn', [50, 500, 700]),
         danger: scale('danger', [50, 500, 700]),
       },
-      borderRadius: { bento: '20px' },
+      borderRadius: { bento: '24px' },
       boxShadow: {
         card: '0 1px 2px rgb(var(--shadow) / .08), 0 8px 28px rgb(var(--shadow) / .06)',
+        glass: '0 8px 32px rgb(15 23 42 / .06)',
+        'glass-dark': '0 8px 32px rgb(0 0 0 / .35)',
         glow: '0 0 0 1px rgb(var(--brand-500) / .28), 0 10px 36px rgb(var(--brand-500) / .14)',
         drawer: '-12px 0 40px rgb(var(--shadow) / .25)',
       },

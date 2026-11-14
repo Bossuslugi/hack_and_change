@@ -326,6 +326,42 @@ describe('Гоффи: рабочее пространство стажёра', (
   });
 });
 
+describe('разделы левой панели', () => {
+  it('показывает OKR, сервисы и состав заявки, мини-квиз проверяет ответ', async () => {
+    backend();
+    const user = userEvent.setup();
+    renderApp();
+    expect(await screen.findByText('Цели на адаптацию и OKR команды')).toBeInTheDocument();
+    expect(screen.getByText('Закрыть первую боевую задачу в Stash за 2 недели')).toBeInTheDocument();
+    expect(within(screen.getByLabelText('Состав заявки на доступ')).getByText('Уровень прав')).toBeInTheDocument();
+    expect(within(step('team_processes')).getByText('Confluence')).toBeInTheDocument();
+
+    await user.click(within(step('team_processes')).getByRole('button', { name: 'Мини-квиз' }));
+    const quiz = within(step('team_processes')).getByRole('group', { name: /Мини-квиз/ });
+    await user.click(within(quiz).getByRole('button', { name: 'Сразу на всех пользователей' }));
+    expect(within(quiz).getByRole('status')).toHaveTextContent('Не совсем');
+    await user.click(within(quiz).getByRole('button', { name: 'Под фича-флагом, после код-ревью' }));
+    expect(within(quiz).getByRole('status')).toHaveTextContent('Верно');
+  });
+
+  it('календарь и статистика открываются вкладками, бенчмарки Авито на месте', async () => {
+    backend();
+    const user = userEvent.setup();
+    renderApp();
+    const calendar = await screen.findByRole('tab', { name: 'Календарь' });
+    expect(calendar).toHaveAttribute('aria-selected', 'false');
+    await user.click(calendar);
+    expect(calendar).toHaveAttribute('aria-selected', 'true');
+    expect(screen.queryByText('Чек-лист адаптации')).not.toBeInTheDocument();
+    expect(screen.getByRole('grid', { name: 'Календарь на две недели' })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('tab', { name: 'Статистика' }));
+    expect(screen.getAllByTestId('benchmark')).toHaveLength(5);
+    expect(screen.getByText('Нагрузка наставника')).toBeInTheDocument();
+    expect(screen.getByText('40–48 ч')).toBeInTheDocument();
+  });
+});
+
 describe('статистика стажёра', () => {
   it('вкладка показывает прогресс, самостоятельность, время, доступы и материалы', async () => {
     backend(({ method, path, token }) =>

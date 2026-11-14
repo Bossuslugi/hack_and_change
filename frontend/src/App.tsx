@@ -3,7 +3,7 @@ import { ChatPanel } from './components/chat/ChatPanel';
 import { GoffyAvatar } from './components/GoffyAvatar';
 import { Header } from './components/Header';
 import { Inspector } from './components/inspector/Inspector';
-import { Planner, useReminderToasts } from './components/Planner';
+import { useReminderToasts } from './components/Planner';
 import { LeadPanel, MentorPanel } from './components/RolePanels';
 import { Sidebar } from './components/Sidebar';
 import { Button, cn } from './components/ui/primitives';
@@ -50,11 +50,16 @@ export default function App() {
   };
 
   return (
-    <div className="app-backdrop min-h-screen font-sans text-ink-900">
+    <div className="app-backdrop relative flex min-h-screen w-full flex-col font-sans text-ink-900 lg:h-screen lg:overflow-hidden">
+      <div aria-hidden="true">
+        <span className="orb -left-40 -top-40 h-[32rem] w-[32rem] bg-[#00AAFF]" />
+        <span className="orb -right-40 top-1/4 h-[28rem] w-[28rem] bg-[#8B5CF6]" />
+        <span className="orb -bottom-48 left-1/3 h-[30rem] w-[30rem] bg-[#00C257]" />
+      </div>
       <Header workspace={ready ? workspace : undefined} />
-      <main className="mx-auto max-w-[1600px] px-4 py-4">
+      <main className="relative mx-auto flex min-h-0 w-full max-w-[1920px] flex-1 flex-col p-4 lg:overflow-hidden">
         {workspaceQuery.isError && !workspace && (
-          <div role="alert" className="bento mx-auto mt-16 max-w-md p-6 text-center">
+          <div role="alert" className="bento mx-auto mt-16 w-full max-w-md p-6 text-center">
             <p className="text-sm font-semibold text-ink-900">Не удалось загрузить рабочее пространство</p>
             <p className="mt-1 text-sm text-ink-500">{errorText(workspaceQuery.error)}</p>
             <Button variant="primary" className="mt-4" onClick={() => void workspaceQuery.refetch()} loading={workspaceQuery.isFetching}>
@@ -69,18 +74,15 @@ export default function App() {
           </div>
         )}
         {ready && (
-          <div className="grid gap-4 lg:grid-cols-[320px_minmax(0,1fr)] 2xl:grid-cols-[320px_minmax(0,1fr)_340px]">
-            <div className="order-2 lg:order-1">
+          <div className="grid min-h-0 flex-1 grid-cols-12 gap-4">
+            <div className="order-2 col-span-12 flex min-h-0 flex-col lg:order-1 lg:col-span-7">
               <Sidebar workspace={workspace} onAsk={workspace.permissions.chat ? ask : undefined} />
             </div>
-            <div className="order-1 min-w-0 lg:order-2">
+            <div className="order-1 col-span-12 flex min-h-0 min-w-0 flex-col lg:order-2 lg:col-span-5">
               {role === 'intern' && <ChatPanel workspace={workspace} onSend={ask} busy={send.isPending} />}
               {role === 'mentor' && <MentorPanel workspace={workspace} />}
               {role === 'lead' && <LeadPanel workspace={workspace} />}
             </div>
-            <aside className="order-3 flex flex-col gap-4 lg:col-span-2 2xl:col-span-1" aria-label="Календарь и напоминания">
-              <Planner workspace={workspace} />
-            </aside>
           </div>
         )}
       </main>

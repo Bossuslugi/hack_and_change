@@ -341,7 +341,7 @@ func (e *Engine) access(ctx context.Context, req Request, intent spec.Intent) Re
 		} else {
 			b.WriteString("Готово! Я проверил твои права и оформил доступ — можно работать.\n\n")
 		}
-		fmt.Fprintf(&b, "- Репозиторий: **%s**, уровень %s\n", repo, level)
+		fmt.Fprintf(&b, "- Репозиторий в Stash: **%s**, уровень прав: %s\n", repo, level)
 		if standName != "" {
 			fmt.Fprintf(&b, "- Тестовый стенд: **%s** (только синтетические данные)\n", standName)
 		}
@@ -351,9 +351,13 @@ func (e *Engine) access(ctx context.Context, req Request, intent spec.Intent) Re
 			r.SavingKey = domain.SavingAccess // повторный запрос не экономит время наставника
 		}
 		r.facts = []string{repo}
+		// Состав карточки повторяет заявку на доступ: ресурс, уровень прав, обоснование, согласующий.
 		lines := []domain.CardLine{
+			{Label: "Проект / ресурс", Value: "Stash (Git)"},
 			{Label: "Репозиторий", Value: repo},
-			{Label: "Уровень доступа", Value: level},
+			{Label: "Уровень прав", Value: level},
+			{Label: "Обоснование", Value: "Шаг чек-листа адаптации: доступы к репозиторию команды"},
+			{Label: "Согласующий", Value: "Владелец проекта"},
 		}
 		if standName != "" {
 			lines = append(lines, domain.CardLine{Label: "Тестовый стенд", Value: standName})
@@ -364,7 +368,7 @@ func (e *Engine) access(ctx context.Context, req Request, intent spec.Intent) Re
 		)
 		r.ResultCard = &domain.ResultCard{
 			Type: domain.CardAccessGranted, Status: domain.CardStatusSuccess, Title: "Доступ выдан",
-			Lines: lines, Footnote: "Имитация IAM · синтетические данные",
+			Lines: lines, Footnote: "Имитация заявки на доступ в Stash · синтетические данные",
 		}
 	case domain.ToolForbidden:
 		r.Text = fmt.Sprintf(

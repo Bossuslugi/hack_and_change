@@ -714,7 +714,7 @@ func checklistNote(updates, checklist []domain.ChecklistItem) string {
 func evidence(call domain.MCPToolCall) string {
 	switch call.Tool {
 	case mcp.ToolRequestRepoAccess:
-		return fmt.Sprintf("Доступ к %v выдан через IAM (Гоффи)", call.Result["repository"])
+		return fmt.Sprintf("Доступ к %v в Stash выдан по заявке (Гоффи)", call.Result["repository"])
 	case mcp.ToolCreateDayOff:
 		return fmt.Sprintf("Заявка %v оформлена через Гоффи", call.Result["request_number"])
 	case mcp.ToolSendBrief:

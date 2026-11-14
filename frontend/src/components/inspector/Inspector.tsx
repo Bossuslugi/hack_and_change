@@ -24,7 +24,7 @@ function SpecsAndFlags({ workspace }: { workspace?: Workspace }) {
   const flags = workspace?.feature_flags ?? [];
   const skills = workspace?.skills ?? [];
   const title = 'mb-2 text-xs font-semibold uppercase tracking-wide text-ink-400';
-  const card = 'rounded-xl border border-paper-200 bg-paper-0 px-3 py-2.5';
+  const card = 'rounded-2xl border border-paper-200 bg-paper-0 px-3 py-2.5';
   return (
     <div className="space-y-4">
       {skills.length > 0 && (
@@ -58,7 +58,7 @@ function SpecsAndFlags({ workspace }: { workspace?: Workspace }) {
       </div>
       <div>
         <h3 className={title}>Feature flags</h3>
-        <ul className="divide-y divide-paper-200 rounded-xl border border-paper-200 bg-paper-0">
+        <ul className="overflow-hidden divide-y divide-paper-200 rounded-2xl border border-paper-200 bg-paper-0">
           {flags.map((flag) => (
             <li key={flag.key} className="flex items-center justify-between gap-2 px-3 py-2" title={flag.description}>
               <div className="min-w-0">
@@ -83,7 +83,7 @@ const SEVERITY_TONE = { info: 'neutral', warn: 'warn', security: 'danger' } as c
 function ToolCallRow({ call }: { call: ToolCall }) {
   const [open, setOpen] = useState(false);
   return (
-    <li className="rounded-xl border border-paper-200 bg-paper-0" data-testid="tool-call">
+    <li className="overflow-hidden rounded-2xl border border-paper-200 bg-paper-0" data-testid="tool-call">
       <button type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} className="flex w-full items-center gap-2 px-3 py-2.5 text-left">
         <Badge tone={STATUS_TONE[call.status]}>{TOOL_STATUS_LABEL[call.status]}</Badge>
         <span className="min-w-0 flex-1 truncate font-mono text-xs font-medium text-ink-900">{call.tool}</span>
@@ -122,7 +122,7 @@ function EventRow({ event }: { event: TelemetryEvent }) {
     .map(([k, v]) => `${k}=${String(v)}`)
     .join(' · ');
   return (
-    <li className="rounded-xl border border-paper-200 bg-paper-0 px-3 py-2" data-testid="event">
+    <li className="rounded-2xl border border-paper-200 bg-paper-0 px-3 py-2" data-testid="event">
       <div className="flex items-center gap-2">
         <Badge tone={SEVERITY_TONE[event.severity]}>{event.severity}</Badge>
         <span className="min-w-0 flex-1 truncate font-mono text-xs font-medium text-ink-900">{event.name}</span>
@@ -137,7 +137,7 @@ function EventRow({ event }: { event: TelemetryEvent }) {
 
 function Matrix({ data }: { data: Telemetry }) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-paper-200 bg-paper-0">
+    <div className="overflow-x-auto rounded-2xl border border-paper-200 bg-paper-0">
       <table className="w-full text-left text-[11px]">
         <thead className="bg-paper-50 text-ink-500">
           <tr>
@@ -220,7 +220,7 @@ function TabContent({ tab, data }: { tab: Exclude<InspectorTab, 'sdd'>; data: Te
   return (
     <ul className="space-y-2">
       {data.tools.map((t) => (
-        <li key={t.name} className="rounded-xl border border-paper-200 bg-paper-0 px-3 py-2.5">
+        <li key={t.name} className="rounded-2xl border border-paper-200 bg-paper-0 px-3 py-2.5">
           <div className="flex flex-wrap items-center gap-2">
             <span className="font-mono text-xs font-medium text-ink-900">{t.name}</span>
             <Badge tone={t.allowed_for_viewer ? 'ok' : 'danger'}>{t.allowed_for_viewer ? 'доступен роли' : 'запрещён роли'}</Badge>
@@ -265,7 +265,7 @@ export function Inspector({ workspace }: { workspace?: Workspace }) {
     <aside
       role="dialog"
       aria-label="Инспектор жюри"
-      className="fixed inset-y-0 right-0 z-30 flex w-full max-w-[520px] flex-col border-l border-paper-200 bg-paper-50 shadow-drawer"
+      className="fixed inset-y-0 right-0 z-30 flex w-full max-w-[520px] flex-col overflow-hidden rounded-l-3xl border-l border-paper-200 bg-paper-50 shadow-drawer"
     >
       <div className="flex items-center justify-between border-b border-paper-200 bg-paper-0 px-4 py-3">
         <div>
@@ -291,7 +291,7 @@ export function Inspector({ workspace }: { workspace?: Workspace }) {
             aria-selected={tab === t.id}
             onClick={() => setTab(t.id)}
             className={cn(
-              'rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-500',
+              'rounded-xl px-2.5 py-1.5 text-xs font-medium transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-500',
               tab === t.id ? 'bg-brand-50 text-brand-700' : 'text-ink-500 hover:bg-paper-100',
             )}
           >

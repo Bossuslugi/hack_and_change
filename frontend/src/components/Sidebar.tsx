@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import type { ChecklistItem, Workspace } from '../api/schemas';
 import { useCron } from '../hooks/useBuddy';
-import { formatMinutes, plural, STATUS_LABEL } from '../lib/format';
+import { ACCESS_REQUEST_FIELDS, AVITO_BENCHMARKS, AVITO_SERVICES, MENTOR_LOAD, STEP_QUIZ, STEP_SERVICES, WEEK_OKRS, type Benchmark } from '../lib/avito';
+import { formatMinutes, initials, plural, STATUS_LABEL } from '../lib/format';
 import { useUi } from '../store/ui';
-import { Badge, Button, Card, CardTitle, cn } from './ui/primitives';
+import { Planner } from './Planner';
+import { Badge, Button, Card, CardTitle, OnlineDot, cn } from './ui/primitives';
 
 /** Запросы к Гоффи по шагам чек-листа (совпадают с подсказками агента). */
 export const STEP_PROMPTS: Record<string, string> = {
@@ -32,42 +34,106 @@ function StatusIcon({ status }: { status: ChecklistItem['status'] }) {
       </span>
     );
   }
-  return <span className="h-5 w-5 shrink-0 rounded-full border-2 border-ink-300" aria-hidden="true" />;
+  return <span className="block h-5 w-5 shrink-0 rounded-full border-2 border-ink-300" aria-hidden="true" />;
 }
 
-function ProgressBar({ workspace }: { workspace: Workspace }) {
-  const { progress } = workspace;
+/** Компактная полоса прогресса над вкладками: процент, шаги и следующий шаг в одну строку. */
+function HeroBar({ workspace }: { workspace: Workspace }) {
+  const { progress, next_step: next, intern } = workspace;
   return (
-    <>
-      <div
-        className="h-2 overflow-hidden rounded-full bg-paper-100"
-        role="progressbar"
-        aria-valuemin={0}
-        aria-valuemax={progress.total}
-        aria-valuenow={progress.completed}
-        aria-label="Прогресс чек-листа"
-      >
+    <section className="bento flex max-h-[110px] shrink-0 items-center gap-4 overflow-hidden px-4 py-3" aria-label="Прогресс стажёра">
+      <p className="shrink-0 bg-gradient-to-r from-brand-500 to-accent-500 bg-clip-text text-3xl font-bold leading-none text-transparent">{progress.percent}%</p>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-baseline justify-between gap-3">
+          <p className="truncate text-sm font-semibold text-ink-900">{intern.name}</p>
+          <p className="shrink-0 text-xs text-ink-500">
+            Выполнено {progress.completed} из {progress.total} {plural(progress.total, ['шага', 'шагов', 'шагов'])}
+            {progress.in_progress > 0 && ` · в работе ${progress.in_progress}`}
+          </p>
+        </div>
         <div
-          className="h-full rounded-full bg-gradient-to-r from-brand-500 via-accent-500 to-ok-500 transition-[width] duration-700 ease-out"
-          style={{ width: `${progress.percent}%` }}
-        />
+          className="mt-2 h-2 overflow-hidden rounded-full bg-paper-100"
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={progress.total}
+          aria-valuenow={progress.completed}
+          aria-label="Прогресс чек-листа"
+        >
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-brand-500 via-accent-500 to-ok-500 transition-[width] duration-700 ease-out"
+            style={{ width: `${progress.percent}%` }}
+          />
+        </div>
+        <p className="mt-1.5 truncate text-xs text-ink-500">{next ? `Дальше: ${next.title}` : 'Все шаги адаптации закрыты'}</p>
       </div>
-      <p className="mt-1.5 text-xs text-ink-500">
-        Выполнено {progress.completed} из {progress.total} {plural(progress.total, ['шага', 'шагов', 'шагов'])}
-        {progress.in_progress > 0 && ` · в работе ${progress.in_progress}`}
-      </p>
-    </>
+    </section>
+  );
+}
+
+/** Мини-квиз от Гоффи: один вопрос, ответ в один клик. Проверяет себя сам стажёр, шаг закрывает агент или наставник. */
+function StepQuizCard({ stepId }: { stepId: string }) {
+  const quiz = STEP_QUIZ[stepId];
+  const [open, setOpen] = useState(false);
+  const [answer, setAnswer] = useState<number | null>(null);
+  if (!quiz) return null;
+  const correct = answer === quiz.correct;
+  return (
+    <div className="mt-2">
+      <Button size="sm" variant="ghost" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+        Мини-квиз
+      </Button>
+      {open && (
+        <div className="glass-inner mt-2 p-3" role="group" aria-label={`Мини-квиз: ${quiz.question}`}>
+          <p className="text-xs font-medium text-ink-900">{quiz.question}</p>
+          <div className="mt-2 flex flex-col gap-1.5">
+            {quiz.options.map((option, i) => (
+              <button
+                key={option}
+                type="button"
+                aria-pressed={answer === i}
+                onClick={() => setAnswer(i)}
+                className={cn(
+                  'rounded-xl border px-3 py-1.5 text-left text-xs transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-500',
+                  answer !== i && 'border-paper-200 bg-paper-0 text-ink-700 hover:border-brand-500/40',
+                  answer === i && i === quiz.correct && 'border-ok-500/40 bg-ok-50 text-ok-700',
+                  answer === i && i !== quiz.correct && 'border-danger-500/40 bg-danger-50 text-danger-700',
+                )}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+          {answer !== null && (
+            <p role="status" className={cn('mt-2 text-[11px] leading-snug', correct ? 'text-ok-700' : 'text-danger-700')}>
+              {correct ? `Верно. ${quiz.explanation}` : 'Не совсем. Попробуй ещё раз или спроси Гоффи.'}
+            </p>
+          )}
+          <p className="mt-1.5 text-[11px] text-ink-400">Самопроверка. Шаг закроет Гоффи после разбора темы или наставник на 1:1.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Состав заявки на доступ: показываем заранее, что спросит сервис. */
+function AccessRequestHint() {
+  return (
+    <dl className="glass-inner mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 p-3 text-[11px]" aria-label="Состав заявки на доступ">
+      {ACCESS_REQUEST_FIELDS.map((f) => (
+        <div key={f.label} className="contents">
+          <dt className="text-ink-500">{f.label}</dt>
+          <dd className="text-ink-900">{f.value}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }
 
 function Checklist({ workspace, onAsk }: { workspace: Workspace; onAsk?: (text: string) => void }) {
   const { checklist, progress, next_step: next } = workspace;
   return (
-    <Card className="p-4">
-      <CardTitle aside={<span className="text-xs font-medium text-ink-500">{progress.percent}%</span>}>Чек-лист адаптации</CardTitle>
-      <div className="mt-3">
-        <ProgressBar workspace={workspace} />
-      </div>
+    <Card className="overflow-hidden p-4">
+      <CardTitle aside={<Badge tone="brand">{progress.completed}/{progress.total}</Badge>}>Чек-лист адаптации</CardTitle>
 
       <ol className="mt-3 space-y-1">
         {checklist.map((item) => {
@@ -79,7 +145,7 @@ function Checklist({ workspace, onAsk }: { workspace: Workspace; onAsk?: (text: 
               data-testid={`step-${item.id}`}
               data-status={item.status}
               className={cn(
-                'rounded-xl px-2.5 py-2 transition-all duration-200',
+                'rounded-2xl px-2.5 py-2 transition-all duration-200',
                 isNext ? 'bg-brand-50 ring-1 ring-brand-500/30' : 'hover:bg-paper-100',
               )}
             >
@@ -96,13 +162,18 @@ function Checklist({ workspace, onAsk }: { workspace: Workspace; onAsk?: (text: 
                     <span>Неделя {item.week}</span>
                     <span aria-label={`Статус: ${STATUS_LABEL[item.status]}`}>{STATUS_LABEL[item.status]}</span>
                     {isNext && <span className="font-semibold text-brand-700">Следующий шаг</span>}
+                    {(STEP_SERVICES[item.id] ?? []).map((service) => (
+                      <Badge key={service}>{service}</Badge>
+                    ))}
                   </p>
                   {item.evidence && item.status !== 'pending' && <p className="mt-1 text-[11px] text-ink-500">{item.evidence}</p>}
+                  {isNext && item.id === 'access_repo' && <AccessRequestHint />}
                   {isNext && prompt && onAsk && (
                     <Button size="sm" variant="primary" className="mt-2" onClick={() => onAsk(prompt)}>
                       Спросить Гоффи
                     </Button>
                   )}
+                  {item.status !== 'completed' && onAsk && <StepQuizCard stepId={item.id} />}
                 </div>
               </div>
             </li>
@@ -120,7 +191,7 @@ function TaskCard({ workspace }: { workspace: Workspace }) {
   const stalled = task.status === 'in_progress' && task.commits === 0;
 
   return (
-    <Card className="p-4">
+    <Card className="overflow-hidden p-4">
       <CardTitle aside={<Badge tone={stalled ? 'warn' : 'ok'}>{stalled ? 'Без коммитов' : 'Есть прогресс'}</Badge>}>Задача спринта</CardTitle>
       <p className="mt-2 text-sm font-medium text-ink-900">
         <span className="font-mono text-xs text-ink-500">{task.key}</span> · {task.title}
@@ -139,7 +210,7 @@ function TaskCard({ workspace }: { workspace: Workspace }) {
             Имитация фонового крона: проверит задачу, напишет стажёру и подготовит наставнику бриф к 1:1.
           </p>
           {cronResult && (
-            <p role="status" className="mt-2 rounded-lg bg-paper-100 px-2.5 py-2 text-[11px] leading-snug text-ink-700">
+            <p role="status" className="mt-2 rounded-xl bg-paper-100 px-2.5 py-2 text-[11px] leading-snug text-ink-700">
               {cronResult.reason}
             </p>
           )}
@@ -151,7 +222,7 @@ function TaskCard({ workspace }: { workspace: Workspace }) {
 
 function Stat({ value, label, tone = 'text-ink-900' }: { value: string | number; label: string; tone?: string }) {
   return (
-    <div className="rounded-xl bg-paper-100 px-2.5 py-2 transition-transform duration-200 hover:-translate-y-0.5">
+    <div className="rounded-2xl bg-paper-100 px-2.5 py-2 transition-transform duration-200 hover:-translate-y-0.5">
       <p className={cn('text-lg font-semibold leading-none', tone)}>{value}</p>
       <p className="mt-1 text-[11px] leading-tight text-ink-500">{label}</p>
     </div>
@@ -191,14 +262,16 @@ function Statistics({ workspace }: { workspace: Workspace }) {
   const asked = m.questions_answered + m.unanswered_questions;
   return (
     <>
-      <Card className="p-4">
+      <Card className="overflow-hidden p-4">
         <CardTitle aside={<span className="text-xs font-medium text-ink-500">{workspace.progress.percent}%</span>}>Прогресс адаптации</CardTitle>
-        <div className="mt-3">
-          <ProgressBar workspace={workspace} />
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          <Stat value={workspace.progress.completed} label="шагов закрыто" tone="text-ok-700" />
+          <Stat value={workspace.progress.in_progress} label="в работе" tone="text-brand-700" />
+          <Stat value={workspace.progress.total - workspace.progress.completed - workspace.progress.in_progress} label="впереди" />
         </div>
       </Card>
 
-      <Card className="p-4">
+      <Card className="overflow-hidden p-4">
         <CardTitle>Показатель самостоятельности</CardTitle>
         <div className="mt-3 flex items-center gap-3">
           <Ring percent={m.deflection_rate} empty={asked === 0} />
@@ -210,7 +283,7 @@ function Statistics({ workspace }: { workspace: Workspace }) {
         </div>
       </Card>
 
-      <Card className="p-4">
+      <Card className="overflow-hidden p-4">
         <CardTitle>Сэкономлено времени наставника</CardTitle>
         <p className="mt-2 bg-gradient-to-r from-brand-500 to-accent-500 bg-clip-text text-3xl font-semibold text-transparent" data-testid="minutes-saved">
           {formatMinutes(m.mentor_minutes_saved)}
@@ -229,46 +302,166 @@ function Statistics({ workspace }: { workspace: Workspace }) {
         {m.unanswered_questions > 0 && <p className="mt-3 text-xs text-ink-700">Вопросов передано наставнику: {m.unanswered_questions}</p>}
         <p className="mt-2 text-[11px] text-ink-400">Оценка-гипотеза по весам из спецификации; способ проверки — в README.</p>
       </Card>
+
+      <AvitoBenchmarks />
+      <MentorLoad />
     </>
   );
 }
 
-type Tab = 'onboarding' | 'stats';
+const BENCHMARK_TONE: Record<Benchmark['tone'], string> = {
+  brand: 'text-brand-700',
+  accent: 'text-accent-700',
+  ok: 'text-ok-700',
+  warn: 'text-warn-700',
+};
 
+/** Ориентиры процесса онбординга из Q&A с организаторами. */
+export function AvitoBenchmarks() {
+  return (
+    <Card className="overflow-hidden p-4">
+      <CardTitle aside={<Badge tone="accent">Q&A организаторов</Badge>}>Бенчмарки онбординга Авито</CardTitle>
+      <ul className="mt-3 grid gap-2 sm:grid-cols-2" aria-label="Бенчмарки онбординга">
+        {AVITO_BENCHMARKS.map((b) => (
+          <li key={b.id} data-testid="benchmark" className={cn('glass-inner p-3', b.id === 'checklist_csat' && 'sm:col-span-2')}>
+            <p className="text-[11px] text-ink-500">{b.label}</p>
+            <p className={cn('mt-0.5 text-xl font-semibold leading-tight', BENCHMARK_TONE[b.tone])}>{b.value}</p>
+            <p className="mt-1 text-[11px] leading-snug text-ink-500">{b.note}</p>
+          </li>
+        ))}
+      </ul>
+      <p className="mt-2 text-[11px] text-ink-400">Справочные цифры процесса. Метрики прототипа выше считает бэкенд, прогнозы — гипотезы.</p>
+    </Card>
+  );
+}
+
+/** Сколько времени наставник тратит на стажёра по фазам программы. */
+export function MentorLoad() {
+  return (
+    <Card className="overflow-hidden p-4">
+      <CardTitle>Нагрузка наставника</CardTitle>
+      <ul className="mt-3 space-y-3">
+        {MENTOR_LOAD.phases.map((phase) => (
+          <li key={phase.id}>
+            <div className="flex items-baseline justify-between gap-3 text-xs">
+              <span className="font-medium text-ink-900">{phase.label}</span>
+              <span className="font-mono text-ink-700">{phase.hours}</span>
+            </div>
+            <div className="mt-1 h-2 overflow-hidden rounded-full bg-paper-100" aria-hidden="true">
+              <div className="h-full rounded-full bg-gradient-to-r from-brand-500 to-accent-500" style={{ width: `${phase.share}%` }} />
+            </div>
+            <p className="mt-1 text-[11px] text-ink-500">{phase.note}</p>
+          </li>
+        ))}
+      </ul>
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        {MENTOR_LOAD.totals.map((t) => (
+          <Stat key={t.label} value={t.value} label={t.label} />
+        ))}
+      </div>
+    </Card>
+  );
+}
+
+/** Цели первых недель: согласованы с руководителем, видны рядом с чек-листом. */
+function Okrs({ workspace }: { workspace: Workspace }) {
+  return (
+    <Card className="overflow-hidden p-4">
+      <CardTitle aside={<Badge tone="accent">Неделя 1–2</Badge>}>Цели на адаптацию и OKR команды</CardTitle>
+      <ol className="mt-3 space-y-1.5">
+        {WEEK_OKRS.map((goal, i) => (
+          <li key={goal} className="glass-inner flex items-start gap-2.5 px-3 py-2 text-sm text-ink-900">
+            <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-accent-50 text-[11px] font-semibold text-accent-700">{i + 1}</span>
+            {goal}
+          </li>
+        ))}
+      </ol>
+      <p className="mt-2 text-[11px] text-ink-400">Согласовано с руководителем: {workspace.intern.team_lead_name}.</p>
+      <ul className="mt-3 flex flex-wrap gap-1.5" aria-label="Сервисы команды">
+        {AVITO_SERVICES.map((service) => (
+          <li key={service.name}>
+            <Badge title={service.purpose}>
+              {service.name}
+              <span className="font-normal text-ink-500">· {service.purpose}</span>
+            </Badge>
+          </li>
+        ))}
+      </ul>
+    </Card>
+  );
+}
+
+function MentorCard({ workspace }: { workspace: Workspace }) {
+  const { intern, metrics } = workspace;
+  return (
+    <Card className="flex items-center gap-3 overflow-hidden p-4">
+      <span className="rounded-full bg-gradient-to-br from-brand-500 to-accent-500 p-0.5" aria-hidden="true">
+        <span className="grid h-10 w-10 place-items-center rounded-full bg-paper-0 text-xs font-semibold text-accent-700">{initials(intern.mentor_name)}</span>
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-[11px] text-ink-500">Наставник</p>
+        <p className="flex items-center gap-2 truncate text-sm font-semibold text-ink-900">
+          {intern.mentor_name} <OnlineDot />
+        </p>
+      </div>
+      <Badge tone={metrics.briefs_prepared > 0 ? 'accent' : 'neutral'}>{metrics.briefs_prepared > 0 ? 'Бриф к 1:1 готов' : 'Бриф к 1:1 не собран'}</Badge>
+    </Card>
+  );
+}
+
+type Tab = 'onboarding' | 'calendar' | 'stats';
+
+const TABS: Array<{ id: Tab; name: string; label: string; icon: string }> = [
+  { id: 'onboarding', name: 'Адаптация', label: 'Адаптация и OKR', icon: '🗺' },
+  { id: 'calendar', name: 'Календарь', label: 'Календарь и задачи', icon: '📅' },
+  { id: 'stats', name: 'Статистика', label: 'Статистика и метрики', icon: '📊' },
+];
+
+/** Левая колонка: полоса прогресса, переключатель разделов и содержимое выбранного раздела на всю высоту. */
 export function Sidebar({ workspace, onAsk }: { workspace: Workspace; onAsk?: (text: string) => void }) {
   const [tab, setTab] = useState<Tab>('onboarding');
-  const tabs: Array<{ id: Tab; label: string }> = [
-    { id: 'onboarding', label: 'Адаптация' },
-    { id: 'stats', label: 'Статистика' },
-  ];
+  const todo = workspace.planner.filter((item) => item.status !== 'done').length;
   return (
-    <aside className="flex flex-col gap-4" aria-label="Адаптация стажёра">
-      <div role="tablist" aria-label="Разделы левой панели" className="bento flex gap-1 p-1">
-        {tabs.map((t) => (
+    <aside className="flex min-h-0 flex-col gap-3 lg:h-full" aria-label="Адаптация стажёра">
+      <HeroBar workspace={workspace} />
+      <div role="tablist" aria-label="Разделы левой панели" className="bento flex shrink-0 gap-1 !rounded-2xl p-1">
+        {TABS.map((t) => (
           <button
             key={t.id}
             type="button"
             role="tab"
+            aria-label={t.name}
             aria-selected={tab === t.id}
             onClick={() => setTab(t.id)}
             className={cn(
-              'flex-1 rounded-2xl px-3 py-1.5 text-sm font-medium transition-all duration-200',
+              'flex flex-1 items-center justify-center gap-1.5 rounded-xl px-3 py-1.5 text-sm font-medium transition-all duration-200',
               'focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-500',
               tab === t.id ? 'bg-brand-500 text-white shadow-glow' : 'text-ink-500 hover:text-ink-900',
             )}
           >
-            {t.label}
+            <span aria-hidden="true">{t.icon}</span>
+            <span className="truncate">{t.label}</span>
+            {t.id === 'calendar' && todo > 0 && (
+              <span className={cn('rounded-full px-1.5 text-[11px]', tab === t.id ? 'bg-white/20' : 'bg-paper-100 text-ink-700')}>{todo}</span>
+            )}
           </button>
         ))}
       </div>
-      {tab === 'onboarding' ? (
-        <>
-          <Checklist workspace={workspace} onAsk={onAsk} />
-          <TaskCard workspace={workspace} />
-        </>
-      ) : (
-        <Statistics workspace={workspace} />
-      )}
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pr-1 stack-scroll">
+        {tab === 'onboarding' && (
+          <>
+            <Checklist workspace={workspace} onAsk={onAsk} />
+            <Okrs workspace={workspace} />
+            <MentorCard workspace={workspace} />
+            <TaskCard workspace={workspace} />
+          </>
+        )}
+        {/* Календарь смонтирован всегда: напоминания и открытые карточки событий не теряются при смене вкладки. */}
+        <div className={tab === 'calendar' ? 'flex flex-col gap-3' : 'hidden'} aria-label="Календарь и напоминания">
+          <Planner workspace={workspace} />
+        </div>
+        {tab === 'stats' && <Statistics workspace={workspace} />}
+      </div>
     </aside>
   );
 }

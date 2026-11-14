@@ -86,7 +86,7 @@ export function GoffyAvatar({ size = 'sm', pulse = false, className }: GoffyAvat
       {pulse && <span className="absolute inset-0 animate-pulse-ring rounded-full bg-brand-500/40" aria-hidden="true" />}
       <span className={cn('relative block h-full w-full', size !== 'sm' && 'animate-float')}>
         {hasImage ? (
-          <img src={GOFFY_IMAGE_URL} alt="" className="h-full w-full rounded-full object-cover ring-2 ring-brand-500/30" />
+          <img src={GOFFY_IMAGE_URL} alt="" className="h-full w-full rounded-full object-cover shadow-glow ring-2 ring-brand-500/30" />
         ) : (
           <GoffyVector />
         )}

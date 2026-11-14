@@ -1,11 +1,12 @@
 import type { Brief, Notification, Workspace } from '../api/schemas';
 import { useCron, useReviewAbsence, useSetFlag } from '../hooks/useBuddy';
 import { ABSENCE_STATUS_LABEL, formatDate, formatDateTime } from '../lib/format';
+import { AvitoBenchmarks, MentorLoad } from './Sidebar';
 import { Badge, Button, Card, CardTitle, EmptyState, cn } from './ui/primitives';
 
 function BriefCard({ brief }: { brief: Brief }) {
   return (
-    <article className="rounded-xl border border-paper-200 p-4" data-testid="brief">
+    <article className="rounded-2xl border border-paper-200 p-4" data-testid="brief">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm font-semibold text-ink-900">
           {brief.intern_name} · <span className="font-mono text-xs text-ink-500">{brief.task_key}</span>
@@ -24,7 +25,7 @@ function BriefCard({ brief }: { brief: Brief }) {
       </ul>
 
       <h3 className="mt-3 text-xs font-semibold uppercase tracking-wide text-brand-600">Вопрос, где нужен сеньор</h3>
-      <p className="mt-1.5 rounded-lg bg-brand-50 px-3 py-2 text-sm leading-relaxed text-ink-900">{brief.architecture_question}</p>
+      <p className="mt-1.5 rounded-xl bg-brand-50 px-3 py-2 text-sm leading-relaxed text-ink-900">{brief.architecture_question}</p>
 
       {brief.signals.length > 0 && (
         <>
@@ -53,7 +54,7 @@ function BriefCard({ brief }: { brief: Brief }) {
 function Briefs({ workspace }: { workspace: Workspace }) {
   const cron = useCron();
   return (
-    <Card className="p-4">
+    <Card className="overflow-hidden p-4">
       <CardTitle aside={<Badge tone="brand">{workspace.briefs.length}</Badge>}>Structured 1:1 Brief</CardTitle>
       <p className="mt-1 text-xs text-ink-500">
         Бриф готовит ИИ-крон: что стажёр уже изучил сам и один вопрос, требующий сеньора. Переписка стажёра наставнику не раскрывается.
@@ -79,14 +80,14 @@ function Briefs({ workspace }: { workspace: Workspace }) {
 
 function Notifications({ items }: { items: Notification[] }) {
   return (
-    <Card className="p-4">
+    <Card className="overflow-hidden p-4">
       <CardTitle aside={<Badge>{items.length}</Badge>}>Уведомления</CardTitle>
       <div className="mt-3 space-y-2">
         {items.length === 0 ? (
           <EmptyState title="Новых уведомлений нет" />
         ) : (
           items.map((n) => (
-            <div key={n.id} className="rounded-xl bg-paper-50 px-3 py-2.5" data-testid="notification">
+            <div key={n.id} className="rounded-2xl bg-paper-50 px-3 py-2.5" data-testid="notification">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="text-sm font-medium text-ink-900">{n.title}</p>
                 <span className="text-[11px] text-ink-400">{formatDateTime(n.created_at)}</span>
@@ -104,7 +105,7 @@ function Absences({ workspace }: { workspace: Workspace }) {
   const review = useReviewAbsence();
   const canReview = workspace.permissions.absence_approve === true;
   return (
-    <Card className="p-4">
+    <Card className="overflow-hidden p-4">
       <CardTitle aside={<Badge>{workspace.absences.length}</Badge>}>Заявки на отсутствие</CardTitle>
       <div className="mt-3">
         {workspace.absences.length === 0 ? (
@@ -173,14 +174,14 @@ function Absences({ workspace }: { workspace: Workspace }) {
 
 function Incidents({ workspace }: { workspace: Workspace }) {
   return (
-    <Card className="p-4">
+    <Card className="overflow-hidden p-4">
       <CardTitle aside={<Badge tone={workspace.incidents.length > 0 ? 'danger' : 'ok'}>{workspace.incidents.length}</Badge>}>Инциденты безопасности</CardTitle>
       <div className="mt-3 space-y-2">
         {workspace.incidents.length === 0 ? (
           <EmptyState title="Инцидентов нет" hint="Сюда попадают попытки операций, запрещённых политикой RBAC (например, выгрузка прод-ПДн)." />
         ) : (
           workspace.incidents.map((e) => (
-            <div key={e.id} className="rounded-xl border border-danger-500/20 bg-danger-50 px-3 py-2.5" data-testid="incident">
+            <div key={e.id} className="rounded-2xl border border-danger-500/20 bg-danger-50 px-3 py-2.5" data-testid="incident">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <p className="font-mono text-xs font-semibold text-danger-700">{String(e.payload.operation ?? e.name)}</p>
                 <span className="text-[11px] text-ink-400">{formatDateTime(e.created_at)}</span>
@@ -201,7 +202,7 @@ function Flags({ workspace }: { workspace: Workspace }) {
   const setFlag = useSetFlag();
   const canWrite = workspace.permissions.flags_write === true;
   return (
-    <Card className="p-4">
+    <Card className="overflow-hidden p-4">
       <CardTitle>Feature flags</CardTitle>
       <p className="mt-1 text-xs text-ink-500">Runtime-флаги хранятся в Redis и применяются без перезапуска. Compile-time задаются при сборке.</p>
       <ul className="mt-3 divide-y divide-paper-100">
@@ -252,7 +253,7 @@ function PanelHeader({ title, workspace, note }: { title: string; workspace: Wor
 
 export function MentorPanel({ workspace }: { workspace: Workspace }) {
   return (
-    <div className="space-y-4">
+    <div className="min-h-0 space-y-4 lg:h-full lg:overflow-y-auto lg:pr-1 stack-scroll">
       <PanelHeader
         title="Кабинет наставника"
         workspace={workspace}
@@ -261,19 +262,21 @@ export function MentorPanel({ workspace }: { workspace: Workspace }) {
       <Briefs workspace={workspace} />
       <Notifications items={workspace.notifications} />
       <Absences workspace={workspace} />
+      <MentorLoad />
     </div>
   );
 }
 
 export function LeadPanel({ workspace }: { workspace: Workspace }) {
   return (
-    <div className="space-y-4">
+    <div className="min-h-0 space-y-4 lg:h-full lg:overflow-y-auto lg:pr-1 stack-scroll">
       <PanelHeader title="Кабинет руководителя" workspace={workspace} note="Контроль важных шагов адаптации, отсутствий и безопасности." />
-      <div className="grid gap-4 xl:grid-cols-2">
+      <div className="grid gap-4 2xl:grid-cols-2">
         <Absences workspace={workspace} />
         <Incidents workspace={workspace} />
       </div>
       <Notifications items={workspace.notifications} />
+      <AvitoBenchmarks />
       <Flags workspace={workspace} />
       <Briefs workspace={workspace} />
     </div>

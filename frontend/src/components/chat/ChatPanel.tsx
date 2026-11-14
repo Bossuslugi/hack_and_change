@@ -23,7 +23,7 @@ function Sources({ sources }: { sources: DocRef[] }) {
     <div className="mt-3 space-y-1.5" aria-label="Источники">
       <p className="text-[11px] font-medium uppercase tracking-wide text-ink-400">Источники</p>
       {sources.map((doc) => (
-        <div key={doc.id} className="rounded-lg border border-paper-200 bg-paper-50 px-2.5 py-2">
+        <div key={doc.id} className="rounded-xl border border-paper-200 bg-paper-50 px-2.5 py-2">
           <div className="flex flex-wrap items-center gap-2">
             <p className="text-xs font-medium text-ink-900">{doc.title}</p>
             {doc.is_synthetic && <SyntheticBadge text={doc.disclaimer} />}
@@ -44,7 +44,7 @@ const CARD_STYLE: Record<ResultCardData['status'], { box: string; icon: string; 
 export function ResultCard({ card }: { card: ResultCardData }) {
   const style = CARD_STYLE[card.status];
   return (
-    <div className={cn('mt-3 rounded-xl border p-3', style.box)} data-testid={`result-${card.type}`} role={card.status === 'denied' ? 'alert' : 'status'}>
+    <div className={cn('mt-3 rounded-2xl border p-3', style.box)} data-testid={`result-${card.type}`} role={card.status === 'denied' ? 'alert' : 'status'}>
       <div className="flex items-center gap-2">
         <span className={cn('grid h-5 w-5 place-items-center rounded-full text-white', style.icon)} aria-hidden="true">
           <svg viewBox="0 0 16 16" className="h-3 w-3">
@@ -160,7 +160,7 @@ function Composer({ onSend, busy }: { onSend: (text: string) => void; busy: bool
   };
 
   return (
-    <form onSubmit={submit} className="border-t border-paper-200 bg-paper-0 p-3">
+    <form onSubmit={submit} className="m-3 mt-0 shrink-0 rounded-2xl border border-paper-200 bg-paper-0 p-3 shadow-card focus-within:border-brand-500/50">
       <div className="mb-2 flex flex-wrap items-center gap-1.5">
         <span className="text-[11px] font-medium text-ink-400">Сценарии:</span>
         {SCENARIOS.map((s) => (
@@ -226,8 +226,8 @@ export function ChatPanel({ workspace, onSend, busy }: { workspace: Workspace; o
   const showPending = pendingText !== null && messages[messages.length - 1]?.text !== pendingText;
 
   return (
-    <Card className="flex h-[calc(100vh-150px)] min-h-[520px] flex-col overflow-hidden">
-      <div className="flex items-center justify-between border-b border-paper-200 px-4 py-3">
+    <Card className="flex h-[70vh] min-h-[520px] flex-col overflow-hidden lg:h-full lg:min-h-0">
+      <div className="flex shrink-0 items-center justify-between gap-3 border-b border-paper-200 px-4 py-3">
         <div className="flex items-center gap-3">
           <GoffyAvatar size="md" pulse />
           <div>
@@ -242,9 +242,9 @@ export function ChatPanel({ workspace, onSend, busy }: { workspace: Workspace; o
         <Badge tone="neutral">Переписку видишь только ты</Badge>
       </div>
 
-      <div ref={logRef} className="flex-1 space-y-4 overflow-y-auto bg-paper-50/40 px-4 py-4" role="log" aria-label="История чата">
+      <div ref={logRef} className="min-h-0 flex-1 space-y-4 overflow-y-auto bg-paper-50/40 px-4 py-4" role="log" aria-label="История чата">
         {messages.length <= 1 && !busy && (
-          <div className="flex flex-col items-center gap-2 pb-2 pt-4 text-center" data-testid="goffy-hero">
+          <div className="flex flex-col items-center gap-2 pb-2 pt-8 text-center" data-testid="goffy-hero">
             <GoffyAvatar size="lg" pulse />
             <p className="text-base font-semibold text-ink-900">Гоффи на связи</p>
             <p className="max-w-sm text-xs text-ink-500">Доступы, процессы команды, отгулы и напоминания — спрашивай как коллегу. Выбери сценарий ниже или напиши вопрос.</p>

@@ -126,15 +126,17 @@ func (s *Service) describeAction(call domain.MCPToolCall) (string, *domain.Resul
 			Footnote: "Имитация сервиса «Отсутствия» · синтетические данные",
 		}, domain.SavingAbsence
 	case mcp.ToolRequestRepoAccess:
-		text := fmt.Sprintf("Готово! Доступ к репозиторию **%s** оформлен через IAM.", str(r, "repository"))
+		text := fmt.Sprintf("Готово! Доступ к репозиторию **%s** в Stash оформлен заявкой на доступ.", str(r, "repository"))
 		return text, &domain.ResultCard{
 			Type: domain.CardAccessGranted, Status: domain.CardStatusSuccess, Title: "Доступ выдан",
 			Lines: []domain.CardLine{
+				{Label: "Проект / ресурс", Value: "Stash (Git)"},
 				{Label: "Репозиторий", Value: str(r, "repository")},
+				{Label: "Согласующий", Value: "Владелец проекта"},
 				{Label: "Тестовый стенд", Value: str(r, "stand")},
 				{Label: "Токен", Value: str(r, "token_masked")},
 			},
-			Footnote: "Имитация IAM · синтетические данные",
+			Footnote: "Имитация заявки на доступ в Stash · синтетические данные",
 		}, domain.SavingAccess
 	case mcp.ToolAddTask:
 		return "", nil, ""

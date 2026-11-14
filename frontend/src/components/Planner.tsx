@@ -37,7 +37,7 @@ function whenLabel(item: PlannerItem): string {
 
 export function Reminders({ reminders, onOpen }: { reminders: Reminder[]; onOpen: (itemId: string) => void }) {
   return (
-    <Card className="p-4">
+    <Card className="overflow-hidden p-4">
       <CardTitle aside={<Badge tone={reminders.some((r) => r.urgent) ? 'danger' : 'neutral'}>{reminders.length}</Badge>}>Напоминания</CardTitle>
       {reminders.length === 0 ? (
         <p className="mt-3 text-xs text-ink-500">Пока тихо: Гоффи напомнит о встречах и дедлайнах заранее.</p>
@@ -45,7 +45,7 @@ export function Reminders({ reminders, onOpen }: { reminders: Reminder[]; onOpen
         <ul className="mt-3 space-y-1.5" aria-label="Лента напоминаний">
           {reminders.map((r) => {
             const body = (
-              <span className={cn('block rounded-xl px-2.5 py-2 text-left text-xs leading-snug', r.urgent ? 'bg-danger-50 text-ink-900' : 'bg-paper-100 text-ink-700')}>
+              <span className={cn('block rounded-2xl px-2.5 py-2 text-left text-xs leading-snug', r.urgent ? 'bg-danger-50 text-ink-900' : 'bg-paper-100 text-ink-700')}>
                 {r.text}
               </span>
             );
@@ -158,7 +158,7 @@ function ItemDialog({ item, canComplete, onClose }: { item: PlannerItem; canComp
         {item.link && <p className="mt-1 text-[11px] text-ink-400">Тестовая ссылка (имитация сервиса видеовстреч)</p>}
 
         {done && item.report && (
-          <div className="mt-4 rounded-xl bg-ok-50 px-3 py-2.5 text-sm text-ink-900">
+          <div className="mt-4 rounded-2xl bg-ok-50 px-3 py-2.5 text-sm text-ink-900">
             <p className="text-[11px] font-medium uppercase tracking-wide text-ok-700">Отчёт для Гоффи</p>
             <p className="mt-1">{item.report}</p>
           </div>
@@ -290,7 +290,7 @@ export function Planner({ workspace }: { workspace: Workspace }) {
     <>
       {workspace.viewer.role === 'intern_backend' && <Reminders reminders={workspace.reminders} onOpen={setOpenId} />}
 
-      <Card className="p-4">
+      <Card className="overflow-hidden p-4">
         <CardTitle aside={<span className="text-xs text-ink-500">2 недели</span>}>Календарь и задачи</CardTitle>
 
         <div className="mt-3 grid grid-cols-7 gap-1 text-center" role="grid" aria-label="Календарь на две недели">
@@ -350,7 +350,7 @@ export function Planner({ workspace }: { workspace: Workspace }) {
                   type="button"
                   data-testid="planner-item"
                   onClick={() => setOpenId(item.id)}
-                  className="flex w-full items-center gap-2.5 rounded-xl bg-paper-100 px-2.5 py-2 text-left transition-all duration-200 hover:-translate-y-0.5 hover:ring-1 hover:ring-brand-500/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-500"
+                  className="flex w-full items-center gap-2.5 rounded-2xl bg-paper-100 px-2.5 py-2 text-left transition-all duration-200 hover:-translate-y-0.5 hover:ring-1 hover:ring-brand-500/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand-500"
                 >
                   <span className={cn('h-8 w-1 shrink-0 rounded-full', KIND_META[item.kind].dot)} aria-hidden="true" />
                   <span className="min-w-0 flex-1">

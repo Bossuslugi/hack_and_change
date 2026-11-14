@@ -86,21 +86,68 @@
   }
 }
 
+@layer base {
+  /* Скруглённые полосы прокрутки вместо квадратных системных. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--ink-300) / 0.7) transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    background: rgb(var(--ink-300) / 0.7);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(var(--ink-400));
+  }
+}
+
 @layer components {
-  /* Фон «Cyber-Bento»: мягкие цветные пятна под стеклянными карточками. */
+  /* Холст приложения: ровный фон, поверх него лежат размытые сферы (.orb). */
   .app-backdrop {
-    background-image:
-      radial-gradient(60rem 36rem at 8% -10%, rgb(var(--brand-500) / 0.14), transparent 60%),
-      radial-gradient(48rem 32rem at 100% 0%, rgb(var(--accent-500) / 0.12), transparent 60%),
-      radial-gradient(44rem 30rem at 50% 110%, rgb(var(--ok-500) / 0.08), transparent 60%);
-    background-attachment: fixed;
+    background-color: #eef2f6;
+  }
+  .dark .app-backdrop {
+    background-color: #070b14;
   }
 
-  /* Стеклянная карточка с подсветкой обводки при наведении. */
+  /* Декоративные сферы: дают стеклянным панелям то, что можно преломлять. */
+  .orb {
+    @apply pointer-events-none fixed rounded-full opacity-40 blur-[120px];
+  }
+  .dark .orb {
+    @apply opacity-25;
+  }
+
+  /* Стеклянная панель: внешний контейнер зоны. */
   .bento {
-    @apply rounded-bento bg-paper-0/80 shadow-card ring-1 ring-paper-200 backdrop-blur-xl transition-[box-shadow,transform,background-color] duration-300;
+    @apply rounded-3xl border border-white/80 bg-white/75 shadow-glass backdrop-blur-xl transition-[box-shadow,background-color,border-color] duration-300;
+  }
+  .dark .bento {
+    @apply border-white/10 bg-slate-900/65 shadow-glass-dark;
   }
   .bento:hover {
-    @apply shadow-glow;
+    @apply border-brand-500/30;
+  }
+
+  /* Прокручиваемая колонка карточек: карточки не сжимаются, лишнее уходит в скролл. */
+  .stack-scroll > * {
+    flex-shrink: 0;
+  }
+
+  /* Внутренняя карточка внутри стеклянной панели. */
+  .glass-inner {
+    @apply rounded-2xl border border-white/70 bg-white/60;
+  }
+  .dark .glass-inner {
+    @apply border-white/10 bg-white/5;
   }
 }
