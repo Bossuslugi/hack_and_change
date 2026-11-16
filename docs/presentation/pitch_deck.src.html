@@ -118,17 +118,6 @@ a{color:var(--blue);text-decoration:none;font-weight:600}
 .shot .call b{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--amber);color:#111;font-size:15px}
 .shot .ring{position:absolute;z-index:2;border:3px solid var(--amber);border-radius:12px;box-shadow:0 0 0 4px rgba(255,176,32,.2)}
 .shot .mk{position:absolute;z-index:3;width:34px;height:34px;border-radius:50%;background:var(--amber);color:#111;font:900 17px Inter,sans-serif;display:grid;place-items:center;box-shadow:0 0 0 5px rgba(255,176,32,.32),0 6px 16px rgba(0,0,0,.45)}
-.checkorder{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px 12px;font-size:14px;color:var(--text)}
-.checkorder>span{display:flex;align-items:center;gap:8px;line-height:1.25}
-.checkorder b{display:grid;place-items:center;width:22px;height:22px;flex:none;border-radius:50%;background:var(--green);color:#fff;font-size:12px;font-weight:800}
-.checkorder .mono{font-size:13px}
-.cmp{display:grid;grid-template-columns:1fr 34px 1.55fr 1.7fr;gap:0;font-size:17px;align-items:stretch}
-.cmp>*{padding:10px 14px;border-top:1px solid var(--border)}
-.cmp .h{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);font-weight:600;border-top:0;padding-top:0}
-.cmp .alt{color:var(--muted);text-decoration:line-through;text-decoration-color:rgba(255,82,82,.7)}
-.cmp .ar{color:var(--blue);font-weight:800;display:flex;align-items:center;justify-content:center;padding:10px 0}
-.cmp .ours{color:var(--text);font-weight:700}
-.cmp .why{color:var(--muted)}
 .lg{display:flex;flex-wrap:wrap;gap:8px 22px;font-size:17px;color:var(--muted)}
 .lg span{display:inline-flex;align-items:center;gap:9px}
 .lg b{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--amber);color:#111;font-size:14px;font-weight:900;flex:none}
@@ -226,15 +215,6 @@ body.present .sw{display:none}body.present .sw.cur{display:block}
           <div class="row ac g12"><span class="pill b sm" style="width:80px;justify-content:center">GitHub</span><a class="mono" data-link="repo" style="font-size:16px"></a></div>
           <div class="row ac g12"><span class="pill v sm" style="width:80px;justify-content:center;flex:none">Видео</span><a class="mono" data-link="video" style="font-size:16px;line-height:1.3"></a></div>
           <div class="row ac g12"><span class="pill g sm" style="width:80px;justify-content:center">Жюри</span><span class="mono c-t" style="font-size:16px">аккаунт hack-and-change-2026</span></div>
-        </div>
-        <div class="uicard col g8" style="margin-top:16px;padding:14px 16px;border-color:rgba(0,194,87,.45)">
-          <div class="cap" style="font-size:12px;color:var(--green)">Порядок проверки</div>
-          <div class="checkorder">
-            <span><b>1</b><span class="mono">docker compose up --build</span></span>
-            <span><b>2</b>Пройти 4 сценария в чате</span>
-            <span><b>3</b>Переключить 3 роли и 2 профиля</span>
-            <span><b>4</b>Открыть «Инспектор жюри»</span>
-          </div>
         </div>
       </div>
     </div>
@@ -413,21 +393,24 @@ body.present .sw{display:none}body.present .sw.cur{display:block}
     <div class="col g16">
       <div class="card hi col g10" style="padding:20px 24px">
         <div class="row ac jb"><h4>📚 Playbook + 🧠 мини-квиз</h4><span class="tool">playbook.search_docs</span></div>
-        <p style="font-size:16px">Источники помечены <span class="pill a sm">⚠️ Тестовая инструкция (Синтетические данные)</span>, понимание проверяет квиз в шаге чек-листа:</p>
-        <div class="shot" style="box-shadow:none"><img class="crop" style="width:100%;aspect-ratio:1090/300;object-fit:cover;object-view-box:inset(54.2% 43.5% 14.2% 2%)" data-shot="08_quiz.png" src="screenshots/08_quiz.png" alt="Мини-квиз в шаге чек-листа"></div>
+        <p style="font-size:17px">Источники в ответах помечены <span class="pill a sm">⚠️ Тестовая инструкция (Синтетические данные)</span>, а понимание проверяет квиз прямо в шаге чек-листа:</p>
+        <div class="shot" style="box-shadow:none"><img class="crop" style="width:100%;aspect-ratio:1090/350;object-fit:cover;object-view-box:inset(54.2% 43.5% 14.2% 2%)" data-shot="08_quiz.png" src="screenshots/08_quiz.png" alt="Мини-квиз в шаге чек-листа"></div>
       </div>
-      <div class="card bad col g8" style="padding:18px 24px">
-        <h4>🛡 Защита от галлюцинаций и неполных запросов</h4>
-        <div class="row g10" style="align-items:flex-start"><span class="pill sm" style="flex:none">«Хочу отгул»</span><p style="font-size:16px">Нет даты → Гоффи <b>не угадывает</b>, а открывает форму с валидацией <b>Zod</b></p></div>
-        <div class="row g10" style="align-items:flex-start"><span class="pill sm" style="flex:none">Нет в Playbook</span><p style="font-size:16px">Честно говорит, что инструкции в базе нет, и <b>добавляет вопрос в 1:1 Brief</b> наставнику</p></div>
-      </div>
-      <div class="card col g6" style="padding:18px 24px">
+      <div class="card col g8" style="padding:20px 24px">
         <div class="row ac jb"><h4>⏰ ИИ-крон</h4><span class="tool">tracker.get_task_activity</span></div>
-        <p style="font-size:16px"><b class="mono">AUT-1423</b> в работе 3 дня, коммитов 0 → стажёру план, наставнику <b>Structured 1:1 Brief</b> с одним вопросом к сеньору</p>
+        <ul style="margin:0">
+          <li style="font-size:17px;margin:4px 0"><b class="mono">AUT-1423</b> в работе 3 дня, коммитов: 0</li>
+          <li style="font-size:17px;margin:4px 0">стажёру — проактивное сообщение с планом</li>
+          <li style="font-size:17px;margin:4px 0">наставнику — <b>Structured 1:1 Brief</b> с одним вопросом к сеньору</li>
+        </ul>
       </div>
-      <div class="card ok col g6 f1" style="padding:18px 24px">
+      <div class="card ok col g8 f1" style="padding:20px 24px">
         <h4>🔒 Приватность стажёра</h4>
-        <p style="font-size:16px">Личная переписка с Гоффи <b>никогда не передаётся</b> наставнику или тимлиду — только агрегированный прогресс и вопросы по коду.</p>
+        <p style="font-size:17px">Личная переписка с Гоффи <b>никогда не передаётся</b> наставнику или тимлиду — только агрегированный прогресс и вопросы по коду.</p>
+        <div class="grid" style="grid-template-columns:1fr 1fr;gap:12px;margin-top:2px">
+          <div class="uicard"><b class="c-g" style="font-size:15px">Наставник видит</b><ul class="v" style="margin-top:2px"><li style="font-size:14px;margin:2px 0">прогресс чек-листа</li><li style="font-size:14px;margin:2px 0">что разобрано самостоятельно</li><li style="font-size:14px;margin:2px 0">1 вопрос к сеньору</li></ul></div>
+          <div class="uicard"><b class="c-r" style="font-size:15px">Наставник не видит</b><ul class="x" style="margin-top:2px"><li style="font-size:14px;margin:2px 0">переписку стажёра</li><li style="font-size:14px;margin:2px 0">дословные вопросы Гоффи</li><li style="font-size:14px;margin:2px 0">историю диалогов</li></ul></div>
+        </div>
       </div>
     </div>
     <div class="col g12">
@@ -510,7 +493,7 @@ body.present .sw{display:none}body.present .sw.cur{display:block}
 <!-- =================== 9. АРХИТЕКТУРА =================== -->
 <div class="sw"><section class="slide" id="slide-9">
   <div class="kicker"><i class="no">08</i>Архитектура · 100% попадание в стек и инфраструктуру Авито</div>
-  <h2>Стек Авито (Go + React + MCP) даёт <span class="grad">отклик &lt;50 мс</span> и внедрение без переписывания систем</h2>
+  <h2>Go + React + MCP: <span class="grad">боевой стек Авито</span> без экзотики</h2>
   <div class="body col" style="gap:22px">
     <div class="row f1" style="gap:0;align-items:stretch">
       <div class="card hi col g12" style="flex:1">
@@ -555,20 +538,11 @@ body.present .sw{display:none}body.present .sw.cur{display:block}
         <div class="uicard col g6" style="margin-top:auto"><b class="mono c-m" style="font-size:12px">HEALTHCHECK</b><span class="mono c-g" style="font-size:14px">● postgres · redis</span><span class="mono c-g" style="font-size:14px">● backend /healthz</span></div>
       </div>
     </div>
-    <div class="row" style="gap:20px;align-items:stretch">
-      <div class="card s f1" style="padding:16px 22px">
-        <div class="cmp">
-          <span class="h">Альтернатива</span><span class="h"></span><span class="h">Наш выбор</span><span class="h">Почему</span>
-          <span class="alt">Прямые вызовы API из промпта</span><span class="ar">→</span><span class="ours">MCP JSON-RPC 2.0 + OpenSpec (<span class="mono">embed.FS</span>)</span><span class="why">строгая типизация контрактов и автопроверка в CI</span>
-          <span class="alt">Только облачная LLM</span><span class="ar">→</span><span class="ours">DeepSeek API + Smart Fallback (&lt;50 мс)</span><span class="why">стенд работает даже без сети и ключей</span>
-          <span class="alt">MCP-логи в чате стажёра</span><span class="ar">→</span><span class="ours">Чистый UI + «Инспектор жюри»</span><span class="why">ноль шума для новичка, полная прозрачность для техлидов</span>
-        </div>
-      </div>
-      <div class="card s col g10" style="width:360px;flex:none;padding:16px 20px">
-        <div class="row ac g10"><span class="pill sm">🚩</span><p style="font-size:15px"><b>Флаги:</b> compile-time (422 на запись) + runtime в Redis</p></div>
-        <div class="row ac g10"><span class="pill sm">🧩</span><p style="font-size:15px"><b>Agent Skills</b> поверх MCP</p></div>
-        <div class="row ac g10"><span class="pill sm">📈</span><p style="font-size:15px"><b class="mono">GET /metrics</b> → Prometheus / Grafana</p></div>
-      </div>
+    <div class="grid" style="grid-template-columns:repeat(4,1fr);gap:20px">
+      <div class="card s"><h4>🚩 Compile-time vs Runtime</h4><p style="font-size:17px;margin-top:4px">Compile-time — из сборки (менять нельзя, 422), runtime — в Redis без перезапуска</p></div>
+      <div class="card s"><h4>🧩 Agent Skills</h4><p style="font-size:17px;margin-top:4px">Навыки поверх MCP, видны в Инспекторе жюри</p></div>
+      <div class="card s"><h4>📈 GET /metrics</h4><p style="font-size:17px;margin-top:4px">Экспорт для Prometheus / Grafana + Clickstream-аналитика</p></div>
+      <div class="card s"><h4>⚡ Двухконтурный LLM</h4><p style="font-size:17px;margin-top:4px">DeepSeek + автономный Smart Fallback: демо работает без интернета</p></div>
     </div>
   </div>
   <div class="foot"><span>docker compose: frontend · backend · postgres · redis · healthcheck</span><span class="pg"><span class="bd s"><i></i><i></i><i></i><i></i></span>09 / 12</span></div>
