@@ -756,7 +756,7 @@ function makeQR(text){
 
 /* ---------- Состояние: ссылки, тема, масштаб, навигация ---------- */
 const DEF_REPO='https://github.com/Bossuslugi/hack_and_change'; // @auto-repo — сборка подставляет git remote origin
-const DEF_VIDEO=DEF_REPO+'/blob/main/docs/demo_video.webm';
+const DEF_VIDEO=DEF_REPO+'/blob/main/docs/demo_video.mp4';
 const store={get(k){try{return localStorage.getItem(k);}catch(e){return null;}},set(k,v){try{v?localStorage.setItem(k,v):localStorage.removeItem(k);}catch(e){}}};
 const $=s=>document.querySelector(s);
 const params=new URLSearchParams(location.search);
