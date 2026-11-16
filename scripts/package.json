@@ -1,0 +1,13 @@
+{
+  "name": "pitch-deck-tools",
+  "private": true,
+  "type": "module",
+  "description": "Съёмка скриншотов приложения и сборка PDF питч-дека (Playwright + системный Edge/Chrome)",
+  "scripts": {
+    "screenshots": "node capture_slides_screenshots.mjs",
+    "pdf": "node build_pitch_pdf.mjs"
+  },
+  "devDependencies": {
+    "playwright-core": "1.56.1"
+  }
+}
