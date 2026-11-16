@@ -21,8 +21,7 @@ docker compose up --build
 | MCP (JSON-RPC 2.0) | `POST http://localhost:8080/mcp` |
 | Health | http://localhost:8080/healthz |
 
-Ключи и настройка не нужны: без LLM-ключа работает детерминированный **Smart Engine**, все три
-сценария проходятся полностью. Миграции PostgreSQL и синтетические данные загружаются при старте.
+Ключи и настройка не нужны: без LLM-ключа работает детерминированный **Smart Engine**, все сценарии с ним также проходятся.
 Порты меняются переменными `FRONTEND_PORT` / `BACKEND_PORT` (см. [.env.example](.env.example)).
 
 ### Тестовые учётные данные
