@@ -1,0 +1,825 @@
+<!doctype html>
+<!--
+  ИСХОДНИК питч-дека. Редактируйте этот файл, затем:  node scripts/build_pitch_pdf.mjs
+  Сборка вшивает скриншоты (base64), QR-код и ссылки в docs/presentation/pitch_deck.html
+  и печатает Avito_Start_AI_Buddy_Presentation.pdf (1920×1080).
+-->
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<title>Гоффи — Avito Start AI-Buddy</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+@page { size: 1920px 1080px; margin: 0; }
+:root{
+  --bg:#070B14; --text:#F2F6FF; --muted:#93A1BC; --dim:#66748F;
+  --card:rgba(255,255,255,.048); --card2:rgba(255,255,255,.085); --card3:rgba(255,255,255,.13);
+  --border:rgba(255,255,255,.10); --border2:rgba(255,255,255,.18); --hl:inset 0 1px 0 rgba(255,255,255,.10);
+  --blue:#00AAFF; --violet:#A855F7; --green:#00C257; --red:#FF5252; --amber:#FFB020;
+  --tb:rgba(0,170,255,.14); --tv:rgba(168,85,247,.14); --tg:rgba(0,194,87,.13); --tr:rgba(255,82,82,.13); --ta:rgba(255,176,32,.13);
+  --orb:.30; --shadow:0 30px 80px rgba(0,0,0,.45); --winbar:rgba(255,255,255,.04);
+  --code:#0A1222; --codet:#C9E6FF; --page:#04070D;
+}
+html[data-theme="light"]{
+  --bg:#F3F6FB; --text:#0B1324; --muted:#51607A; --dim:#7D8AA3;
+  --card:rgba(255,255,255,.72); --card2:rgba(255,255,255,.94); --card3:rgba(11,19,36,.06);
+  --border:rgba(11,19,36,.09); --border2:rgba(11,19,36,.16); --hl:inset 0 1px 0 rgba(255,255,255,.9);
+  --blue:#0091E6; --violet:#8B3FE0; --green:#00A94D; --red:#E5384A; --amber:#C77E00;
+  --tb:rgba(0,145,230,.10); --tv:rgba(139,63,224,.09); --tg:rgba(0,169,77,.09); --tr:rgba(229,56,74,.08); --ta:rgba(199,126,0,.09);
+  --orb:.20; --shadow:0 24px 60px rgba(40,70,120,.16); --winbar:rgba(11,19,36,.04);
+  --code:#0F1B33; --codet:#C9E6FF; --page:#DCE3EF;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--page)}
+body{font-family:Inter,"Segoe UI",system-ui,sans-serif;color:var(--text);-webkit-font-smoothing:antialiased}
+.mono{font-family:"JetBrains Mono",Consolas,monospace}
+#deck{display:flex;flex-direction:column;align-items:center;gap:32px;padding:32px 0 140px}
+.sw{width:calc(1920px*var(--z,.5));height:calc(1080px*var(--z,.5));position:relative;flex:none}
+.slide{width:1920px;height:1080px;position:absolute;left:0;top:0;transform:scale(var(--z,.5));transform-origin:0 0;
+  background:var(--bg);overflow:hidden;padding:58px 88px 84px;display:flex;flex-direction:column;
+  break-after:page;page-break-after:always;box-shadow:var(--shadow)}
+.slide::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;opacity:var(--orb);
+  background:radial-gradient(620px 620px at 6% 2%,var(--blue),transparent 70%),radial-gradient(560px 560px at 98% 104%,var(--violet),transparent 70%),radial-gradient(460px 460px at 74% -6%,var(--green),transparent 70%)}
+.slide::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;opacity:.5;
+  background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:64px 64px;
+  -webkit-mask-image:radial-gradient(1200px 700px at 50% 0%,#000 0%,transparent 75%);mask-image:radial-gradient(1200px 700px at 50% 0%,#000 0%,transparent 75%)}
+.slide>*{position:relative;z-index:1}
+/* фирменные 4 точки Авито */
+.bd{display:inline-flex;gap:7px;align-items:center}.bd i{width:14px;height:14px;border-radius:50%;display:block}
+.bd i:nth-child(1){background:#00C257}.bd i:nth-child(2){background:#00AAFF}.bd i:nth-child(3){background:#A855F7}.bd i:nth-child(4){background:#FF5252}
+.bd.s i{width:10px;height:10px}
+.kicker{font-family:"JetBrains Mono",monospace;font-size:19px;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:14px}
+.kicker i.no{font-style:normal;display:inline-grid;place-items:center;min-width:44px;height:30px;border-radius:9px;background:var(--tb);border:1px solid rgba(0,170,255,.35);font-size:17px;letter-spacing:0}
+h1{font-size:96px;line-height:1;font-weight:900;letter-spacing:-.04em}
+h2{font-size:52px;line-height:1.08;font-weight:850;letter-spacing:-.03em;margin-bottom:26px;max-width:1744px}
+h3{font-size:27px;font-weight:750;letter-spacing:-.01em;line-height:1.2}
+h4{font-size:21px;font-weight:700;line-height:1.25}
+p,li{font-size:22px;line-height:1.42;color:var(--muted)}
+b,strong{color:var(--text);font-weight:700}
+.grad{background:linear-gradient(100deg,var(--blue),var(--violet) 55%,var(--green));-webkit-background-clip:text;background-clip:text;color:transparent}
+.grad.gradc{background:none;-webkit-background-clip:border-box;background-clip:border-box}
+.c-b{color:var(--blue)}.c-v{color:var(--violet)}.c-g{color:var(--green)}.c-r{color:var(--red)}.c-a{color:var(--amber)}.c-t{color:var(--text)}.c-m{color:var(--muted)}
+.row{display:flex;gap:24px}.col{display:flex;flex-direction:column;gap:16px}
+.f1{flex:1;min-width:0;min-height:0}.ac{align-items:center}.jb{justify-content:space-between}.jc{justify-content:center}.wrap{flex-wrap:wrap}
+.g6{gap:6px}.g8{gap:8px}.g10{gap:10px}.g12{gap:12px}.g16{gap:16px}.g20{gap:20px}
+.grid{display:grid;gap:24px;min-height:0}
+.body{flex:1;min-height:0}
+.card{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:26px 30px;overflow:hidden;position:relative;
+  backdrop-filter:blur(24px) saturate(140%);-webkit-backdrop-filter:blur(24px) saturate(140%);box-shadow:var(--hl),0 10px 40px rgba(0,0,0,.18)}
+.card.hi{background:linear-gradient(135deg,var(--tb),var(--tv)),var(--card)}
+.card.ok{border-color:rgba(0,194,87,.40);background:linear-gradient(135deg,var(--tg),transparent 70%),var(--card)}
+.card.bad{border-color:rgba(255,82,82,.40);background:linear-gradient(135deg,var(--tr),transparent 70%),var(--card)}
+.card.vi{border-color:rgba(168,85,247,.42);background:linear-gradient(135deg,var(--tv),transparent 70%),var(--card)}
+.card.s{padding:18px 22px;border-radius:20px}
+.pill{display:inline-flex;align-items:center;gap:8px;font-family:"JetBrains Mono",monospace;font-size:17px;font-weight:600;padding:7px 15px;border-radius:999px;
+  border:1px solid var(--border2);background:var(--card2);color:var(--text);white-space:nowrap;line-height:1.2}
+.pill.b{color:var(--blue);border-color:rgba(0,170,255,.45);background:var(--tb)}.pill.g{color:var(--green);border-color:rgba(0,194,87,.45);background:var(--tg)}
+.pill.v{color:var(--violet);border-color:rgba(168,85,247,.45);background:var(--tv)}.pill.r{color:var(--red);border-color:rgba(255,82,82,.45);background:var(--tr)}
+.pill.a{color:var(--amber);border-color:rgba(255,176,32,.45);background:var(--ta)}
+.pill.xl{font-size:21px;padding:10px 20px}.pill.sm{font-size:14px;padding:4px 11px}
+.big{font-size:100px;font-weight:900;letter-spacing:-.045em;line-height:.95}
+.num{font-size:68px;font-weight:900;letter-spacing:-.04em;line-height:1}
+.lbl{font-size:18px;color:var(--muted);line-height:1.3}
+.cap{font-family:"JetBrains Mono",monospace;font-size:14px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);font-weight:600}
+ul{list-style:none} ul li{padding-left:30px;position:relative;margin:7px 0}
+ul li::before{content:"";position:absolute;left:3px;top:.52em;width:11px;height:11px;border-radius:4px;background:linear-gradient(135deg,var(--blue),var(--violet))}
+ul.x li::before{content:"✕";background:none;color:var(--red);font-weight:800;top:0;left:2px;width:auto;height:auto;font-size:20px}
+ul.v li::before{content:"✓";background:none;color:var(--green);font-weight:800;top:0;left:2px;width:auto;height:auto;font-size:21px}
+.code{background:var(--code);color:var(--codet);border-radius:16px;padding:16px 22px;font-family:"JetBrains Mono",monospace;font-size:18px;line-height:1.55;border:1px solid rgba(255,255,255,.08);white-space:pre;overflow:hidden}
+.code .k{color:#FFB86B}.code .s{color:#7EE787}.code .c{color:#6F7F9C}.code .r{color:#FF8A95}.code .b{color:#6CCBFF}.code .v{color:#C4A8FF}
+.foot{position:absolute!important;left:88px;right:88px;bottom:30px;display:flex;justify-content:space-between;align-items:center;font-family:"JetBrains Mono",monospace;font-size:16px;color:var(--dim)}
+.foot .pg{color:var(--muted);font-weight:700;display:flex;gap:14px;align-items:center}
+.arrow{display:flex;align-items:center;justify-content:center;color:var(--blue);font-size:38px;font-weight:800;flex:none}
+.n{flex:none;width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,var(--blue),var(--violet));color:#fff;font-weight:800;font-size:22px;display:grid;place-items:center}
+.n.g{background:linear-gradient(135deg,var(--green),#00A0A0)}.n.r{background:linear-gradient(135deg,var(--red),#C0306A)}.n.a{background:linear-gradient(135deg,var(--amber),#FF7A3D)}
+.bar{height:22px;border-radius:11px;background:var(--card3);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:11px;background:linear-gradient(90deg,var(--blue),var(--violet))}
+.qr{background:#fff;border-radius:22px;padding:16px;box-shadow:0 20px 50px rgba(0,0,0,.35)}
+.qr [data-qr]{line-height:0}.qr svg{display:block;width:100%;height:auto}
+.mascot.photo{border-radius:50%;padding:6px;background:conic-gradient(from 200deg,#00C257,#00AAFF,#A855F7,#FF5252,#00C257);box-shadow:0 24px 50px rgba(0,0,0,.45)}
+.mascot.photo img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;border:4px solid var(--bg)}
+.mascot.photo .ptag{position:absolute;left:50%;bottom:-16px;transform:translateX(-50%);white-space:nowrap;font:600 14px "JetBrains Mono",monospace;color:var(--text);background:var(--bg);border:1px solid var(--border2);border-radius:999px;padding:5px 12px}
+a{color:var(--blue);text-decoration:none;font-weight:600}
+.tool{font-family:"JetBrains Mono",monospace;font-size:16px;color:var(--green);background:var(--tg);border:1px dashed rgba(0,194,87,.55);border-radius:10px;padding:6px 12px;display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.tool.r{color:var(--red);background:var(--tr);border-color:rgba(255,82,82,.55)}
+.uicard{background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:12px 14px}
+/* ---------- рамка реального скриншота ---------- */
+.shot{border-radius:18px;overflow:hidden;border:1px solid var(--border2);box-shadow:var(--shadow);background:#0B0F19;position:relative;flex:none}
+.shot .sb{height:34px;display:flex;align-items:center;gap:12px;padding:0 14px;background:#111827;border-bottom:1px solid rgba(255,255,255,.08)}
+.shot .sb .bd i{width:10px;height:10px}
+.shot .sb .dots{display:inline-flex;gap:6px}.shot .sb .dots i{width:10px;height:10px;border-radius:50%;display:block}
+.shot .sb .url{flex:1;max-width:420px;margin:0 auto;height:22px;border-radius:7px;background:rgba(255,255,255,.07);font:500 12px "JetBrains Mono",monospace;color:#8B97AE;display:flex;align-items:center;justify-content:center}
+.shot .sb .tag{font:600 11px "JetBrains Mono",monospace;color:#7EE787;letter-spacing:.06em}
+.shot img{display:block;width:100%;height:auto}
+.shot .call{position:absolute;z-index:3;display:flex;align-items:center;gap:8px;background:rgba(10,14,24,.92);border:2px solid var(--amber);color:#fff;border-radius:999px;padding:5px 14px 5px 5px;font-size:15px;font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,.45);white-space:nowrap}
+.shot .call b{display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--amber);color:#111;font-size:15px}
+.shot .ring{position:absolute;z-index:2;border:3px solid var(--amber);border-radius:12px;box-shadow:0 0 0 4px rgba(255,176,32,.2)}
+.shot .mk{position:absolute;z-index:3;width:34px;height:34px;border-radius:50%;background:var(--amber);color:#111;font:900 17px Inter,sans-serif;display:grid;place-items:center;box-shadow:0 0 0 5px rgba(255,176,32,.32),0 6px 16px rgba(0,0,0,.45)}
+.lg{display:flex;flex-wrap:wrap;gap:8px 22px;font-size:17px;color:var(--muted)}
+.lg span{display:inline-flex;align-items:center;gap:9px}
+.lg b{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--amber);color:#111;font-size:14px;font-weight:900;flex:none}
+/* кадрирование реального скриншота по зоне интереса (те же пиксели, без перерисовки) */
+.shot img.crop{width:auto;max-width:none}
+/* ring gauge */
+.gauge{position:relative;display:grid;place-items:center}.gauge svg{transform:rotate(-90deg)}.gauge .rv{position:absolute;text-align:center}
+/* панель управления и режим показа */
+#ctl{position:fixed;right:18px;top:18px;z-index:99;width:350px;background:rgba(10,16,30,.92);color:#EAF1FF;border:1px solid rgba(255,255,255,.14);
+  border-radius:18px;padding:14px 16px;backdrop-filter:blur(18px);font:13px Inter,sans-serif;box-shadow:0 20px 50px rgba(0,0,0,.45)}
+#ctl h4{font-size:14px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none}
+#ctl .bodyc{margin-top:10px}
+#ctl label{display:block;font-size:11px;opacity:.7;margin:10px 0 4px;font-family:"JetBrains Mono",monospace}
+#ctl input{width:100%;padding:8px 10px;border-radius:9px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.07);color:#fff;font:12px "JetBrains Mono",monospace;outline:none}
+#ctl input:focus{border-color:#00AAFF}#ctl input.err{border-color:#FF5252}
+#ctl button{width:100%;padding:9px;border-radius:11px;border:0;cursor:pointer;font-weight:700;font-size:13px;color:#fff;background:linear-gradient(135deg,#00AAFF,#A855F7)}
+#ctl button.alt{background:rgba(255,255,255,.1);margin-top:8px}
+#ctl .themes{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+#ctl .themes button{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12)}
+#ctl .themes button.on{background:linear-gradient(135deg,#00AAFF,#A855F7);border-color:transparent}
+#ctl .hint{font-size:11px;opacity:.6;margin-top:8px;line-height:1.45}
+#ctl.min .bodyc{display:none}
+body.present{overflow:hidden;background:#000}
+body.present #deck{padding:0;gap:0;height:100vh;justify-content:center}
+body.present .sw{display:none}body.present .sw.cur{display:block}
+@media print{
+  html,body{background:var(--bg)!important}
+  .no-print{display:none!important}
+  #deck{display:block;padding:0;gap:0}
+  .sw,body.present .sw{width:1920px;height:1080px;display:block!important;break-after:page;page-break-after:always;break-inside:avoid;overflow:hidden}
+  .sw:last-child{break-after:auto;page-break-after:auto}
+  .slide{transform:none!important;box-shadow:none}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  .card{backdrop-filter:none;-webkit-backdrop-filter:none}
+  .card,.qr,.shot{box-shadow:none!important}
+}
+</style>
+</head>
+<body>
+
+
+<!-- ============ Панель управления (не печатается) ============ -->
+<div id="ctl" class="no-print">
+  <h4 id="ctlHead"><span>⚙️ Панель презентации</span><span id="ctlArrow">▾</span></h4>
+  <div class="bodyc">
+    <div class="themes">
+      <button id="thDark" type="button">🌙 Dark Cyber-Bento</button>
+      <button id="thLight" type="button">☀️ Light Avito Clean</button>
+    </div>
+    <label for="inRepo">URL репозитория → QR на слайдах 1 и 12</label>
+    <input id="inRepo" type="url" spellcheck="false">
+    <label for="inVideo">URL видеодемо</label>
+    <input id="inVideo" type="url" spellcheck="false">
+    <button id="btnPresent" type="button" class="alt">▶ Режим показа (F)</button>
+    <button id="btnPrint" type="button" style="margin-top:8px">🖨 Сохранить в PDF (16:9)</button>
+    <button id="btnReset" type="button" class="alt">↺ Сбросить ссылки</button>
+    <p class="hint">← → / PageUp PageDown / Пробел — листать, Home/End — первый/последний слайд, F — режим показа, Esc — выход.</p>
+  </div>
+</div>
+
+<main id="deck">
+
+<!-- =================== 1. ТИТУЛЬНЫЙ =================== -->
+<div class="sw"><section class="slide" id="slide-1">
+  <div class="row ac jb" style="margin-bottom:4px">
+    <div class="row ac g16"><span class="bd"><i></i><i></i><i></i><i></i></span><span class="kicker" style="margin:0">Avito Start · Hack&amp;Change 2026 · финальная защита</span></div>
+  </div>
+  <div class="row f1" style="gap:48px">
+    <div class="col f1 jc" style="gap:0">
+      <h1 style="font-size:150px;letter-spacing:-.055em"><span class="grad">Гоффи</span></h1>
+      <div class="mono" style="font-size:32px;font-weight:600;color:var(--muted);margin-top:8px">(Avito Start AI-Buddy)</div>
+      <p style="font-size:36px;line-height:1.22;color:var(--text);font-weight:700;letter-spacing:-.015em;margin:24px 0 30px;max-width:1040px">
+        Actionable ИИ-наставник и рабочее пространство адаптации стажёров
+      </p>
+      <div class="grid" style="grid-template-columns:repeat(3,1fr);gap:18px;max-width:1080px">
+        <div class="card s bad" style="padding:20px 22px"><h4>⚡️ Проблема</h4><p style="font-size:18px;margin-top:6px"><b>40–65 ч</b> сеньора уходит на рутину онбординга, CSAT статичного чек-листа — <b class="c-r">68%</b></p></div>
+        <div class="card s hi" style="padding:20px 22px"><h4>🛡️ Решение</h4><p style="font-size:18px;margin-top:6px"><b>Onboarding Workspace</b> + MCP-действия + RBAC Guard + ИИ-крон брифов 1:1</p></div>
+        <div class="card s ok" style="padding:20px 22px"><h4>🚀 Результат</h4><p style="font-size:18px;margin-top:6px"><b>~18–20 ч</b> экономии на стажёра = <b class="c-g">2 000+ ч/год</b> на 100 стажёров</p></div>
+      </div>
+      <div class="row wrap g10" style="margin-top:26px">
+        <span class="pill b">Go 1.26</span><span class="pill b">React 18</span><span class="pill v">MCP · JSON-RPC 2.0</span><span class="pill g">SDD</span><span class="pill a">DeepSeek</span><span class="pill">PostgreSQL · Redis</span>
+      </div>
+    </div>
+    <div class="col jc" style="flex:none;width:600px;position:relative;align-items:flex-end">
+      <div class="mascot photo" style="width:290px;height:290px;position:absolute;left:-60px;top:-8px;z-index:3"><img data-asset="frontend/public/goffy.png" src="../../frontend/public/goffy.png" alt="Гоффи — плюшевый Go-суслик Авито"><span class="ptag">Гоффи · плюшевый Go-суслик Авито</span></div>
+      <div class="card hi" style="width:600px;padding:28px 30px;margin-top:230px;border-color:var(--border2)">
+        <div class="row g20" style="align-items:flex-end">
+          <div class="col g10 f1" style="padding-bottom:6px">
+            <div class="kicker" style="font-size:16px;margin:0;line-height:1.5">Сканируй QR<br>→ Репозиторий<br>и Live Demo</div>
+            <p style="font-size:17px">Код, видео и запуск в&nbsp;1&nbsp;команду</p>
+          </div>
+          <div class="qr" style="width:260px;flex:none"><div data-qr="repo"></div></div>
+        </div>
+        <div class="col g10" style="margin-top:20px">
+          <div class="row ac g12"><span class="pill b sm" style="width:80px;justify-content:center">GitHub</span><a class="mono" data-link="repo" style="font-size:16px"></a></div>
+          <div class="row ac g12"><span class="pill v sm" style="width:80px;justify-content:center;flex:none">Видео</span><a class="mono" data-link="video" style="font-size:16px;line-height:1.3"></a></div>
+          <div class="row ac g12"><span class="pill g sm" style="width:80px;justify-content:center">Жюри</span><span class="mono c-t" style="font-size:16px">аккаунт hack-and-change-2026</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>Команда Bossuslugi · кейс Авито «Умный наставник для стажёров»</span><span class="pg"><span class="bd s"><i></i><i></i><i></i><i></i></span>01 / 12</span></div>
+</section></div>
+
+<!-- =================== 2. БИЗНЕС-КОНТЕКСТ =================== -->
+<div class="sw"><section class="slide" id="slide-2">
+  <div class="kicker"><i class="no">01</i>Бизнес-контекст · реальные метрики из Q&amp;A Авито</div>
+  <h2>Наставник — дефицитный ресурс, а статичный чек-лист — <span class="grad">самое слабое звено</span></h2>
+  <div class="grid body" style="grid-template-columns:.95fr 1.35fr 1fr;grid-template-rows:1fr auto">
+    <div class="card hi col jb" style="grid-row:span 2">
+      <div><div class="cap">Нагрузка на наставника</div><h3 style="margin-top:8px">Часов за программу Avito Start</h3></div>
+      <div class="col g8"><div class="lbl mono">Программа 6 месяцев</div><div class="big grad">40–48 ч</div><div class="bar" style="height:16px"><i style="width:72%"></i></div></div>
+      <div class="col g8"><div class="lbl mono">Программа 9 месяцев</div><div class="big grad">55–65 ч</div><div class="bar" style="height:16px"><i style="width:100%"></i></div></div>
+      <p style="font-size:19px">≈ <b>1,5 рабочих недели</b> сеньора на каждого стажёра — время, которое не идёт в продукт.</p>
+    </div>
+    <div class="card col g16">
+      <div class="row jb ac"><div><div class="cap">Профиль времени наставника</div><h3 style="margin-top:8px">Часов в неделю по месяцам</h3></div><span class="pill a">Q&amp;A Авито</span></div>
+      <div class="row f1" style="gap:18px;align-items:flex-end;padding-top:10px;border-bottom:1px solid var(--border2)">
+        <div class="col ac g8 f1" style="height:100%;justify-content:flex-end"><b class="mono" style="font-size:20px">~5</b><div style="width:100%;height:240px;border-radius:12px 12px 0 0;background:linear-gradient(180deg,var(--blue),var(--violet))"></div></div>
+        <div class="col ac g8 f1" style="height:100%;justify-content:flex-end"><b class="mono" style="font-size:20px">~5</b><div style="width:100%;height:240px;border-radius:12px 12px 0 0;background:linear-gradient(180deg,var(--blue),var(--violet))"></div></div>
+        <div class="col ac g8 f1" style="height:100%;justify-content:flex-end"><b class="mono" style="font-size:20px">~5</b><div style="width:100%;height:240px;border-radius:12px 12px 0 0;background:repeating-linear-gradient(135deg,rgba(0,170,255,.55) 0 10px,rgba(168,85,247,.35) 10px 20px)"></div></div>
+        <div class="col ac g8 f1" style="height:100%;justify-content:flex-end"><b class="mono" style="font-size:20px">2–3</b><div style="width:100%;height:120px;border-radius:12px 12px 0 0;background:linear-gradient(180deg,var(--green),#00A0A0)"></div></div>
+        <div class="col ac g8 f1" style="height:100%;justify-content:flex-end"><b class="mono" style="font-size:20px">2–3</b><div style="width:100%;height:120px;border-radius:12px 12px 0 0;background:linear-gradient(180deg,var(--green),#00A0A0)"></div></div>
+        <div class="col ac g8 f1" style="height:100%;justify-content:flex-end"><b class="mono" style="font-size:20px">2–3</b><div style="width:100%;height:120px;border-radius:12px 12px 0 0;background:linear-gradient(180deg,var(--green),#00A0A0)"></div></div>
+      </div>
+      <div class="row" style="gap:18px;margin-top:-6px"><span class="f1 lbl mono" style="text-align:center">M1</span><span class="f1 lbl mono" style="text-align:center">M2</span><span class="f1 lbl mono" style="text-align:center">M3</span><span class="f1 lbl mono" style="text-align:center">M4</span><span class="f1 lbl mono" style="text-align:center">M5</span><span class="f1 lbl mono" style="text-align:center">M6</span></div>
+      <div class="row g20 wrap">
+        <span class="row ac g8 lbl"><span style="width:14px;height:14px;border-radius:50%;background:var(--blue)"></span>первые 2–3 мес.: доступы, задачи, погружение, 1:1</span>
+        <span class="row ac g8 lbl"><span style="width:14px;height:14px;border-radius:50%;background:var(--green)"></span>после адаптации (~2 мес.)</span>
+      </div>
+    </div>
+    <div class="card bad col jb" style="grid-row:span 2">
+      <div class="row jb ac"><div class="cap">Главная точка роста</div><span class="pill r">−22 п.п.</span></div>
+      <div class="col g20">
+        <div><div class="row jb lbl" style="margin-bottom:8px"><span>Удовлетворённость наставником</span><b class="mono">90%</b></div><div class="bar"><i style="width:90%;background:linear-gradient(90deg,var(--green),#00A0A0)"></i></div></div>
+        <div><div class="row jb lbl" style="margin-bottom:8px"><span>Оценка онбординга</span><b class="mono">9 / 10</b></div><div class="bar"><i style="width:90%;background:linear-gradient(90deg,var(--green),#00A0A0)"></i></div></div>
+        <div><div class="row jb lbl" style="margin-bottom:8px"><span>Статичный чек-лист</span><b class="mono c-r">68%</b></div><div class="bar"><i style="width:68%;background:linear-gradient(90deg,var(--red),#FF8A3D)"></i></div></div>
+      </div>
+      <div><div class="big c-r" style="font-size:146px">68%</div><p style="font-size:21px;margin-top:6px">Люди и процесс оценены высоко — <b>инструмент адаптации отстаёт</b>. Здесь и работает Гоффи.</p></div>
+    </div>
+    <div class="card row ac" style="gap:26px;padding:20px 28px">
+      <div class="n a" style="width:62px;height:62px;font-size:30px">⏱</div>
+      <div class="f1"><div class="cap">До 1-й самостоятельной задачи</div><p style="font-size:19px;margin-top:4px">Ожидание доступов и поиск «кого спросить»</p></div>
+      <div class="num grad" style="font-size:62px">~2 нед.</div>
+    </div>
+  </div>
+  <div class="foot"><span>Источник: ответы организаторов Avito Start в Q&amp;A кейса</span><span class="pg"><span class="bd s"><i></i><i></i><i></i><i></i></span>02 / 12</span></div>
+</section></div>
+
+<!-- =================== 3. ПРОДУКТОВОЕ РЕШЕНИЕ =================== -->
+<div class="sw"><section class="slide" id="slide-3">
+  <div class="kicker"><i class="no">02</i>Продуктовое решение · Split-Screen Onboarding Workspace</div>
+  <h2>Не «ещё один чат-бот», а <span class="grad">рабочее место адаптации</span></h2>
+  <div class="row body" style="gap:28px">
+    <div class="col" style="width:500px;flex:none;gap:14px">
+      <div class="card s row g16"><div class="n">▦</div><div><h4>Split-Screen на весь экран</h4><p style="font-size:18px;margin-top:4px">Слева — прогресс и рабочие вкладки, справа — чат с Гоффи и карточка «Контекст рабочей недели».</p></div></div>
+      <div class="card s row g16"><div class="n">🗂</div><div><h4>3 вкладки стажёра</h4><p style="font-size:18px;margin-top:4px">🗺 Адаптация и OKR · 📅 Календарь и задачи · 📊 Статистика и метрики.</p></div></div>
+      <div class="card s row g16"><div class="n">👥</div><div><h4>3 роли в 1 клик</h4><p style="font-size:18px;margin-top:4px">Стажёр, Наставник, Руководитель — свой кабинет на тех же данных.</p></div></div>
+      <div class="card s row g16"><div class="n">🔍</div><div><h4>MCP скрыт от стажёра</h4><p style="font-size:18px;margin-top:4px">В чате — человеческий ответ, а JSON-RPC, решения RBAC и Clickstream — в «Инспекторе жюри».</p></div></div>
+    </div>
+    <div class="f1 col jc g16">
+      <div class="shot">
+        <div class="sb"><span class="dots"><i style="background:#FF5F57"></i><i style="background:#FEBC2E"></i><i style="background:#28C840"></i></span><span class="url">localhost:5173 · Гоффи</span><span class="tag">● РЕАЛЬНЫЙ СКРИНШОТ</span></div>
+        <img data-shot="01_workspace_alexey_dark.png" src="screenshots/01_workspace_alexey_dark.png" alt="Рабочее пространство стажёра Алексея Смирнова">
+        <span class="mk" style="left:0.6%;top:26.5%">1</span>
+        <span class="mk" style="left:61.2%;top:48%">2</span>
+        <span class="mk" style="left:58.2%;top:11.5%">3</span>
+        <span class="mk" style="left:50.6%;top:4%">4</span>
+      </div>
+      <div class="lg"><span><b>1</b>Прогресс 4/7, цели и OKR</span><span><b>2</b>«Доступ выдан» — заявка из 4 полей</span><span><b>3</b>Чат с Гоффи</span><span><b>4</b>3 роли и «Инспектор жюри»</span></div>
+    </div>
+  </div>
+  <div class="foot"><span>Сценарий 1А: доступ к avito-autoteka-api в Stash выдан — чек-лист 3/7 → 4/7</span><span class="pg"><span class="bd s"><i></i><i></i><i></i><i></i></span>03 / 12</span></div>
+</section></div>
+
+<!-- =================== 4. МУЛЬТИПРОФИЛЬНОСТЬ =================== -->
+<div class="sw"><section class="slide" id="slide-4">
+  <div class="kicker"><i class="no">03</i>Мультипрофильность и динамический контекст команд</div>
+  <h2>Один движок — <span class="grad">любая команда</span>: Go vs Python/ML</h2>
+  <div class="grid body" style="grid-template-columns:1fr 1fr;align-content:start">
+    <div class="col g16">
+      <div class="shot">
+        <div class="sb"><span class="dots"><i style="background:#FF5F57"></i><i style="background:#FEBC2E"></i><i style="background:#28C840"></i></span><span class="url">Алексей · Go · Autoteka · старт недели</span><span class="tag">● LIVE</span></div>
+        <img data-shot="01b_access_passport.png" src="screenshots/01b_access_passport.png" alt="Профиль Алексея Смирнова">
+      </div>
+      <div class="card hi s" style="padding:18px 22px">
+        <div class="row ac g12"><div class="n" style="border-radius:50%">АС</div><div class="f1"><h4>Алексей Смирнов</h4><div class="lbl mono" style="font-size:15px">Backend Go Intern · Автотека · Неделя 1</div></div><span class="pill b">чек-лист 3/7</span></div>
+        <div class="grid" style="grid-template-columns:auto 1fr;gap:5px 16px;margin-top:12px;font-size:17px">
+          <span class="c-m">Наставник</span><b>Мария Кузнецова</b>
+          <span class="c-m">Репозиторий</span><b class="mono">avito-autoteka-api</b>
+          <span class="c-m">Задача</span><span><b class="mono">AUT-1423</b> <span class="c-m">— поле mileage_verified под фича-флагом</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="col g16">
+      <div class="shot">
+        <div class="sb"><span class="dots"><i style="background:#FF5F57"></i><i style="background:#FEBC2E"></i><i style="background:#28C840"></i></span><span class="url">Мария · Python/ML · Модерация</span><span class="tag">● LIVE</span></div>
+        <img data-shot="02_workspace_maria_ml.png" src="screenshots/02_workspace_maria_ml.png" alt="Профиль Марии Козловой">
+      </div>
+      <div class="card vi s" style="padding:18px 22px">
+        <div class="row ac g12"><div class="n" style="border-radius:50%;background:linear-gradient(135deg,var(--violet),var(--green))">МК</div><div class="f1"><h4>Мария Козлова</h4><div class="lbl mono" style="font-size:15px">Python/ML Intern · Авито Товары (Модерация) · Неделя 3</div></div><span class="pill v">чек-лист 4/7</span></div>
+        <div class="grid" style="grid-template-columns:auto 1fr;gap:5px 16px;margin-top:12px;font-size:17px">
+          <span class="c-m">Наставник</span><b>Елена Соколова</b>
+          <span class="c-m">Репозиторий</span><b class="mono">avito-moderation-ml</b>
+          <span class="c-m">Задача</span><span><b class="mono">MOD-842</b> <span class="c-m">— классификатор дубликатов: DVC, Airflow, A/B в Redash / Grafana</span></span>
+        </div>
+      </div>
+    </div>
+    <div class="card s row ac" style="grid-column:span 2;gap:20px;padding:16px 24px">
+      <span class="pill xl g" style="flex:none">Профиль = данные, не код</span>
+      <div class="row ac g10 wrap f1" style="font-size:19px;color:var(--muted)"><b>команда</b><span class="c-b">→</span><b>неделя</b><span class="c-b">→</span><b>цели и OKR</b><span class="c-b">→</span><b>чек-лист из 7 шагов</b><span class="c-b">→</span><b>база знаний</b><span class="c-b">→</span><b>ответы Гоффи</b></div>
+      <span class="lbl mono" style="flex:none;font-size:15px">переключение — 1 клик</span>
+    </div>
+  </div>
+  <div class="foot"><span>Оба скриншота сняты с одного запущенного приложения — меняется только профиль стажёра</span><span class="pg"><span class="bd s"><i></i><i></i><i></i><i></i></span>04 / 12</span></div>
+</section></div>
+
+<!-- =================== 5. СЦЕНАРИЙ 1 =================== -->
+<div class="sw"><section class="slide" id="slide-5">
+  <div class="kicker"><i class="no">04</i>Сценарий 1 · доступы через MCP (1А) и броня Zero-Trust RBAC (1Б)</div>
+  <h2>Доступ <span class="grad">оформляет Гоффи</span>, а RBAC не даёт лишнего</h2>
+  <div class="grid body" style="grid-template-columns:.8fr 1.2fr">
+    <div class="col g16">
+      <div class="card ok col g10" style="padding:20px 24px">
+        <div class="row ac g12"><span class="pill g">Ветка 1А</span><h4>Actionable Access</h4></div>
+        <div class="shot" style="box-shadow:none"><img class="crop" style="width:100%;aspect-ratio:1090/280;object-fit:cover;object-view-box:inset(50.6% 43.5% 24.4% 2%)" data-shot="01b_access_passport.png" src="screenshots/01b_access_passport.png" alt="Паспорт шага: заявка на доступ"></div>
+        <div class="row ac g10 wrap"><span class="tool">iam_access.request_repo_access</span><span class="pill sm">POL-IAM-001 · self_only + team_scope</span></div>
+        <div class="row g16" style="align-items:flex-start">
+          <div class="shot" style="box-shadow:none;width:58%"><img class="crop" style="width:100%;aspect-ratio:660/285;object-fit:cover;object-view-box:inset(45.8% 3.5% 28.9% 63.5%)" data-shot="01_workspace_alexey_dark.png" src="screenshots/01_workspace_alexey_dark.png" alt="Карточка «Доступ выдан»"></div>
+          <ul class="v f1" style="margin:0"><li style="font-size:17px">карточка повторяет заявку</li><li style="font-size:17px">токен <b class="mono">glpat-synt-••••</b> маскирован</li><li style="font-size:17px"><b>шаг 4 закрыт → 4/7</b></li></ul>
+        </div>
+      </div>
+      <div class="card s f1" style="padding:18px 22px">
+        <div class="row jb ac" style="margin-bottom:8px"><h4>Матрица RBAC</h4><span class="mono lbl" style="font-size:13px">03_rbac_matrix.openspec.yaml · deny by default</span></div>
+        <div style="display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:6px 10px;font-size:16px;align-items:center">
+          <span class="cap" style="font-size:11px">операция</span><span class="cap" style="font-size:11px">стажёр</span><span class="cap" style="font-size:11px">наставник</span><span class="cap" style="font-size:11px">рук-ль</span>
+          <span class="mono" style="font-size:14px">iam_access.*</span><b class="c-g">✓ себе</b><b class="c-g">✓ команда</b><b class="c-g">✓ команда</b>
+          <span class="mono" style="font-size:14px">absences.create</span><b class="c-g">✓ себе</b><b class="c-r">✕</b><b class="c-r">✕</b>
+          <span class="mono" style="font-size:14px">absences.review</span><b class="c-r">✕</b><b class="c-r">✕</b><b class="c-g">✓</b>
+          <span class="mono" style="font-size:14px">mentor.1on1_brief</span><b class="c-r">✕</b><b class="c-g">✓</b><b class="c-r">✕</b>
+          <span class="mono" style="font-size:14px">db_admin.export_pii</span><b class="c-r">✕ 403</b><b class="c-r">✕ 403</b><b class="c-r">✕ 403</b>
+        </div>
+      </div>
+    </div>
+    <div class="col g16">
+      <div class="row ac g12"><span class="pill r">Ветка 1Б</span><h4>Запрос prod-ПДн → 403 FORBIDDEN · POL-SEC-001 → песочница</h4></div>
+      <div class="row" style="gap:16px;align-items:flex-start">
+        <div class="shot">
+          <div class="sb"><span class="dots"><i style="background:#FF5F57"></i><i style="background:#FEBC2E"></i><i style="background:#28C840"></i></span><span class="url">Стажёр · чат с Гоффи</span><span class="tag">● LIVE</span></div>
+          <img class="crop" style="height:447px;aspect-ratio:790/540;object-fit:cover;object-view-box:inset(20.4% 1.25% 31.6% 59.25%)" data-shot="03a_rbac_chat_denied.png" src="screenshots/03a_rbac_chat_denied.png" alt="Отказ в выгрузке ПДн в чате стажёра">
+          <span class="mk" style="left:1.5%;top:71%">1</span>
+        </div>
+        <div class="shot">
+          <div class="sb"><span class="dots"><i style="background:#FF5F57"></i><i style="background:#FEBC2E"></i><i style="background:#28C840"></i></span><span class="url">Инспектор жюри → RBAC</span><span class="tag">● LIVE</span></div>
+          <img class="crop" style="height:447px;aspect-ratio:640/760;object-fit:cover;object-view-box:inset(0% 0.25% 32.4% 67.75%)" data-shot="03_rbac_blocked_inspector.png" src="screenshots/03_rbac_blocked_inspector.png" alt="Инспектор жюри: решения RBAC и матрица прав">
+          <span class="mk" style="left:1%;top:37%">2</span>
+          <span class="mk" style="left:1%;top:54%">3</span>
+          <span class="mk" style="left:1%;top:86%">4</span>
+        </div>
+      </div>
+      <div class="lg"><span><b>1</b>«Действие недоступно» — отказ до вызова тула</span><span><b>2</b>rbac.incident в журнале</span><span><b>3</b>rbac.decision: code=FORBIDDEN · POL-SEC-001</span><span><b>4</b>матрица прав (default deny)</span></div>
+      <div class="row g10 wrap"><span class="pill g sm">🧪 вместо выгрузки — тестовый стенд с синтетическими данными</span><span class="pill r sm">инцидент → кабинет руководителя</span></div>
+    </div>
+  </div>
+  <div class="foot"><span>Решение принимает политика безопасности, а не LLM: tool_call не выполняется</span><span class="pg"><span class="bd s"><i></i><i></i><i></i><i></i></span>05 / 12</span></div>
+</section></div>
+
+<!-- =================== 6. СЦЕНАРИЙ 2 =================== -->
+<div class="sw"><section class="slide" id="slide-6">
+  <div class="kicker"><i class="no">05</i>Сценарий 2 · Playbook, мини-квиз, ИИ-крон, бриф 1:1 и приватность</div>
+  <h2>Проверка понимания и <span class="grad">помощь до того, как попросят</span></h2>
+  <div class="grid body" style="grid-template-columns:.8fr 1.2fr">
+    <div class="col g16">
+      <div class="card hi col g10" style="padding:20px 24px">
+        <div class="row ac jb"><h4>📚 Playbook + 🧠 мини-квиз</h4><span class="tool">playbook.search_docs</span></div>
+        <p style="font-size:17px">Источники в ответах помечены <span class="pill a sm">⚠️ Тестовая инструкция (Синтетические данные)</span>, а понимание проверяет квиз прямо в шаге чек-листа:</p>
+        <div class="shot" style="box-shadow:none"><img class="crop" style="width:100%;aspect-ratio:1090/350;object-fit:cover;object-view-box:inset(54.2% 43.5% 14.2% 2%)" data-shot="08_quiz.png" src="screenshots/08_quiz.png" alt="Мини-квиз в шаге чек-листа"></div>
+      </div>
+      <div class="card col g8" style="padding:20px 24px">
+        <div class="row ac jb"><h4>⏰ ИИ-крон</h4><span class="tool">tracker.get_task_activity</span></div>
+        <ul style="margin:0">
+          <li style="font-size:17px;margin:4px 0"><b class="mono">AUT-1423</b> в работе 3 дня, коммитов: 0</li>
+          <li style="font-size:17px;margin:4px 0">стажёру — проактивное сообщение с планом</li>
+          <li style="font-size:17px;margin:4px 0">наставнику — <b>Structured 1:1 Brief</b> с одним вопросом к сеньору</li>
+        </ul>
+      </div>
+      <div class="card ok col g8 f1" style="padding:20px 24px">
+        <h4>🔒 Приватность стажёра</h4>
+        <p style="font-size:17px">Личная переписка с Гоффи <b>никогда не передаётся</b> наставнику или тимлиду — только агрегированный прогресс и вопросы по коду.</p>
+        <div class="grid" style="grid-template-columns:1fr 1fr;gap:12px;margin-top:2px">
+          <div class="uicard"><b class="c-g" style="font-size:15px">Наставник видит</b><ul class="v" style="margin-top:2px"><li style="font-size:14px;margin:2px 0">прогресс чек-листа</li><li style="font-size:14px;margin:2px 0">что разобрано самостоятельно</li><li style="font-size:14px;margin:2px 0">1 вопрос к сеньору</li></ul></div>
+          <div class="uicard"><b class="c-r" style="font-size:15px">Наставник не видит</b><ul class="x" style="margin-top:2px"><li style="font-size:14px;margin:2px 0">переписку стажёра</li><li style="font-size:14px;margin:2px 0">дословные вопросы Гоффи</li><li style="font-size:14px;margin:2px 0">историю диалогов</li></ul></div>
+        </div>
+      </div>
+    </div>
+    <div class="col g12">
+      <div class="shot">
+        <div class="sb"><span class="dots"><i style="background:#FF5F57"></i><i style="background:#FEBC2E"></i><i style="background:#28C840"></i></span><span class="url">localhost:5173 · Кабинет наставника</span><span class="tag">● РЕАЛЬНЫЙ СКРИНШОТ</span></div>
+        <img data-shot="04_mentor_1on1_brief.png" src="screenshots/04_mentor_1on1_brief.png" alt="Кабинет наставника и Structured 1:1 Brief">
+        <span class="mk" style="left:0.4%;top:58%">1</span>
+        <span class="mk" style="left:59%;top:29.5%">2</span>
+        <span class="mk" style="left:59%;top:46%">3</span>
+        <span class="mk" style="left:58.2%;top:22%">4</span>
+      </div>
+      <div class="lg"><span><b>1</b>Сэкономленное время наставника</span><span><b>2</b>Structured 1:1 Brief · AUT-1423</span><span><b>3</b>Один вопрос, где нужен сеньор</span><span><b>4</b>«Переписка стажёра не раскрывается»</span></div>
+      <div class="row g10 wrap"><span class="tool">mentor.send_1on1_brief</span><span class="tool">notifications.send</span><span class="pill sm">сигналы: in_progress 3 дн., коммитов 0, чек-лист 5/7</span></div>
+    </div>
+  </div>
+  <div class="foot"><span>Бриф по реальным сигналам: статус задачи, коммиты, прогресс чек-листа</span><span class="pg"><span class="bd s"><i></i><i></i><i></i><i></i></span>06 / 12</span></div>
+</section></div>
+
+<!-- =================== 7. СЦЕНАРИЙ 3 =================== -->
+<div class="sw"><section class="slide" id="slide-7">
+  <div class="kicker"><i class="no">06</i>Сценарий 3 · сквозной двусторонний цикл оформления отгула</div>
+  <h2>Отгул: от фразы в чате до <span class="grad">согласования в 1 клик</span></h2>
+  <div class="body col" style="gap:20px">
+    <div class="row ac" style="gap:12px">
+      <div class="card s hi row ac g12 f1"><div class="n">1</div><div><h4>Форма в чате стажёра</h4><p style="font-size:16px">Гоффи заполнил карточку по фразе, Zod-валидация · <span class="mono c-t">absences.create_day_off</span></p></div></div>
+      <span class="arrow">➜</span>
+      <div class="card s row ac g12 f1"><div class="n">2</div><div><h4>Заявка у руководителя</h4><p style="font-size:16px"><b class="mono">#ABS-2026-84</b> + уведомления наставнику и руководителю</p></div></div>
+      <span class="arrow">➜</span>
+      <div class="card s ok row ac g12 f1"><div class="n g">✓</div><div><h4>Согласование в 1 клик</h4><p style="font-size:16px"><span class="mono c-t">POST /api/v1/absences/review</span> → статус и календарь стажёра</p></div></div>
+    </div>
+    <div class="row jc" style="gap:24px;align-items:flex-start">
+      <div class="shot">
+        <div class="sb"><span class="dots"><i style="background:#FF5F57"></i><i style="background:#FEBC2E"></i><i style="background:#28C840"></i></span><span class="url">Стажёр · карточка «Заявка на отгул» в чате</span><span class="tag">● LIVE</span></div>
+        <img class="crop" style="height:490px;aspect-ratio:670/370;object-fit:cover;object-view-box:inset(38.7% 3.2% 28.4% 63.3%)" data-shot="05b_absence_card.png" src="screenshots/05b_absence_card.png" alt="Интерактивная карточка отгула в чате">
+        <span class="mk" style="left:2%;top:83%">1</span>
+      </div>
+      <div class="shot">
+        <div class="sb"><span class="dots"><i style="background:#FF5F57"></i><i style="background:#FEBC2E"></i><i style="background:#28C840"></i></span><span class="url">Руководитель · Дмитрий Орлов</span><span class="tag">● LIVE</span></div>
+        <img class="crop" style="height:490px;aspect-ratio:800/540;object-fit:cover;object-view-box:inset(8.9% 1.2% 43.1% 58.8%)" data-shot="05_absence_lead_approval.png" src="screenshots/05_absence_lead_approval.png" alt="Кабинет руководителя с кнопками Согласовать и Отклонить">
+        <span class="mk" style="left:27.5%;top:50%">2</span>
+        <span class="mk" style="left:48.5%;top:22%">3</span>
+        <span class="mk" style="left:2%;top:78%">4</span>
+      </div>
+    </div>
+    <div class="lg jc"><span><b>1</b>«Оформить отгул» — только по нажатию стажёра</span><span><b>2</b>«Согласовать» / «Отклонить»</span><span><b>3</b>инцидент из сценария 1Б</span><span><b>4</b>уведомление о #ABS-2026-84</span></div>
+  </div>
+  <div class="foot"><span>Два кабинета · одна БД · RBAC POL-ABS-002: решение принимает только руководитель</span><span class="pg"><span class="bd s"><i></i><i></i><i></i><i></i></span>07 / 12</span></div>
+</section></div>
+
+<!-- =================== 8. ПЛАНИРОВЩИК И СТАТИСТИКА =================== -->
+<div class="sw"><section class="slide" id="slide-8">
+  <div class="kicker"><i class="no">07</i>Календарь на 14 дней, OKR и статистика самоконтроля</div>
+  <h2>14 дней адаптации — <span class="grad">прозрачно</span> для стажёра и наставника</h2>
+  <div class="body col" style="gap:20px">
+    <div class="row jc" style="gap:22px;align-items:flex-start">
+      <div class="shot">
+        <div class="sb"><span class="dots"><i style="background:#FF5F57"></i><i style="background:#FEBC2E"></i><i style="background:#28C840"></i></span><span class="url">📅 Календарь и задачи</span><span class="tag">● LIVE</span></div>
+        <img class="crop" style="height:450px;aspect-ratio:1130/810;object-fit:cover;object-view-box:inset(25.3% 42.5% 2.7% 1%)" data-shot="06b_calendar_panel.png" src="screenshots/06b_calendar_panel.png" alt="Вкладка «Календарь и задачи»">
+      </div>
+      <div class="shot">
+        <div class="sb"><span class="dots"><i style="background:#FF5F57"></i><i style="background:#FEBC2E"></i><i style="background:#28C840"></i></span><span class="url">Созвон 1:1</span><span class="tag">● LIVE</span></div>
+        <img class="crop" style="height:450px;aspect-ratio:560/715;object-fit:cover;object-view-box:inset(18.2% 36% 18.2% 36%)" data-shot="06_planner_14days.png" src="screenshots/06_planner_14days.png" alt="Карточка созвона с видеоссылкой и отчётом Гоффи">
+      </div>
+      <div class="shot">
+        <div class="sb"><span class="dots"><i style="background:#FF5F57"></i><i style="background:#FEBC2E"></i><i style="background:#28C840"></i></span><span class="url">📊 Статистика · Light Avito Clean</span><span class="tag">● LIVE</span></div>
+        <img class="crop" style="height:450px;aspect-ratio:1130/810;object-fit:cover;object-view-box:inset(25.3% 42.5% 2.7% 1%)" data-shot="07_stats_and_light_mode.png" src="screenshots/07_stats_and_light_mode.png" alt="Вкладка «Статистика и метрики» в светлой теме">
+      </div>
+    </div>
+    <div class="grid f1" style="grid-template-columns:1fr 1fr 720px;gap:20px;align-items:start">
+      <div class="card s col g8"><h4>📅 Календарь и задачи</h4><p style="font-size:17px">Напоминания с обратным отсчётом, две недели событий, своя задача на день · <span class="mono c-t">calendar.add_task</span>. Видеоссылка на 1:1 и «Отчёт для Гоффи» → бриф наставнику · <span class="mono c-t">calendar.complete_item</span></p></div>
+      <div class="card s col g8"><h4>📊 Статистика и метрики</h4><p style="font-size:17px">Шаги закрыто / в работе / впереди, круговой индикатор Deflection Rate, сэкономленное время наставника, доступы, материалы, брифы</p></div>
+      <div class="shot">
+        <img class="crop" style="width:100%;aspect-ratio:1130/460;object-fit:cover;object-view-box:inset(29.3% 42.5% 29.8% 1%)" data-shot="07b_benchmarks_light.png" src="screenshots/07b_benchmarks_light.png" alt="Бенчмарки онбординга из Q&amp;A в приложении">
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>Бенчмарки Q&amp;A Авито (90% · 9/10 · 68% → 92%+) встроены прямо во вкладку «Статистика»</span><span class="pg"><span class="bd s"><i></i><i></i><i></i><i></i></span>08 / 12</span></div>
+</section></div>
+
+<!-- =================== 9. АРХИТЕКТУРА =================== -->
+<div class="sw"><section class="slide" id="slide-9">
+  <div class="kicker"><i class="no">08</i>Архитектура · 100% попадание в стек и инфраструктуру Авито</div>
+  <h2>Go + React + MCP: <span class="grad">боевой стек Авито</span> без экзотики</h2>
+  <div class="body col" style="gap:22px">
+    <div class="row f1" style="gap:0;align-items:stretch">
+      <div class="card hi col g12" style="flex:1">
+        <span class="pill b" style="align-self:flex-start">Frontend</span>
+        <h3>React 18 + TypeScript</h3>
+        <div class="row wrap g8"><span class="pill">TanStack Query</span><span class="pill">Zustand</span><span class="pill">Zod</span><span class="pill">Tailwind</span><span class="pill">Vitest</span></div>
+        <ul style="margin-top:auto"><li style="font-size:18px">Split-Screen UI · 2 темы</li><li style="font-size:18px">3 роли · 2 профиля</li><li style="font-size:18px">Zod-схемы ответов API</li><li style="font-size:18px">Clickstream-события</li></ul>
+      </div>
+      <div class="col jc ac" style="width:92px;flex:none;gap:4px"><span class="mono lbl" style="font-size:13px">REST</span><span class="arrow">⇄</span><span class="mono lbl" style="font-size:13px">JSON</span></div>
+      <div class="card col g12" style="flex:1.45;border-color:rgba(0,194,87,.4)">
+        <span class="pill g" style="align-self:flex-start">Backend</span>
+        <h3>Go 1.26 · Clean Architecture</h3>
+        <div class="grid" style="grid-template-columns:1fr 1fr;gap:10px">
+          <div class="uicard"><b style="font-size:17px">Agent orchestrator</b><p style="font-size:15px">intent → skill → tool</p></div>
+          <div class="uicard"><b style="font-size:17px">RBAC guard</b><p style="font-size:15px">политики до вызова тула</p></div>
+          <div class="uicard"><b style="font-size:17px">Agent Skills</b><p style="font-size:15px">крон, бриф, отгул</p></div>
+          <div class="uicard"><b style="font-size:17px">Feature Flags</b><p style="font-size:15px">compile-time + runtime (Redis)</p></div>
+        </div>
+        <div class="uicard row ac g8 wrap" style="border-color:rgba(255,176,32,.5);background:var(--ta)"><b style="font-size:16px">🧠 LLM</b><span class="pill b sm">DeepSeek API</span><span class="c-a">⇢</span><span class="pill g sm">Smart Fallback &lt;50 мс</span></div>
+        <div class="row ac g8 mono" style="margin-top:auto;font-size:15px;color:var(--muted)"><span class="pill sm">domain</span>→<span class="pill sm">usecase</span>→<span class="pill sm">mcp</span>→<span class="pill sm">http</span></div>
+      </div>
+      <div class="col jc ac" style="width:92px;flex:none;gap:4px"><span class="mono lbl" style="font-size:13px">JSON-RPC</span><span class="arrow c-v">⇄</span><span class="mono lbl" style="font-size:13px">2.0</span></div>
+      <div class="card vi col g8" style="flex:1.3">
+        <span class="pill v" style="align-self:flex-start">MCP Gateway</span>
+        <h3>11 инструментов · 8 серверов</h3>
+        <div class="col g6">
+          <span class="tool" style="font-size:15px">iam_access.request_repo_access</span>
+          <span class="tool r" style="font-size:15px">db_admin.export_prod_pii ⛔</span>
+          <span class="tool" style="font-size:15px">playbook.search_docs</span>
+          <span class="tool" style="font-size:15px">absences.create / review_day_off</span>
+          <span class="tool" style="font-size:15px">mentor.send_1on1_brief</span>
+          <span class="tool" style="font-size:15px">tracker.get_task_activity</span>
+          <span class="tool" style="font-size:15px">calendar.add_task / complete_item</span>
+          <span class="tool" style="font-size:15px">notifications · feature_flags</span>
+        </div>
+      </div>
+      <div class="col jc ac" style="width:92px;flex:none;gap:4px"><span class="mono lbl" style="font-size:13px">SQL</span><span class="arrow c-a">⇄</span><span class="mono lbl" style="font-size:13px">cache</span></div>
+      <div class="card col g10" style="flex:.85;border-color:rgba(255,176,32,.4)">
+        <span class="pill a" style="align-self:flex-start">Data</span>
+        <h3>PostgreSQL</h3><p style="font-size:18px">профили, чек-листы, заявки, аудит MCP</p>
+        <h3 style="margin-top:8px">Redis</h3><p style="font-size:18px">сессии, кэш, runtime-флаги</p>
+        <div class="uicard col g6" style="margin-top:auto"><b class="mono c-m" style="font-size:12px">HEALTHCHECK</b><span class="mono c-g" style="font-size:14px">● postgres · redis</span><span class="mono c-g" style="font-size:14px">● backend /healthz</span></div>
+      </div>
+    </div>
+    <div class="grid" style="grid-template-columns:repeat(4,1fr);gap:20px">
+      <div class="card s"><h4>🚩 Compile-time vs Runtime</h4><p style="font-size:17px;margin-top:4px">Compile-time — из сборки (менять нельзя, 422), runtime — в Redis без перезапуска</p></div>
+      <div class="card s"><h4>🧩 Agent Skills</h4><p style="font-size:17px;margin-top:4px">Навыки поверх MCP, видны в Инспекторе жюри</p></div>
+      <div class="card s"><h4>📈 GET /metrics</h4><p style="font-size:17px;margin-top:4px">Экспорт для Prometheus / Grafana + Clickstream-аналитика</p></div>
+      <div class="card s"><h4>⚡ Двухконтурный LLM</h4><p style="font-size:17px;margin-top:4px">DeepSeek + автономный Smart Fallback: демо работает без интернета</p></div>
+    </div>
+  </div>
+  <div class="foot"><span>docker compose: frontend · backend · postgres · redis · healthcheck</span><span class="pg"><span class="bd s"><i></i><i></i><i></i><i></i></span>09 / 12</span></div>
+</section></div>
+
+<!-- =================== 10. SDD =================== -->
+<div class="sw"><section class="slide" id="slide-10">
+  <div class="kicker"><i class="no">09</i>Spec-Driven Development (SDD) и инженерное качество</div>
+  <h2>Контракты вкомпилированы в бинарник, <span class="grad">тесты &gt;95%</span></h2>
+  <div class="grid body" style="grid-template-columns:1.05fr 1fr">
+    <div class="card col g20">
+      <div class="row ac jb"><h3>OpenSpec → <span class="mono">embed.FS</span> → runtime</h3><span class="pill v">single source of truth</span></div>
+      <div class="code" style="font-size:20px;line-height:1.6;padding:20px 24px"><span class="c">// specs/embed.go</span>
+<span class="k">//go:embed</span> *.openspec.yaml
+<span class="k">var</span> FS embed.FS
+
+specs/
+├─ <span class="s">01_agent_behavior</span>.openspec.yaml
+├─ <span class="s">02_mcp_tools</span>.openspec.yaml
+└─ <span class="s">03_rbac_matrix</span>.openspec.yaml</div>
+      <div class="row ac g10">
+        <div class="uicard f1" style="text-align:center;padding:14px 8px"><div class="cap" style="font-size:11px">spec</div><b style="font-size:16px">YAML-контракт</b></div><span class="arrow" style="font-size:24px">→</span>
+        <div class="uicard f1" style="text-align:center;padding:14px 8px"><div class="cap" style="font-size:11px">build</div><b style="font-size:16px">embed.FS</b></div><span class="arrow" style="font-size:24px">→</span>
+        <div class="uicard f1" style="text-align:center;padding:14px 8px"><div class="cap" style="font-size:11px">runtime</div><b style="font-size:16px">реестр MCP + RBAC</b></div><span class="arrow" style="font-size:24px">→</span>
+        <div class="uicard f1" style="text-align:center;padding:14px 8px;border-color:rgba(0,194,87,.55)"><div class="cap" style="font-size:11px">test</div><b style="font-size:16px">consistency ✓</b></div>
+      </div>
+      <ul class="v">
+        <li style="font-size:21px"><b class="mono">TestRegistryConformsToSpec</b>: реестр MCP разошёлся со спекой → CI красный</li>
+        <li style="font-size:21px">Поведение агента, JSON Schema тулов и матрица RBAC — из одной спеки</li>
+        <li style="font-size:21px">Агент не может вызвать тул, которого нет в контракте</li>
+      </ul>
+    </div>
+    <div class="col g20">
+      <div class="grid" style="grid-template-columns:1fr 1fr;gap:20px">
+        <div class="card ok col ac g12" style="text-align:center">
+          <div class="gauge" style="width:200px;height:200px"><svg width="200" height="200" viewBox="0 0 210 210"><circle cx="105" cy="105" r="88" fill="none" stroke="var(--card3)" stroke-width="18"/><circle cx="105" cy="105" r="88" fill="none" stroke="var(--green)" stroke-width="18" stroke-linecap="round" stroke-dasharray="530.2 552.9"/></svg>
+            <div class="rv"><div class="num c-g" style="font-size:38px">95.9%</div><div class="lbl mono" style="font-size:13px">statements</div></div></div>
+          <h3>Backend Go</h3><p class="lbl mono">go test -cover ./...</p>
+        </div>
+        <div class="card ok col ac g12" style="text-align:center">
+          <div class="gauge" style="width:200px;height:200px"><svg width="200" height="200" viewBox="0 0 210 210"><circle cx="105" cy="105" r="88" fill="none" stroke="var(--card3)" stroke-width="18"/><circle cx="105" cy="105" r="88" fill="none" stroke="var(--green)" stroke-width="18" stroke-linecap="round" stroke-dasharray="549.6 552.9"/></svg>
+            <div class="rv"><div class="num c-g" style="font-size:36px">99.41%</div><div class="lbl mono" style="font-size:13px">92 / 92 тестов</div></div></div>
+          <h3>Frontend Vitest</h3><p class="lbl mono">vitest --coverage</p>
+        </div>
+      </div>
+      <div class="card hi s row ac jb" style="padding:18px 26px">
+        <div><div class="cap">Требование кейса</div><p style="font-size:19px;margin-top:2px">Минимальное покрытие тестами</p></div>
+        <div class="row ac g16"><div class="num" style="font-size:50px;color:var(--muted)">&gt;80%</div><span class="pill g xl">×1.2 запас</span></div>
+      </div>
+      <div class="card s col f1" style="padding:20px 26px;gap:16px">
+        <div class="row ac jb"><h4>CI/CD · GitHub Actions</h4><span class="mono lbl" style="font-size:13px">.github/workflows/ci.yml</span></div>
+        <div class="row ac g8"><span class="pill b" style="width:112px;justify-content:center">Backend</span><span class="pill g">✓ OpenSpec + go test</span><span class="c-m">→</span><span class="pill g">✓ gate &gt;80%</span><span class="c-m">→</span><span class="pill g">✓ build</span></div>
+        <div class="row ac g8"><span class="pill v" style="width:112px;justify-content:center">Frontend</span><span class="pill g">✓ tsc</span><span class="c-m">→</span><span class="pill g">✓ vitest coverage</span><span class="c-m">→</span><span class="pill g">✓ vite build</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>docker compose --profile tests run --rm backend-tests</span><span class="pg"><span class="bd s"><i></i><i></i><i></i><i></i></span>10 / 12</span></div>
+</section></div>
+
+<!-- =================== 11. ЭКОНОМИКА И A/B =================== -->
+<div class="sw"><section class="slide" id="slide-11">
+  <div class="kicker"><i class="no">10</i>Экономический эффект и дизайн A/B-эксперимента</div>
+  <h2><span class="grad">2 000+ часов</span> сеньоров в год возвращаются в продукт</h2>
+  <div class="grid body" style="grid-template-columns:1fr 1fr 1fr 1.15fr;grid-template-rows:1fr auto">
+    <div class="card hi col g16">
+      <div class="cap">Нагрузка наставника · первые месяцы</div>
+      <div class="row ac g12"><span class="num" style="color:var(--dim);text-decoration:line-through;text-decoration-thickness:5px;font-size:58px">5 ч</span><span class="arrow" style="font-size:30px">➜</span><span class="num grad" style="font-size:58px">2.5–3 ч</span></div>
+      <div class="col g8"><div class="row ac g12"><span class="lbl mono" style="width:80px">сейчас</span><div class="bar f1"><i style="width:100%;background:var(--dim)"></i></div></div><div class="row ac g12"><span class="lbl mono" style="width:80px">Гоффи</span><div class="bar f1"><i style="width:55%"></i></div></div></div>
+      <div class="cap">в неделю · за счёт</div><ul style="margin:0"><li style="font-size:18px;margin:5px 0">доступы через MCP вместо ручных заявок</li><li style="font-size:18px;margin:5px 0">Structured 1:1 Brief вместо подготовки</li><li style="font-size:18px;margin:5px 0">ответы Playbook без наставника</li></ul>
+    </div>
+    <div class="card col g16">
+      <div class="cap">Первая самостоятельная задача</div>
+      <div class="row ac g12"><span class="num" style="color:var(--dim);text-decoration:line-through;text-decoration-thickness:5px;font-size:58px">14</span><span class="arrow" style="font-size:30px">➜</span><span class="num grad" style="font-size:58px">8–9 дн.</span></div>
+      <div class="col g8"><div class="row ac g12"><span class="lbl mono" style="width:80px">сейчас</span><div class="bar f1"><i style="width:100%;background:var(--dim)"></i></div></div><div class="row ac g12"><span class="lbl mono" style="width:80px">Гоффи</span><div class="bar f1"><i style="width:61%"></i></div></div></div>
+      <div class="cap">за счёт</div><ul style="margin:0"><li style="font-size:18px;margin:5px 0">доступ и тестовый стенд — в день 1</li><li style="font-size:18px;margin:5px 0">контекст команды и задачи в профиле</li><li style="font-size:18px;margin:5px 0">ИИ-крон ловит застрявшие задачи</li></ul>
+    </div>
+    <div class="card ok col g16">
+      <div class="cap">CSAT чек-листа</div>
+      <div class="row ac g12"><span class="num" style="color:var(--dim);text-decoration:line-through;text-decoration-thickness:5px;font-size:58px">68%</span><span class="arrow c-g" style="font-size:30px">➜</span><span class="num c-g" style="font-size:58px">92%+</span></div>
+      <div class="col g8"><div class="row ac g12"><span class="lbl mono" style="width:80px">сейчас</span><div class="bar f1"><i style="width:68%;background:var(--dim)"></i></div></div><div class="row ac g12"><span class="lbl mono" style="width:80px">Гоффи</span><div class="bar f1"><i style="width:92%;background:linear-gradient(90deg,var(--green),#00A0A0)"></i></div></div></div>
+      <div class="cap">за счёт</div><ul style="margin:0"><li style="font-size:18px;margin:5px 0">шаги закрываются действиями</li><li style="font-size:18px;margin:5px 0">календарь на 14 дней и напоминания</li><li style="font-size:18px;margin:5px 0">прогресс и самоконтроль на виду</li></ul>
+    </div>
+    <div class="card ok col jb" style="grid-row:span 2;background:linear-gradient(160deg,rgba(0,194,87,.22),rgba(0,170,255,.12)),var(--card)">
+      <div class="cap">ROI для Авито</div>
+      <div><div class="big c-g" style="font-size:96px">~18–20 ч</div><p style="font-size:20px;margin-top:6px">экономии сеньора на <b>каждого стажёра</b></p></div>
+      <div style="height:1px;background:var(--border2)"></div>
+      <div><div class="big grad" style="font-size:96px">2 000+ ч</div><p style="font-size:20px;margin-top:6px">сеньор-разработки в год на каждые <b>100 стажёров</b> — возвращены продуктовым задачам</p></div>
+      <p class="lbl" style="font-size:15px">Прогноз по метрикам Q&amp;A; подтверждается A/B-тестом</p>
+    </div>
+    <div class="card row" style="grid-column:span 3;gap:28px;padding:22px 28px;align-items:center">
+      <div style="width:400px;flex:none">
+        <div class="cap">Методика валидации</div>
+        <h3 style="margin-top:6px">Кластерный A/B по командам-наставникам</h3>
+        <p style="font-size:17px;margin-top:6px">Рандомизация по командам, а не по стажёрам — без перетекания практик внутри команды.</p>
+      </div>
+      <div class="col g8 f1">
+        <div class="row ac g10"><span class="pill sm">A · контроль</span><span class="lbl" style="font-size:16px">наставник + статичный чек-лист</span></div>
+        <div class="row ac g10"><span class="pill g sm">B · тест</span><span class="lbl" style="font-size:16px">наставник + Гоффи Workspace</span></div>
+        <div class="row wrap g8" style="margin-top:4px"><span class="pill b sm">часы наставника / нед</span><span class="pill b sm">дни до 1-й задачи</span><span class="pill b sm">CSAT чек-листа</span><span class="pill v sm">Deflection Rate</span><span class="pill r sm">guardrail: RBAC-инциденты = 0</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>Целевые значения — прогноз на основе метрик Q&amp;A Авито</span><span class="pg"><span class="bd s"><i></i><i></i><i></i><i></i></span>11 / 12</span></div>
+</section></div>
+
+<!-- =================== 12. ROADMAP + QR =================== -->
+<div class="sw"><section class="slide" id="slide-12">
+  <div class="kicker"><i class="no">11</i>Внедрение в контур Авито · контакты</div>
+  <h2>Раскатка за <span class="grad">4 недели</span>. Протестируйте прямо сейчас</h2>
+  <div class="row body" style="gap:36px">
+    <div class="col f1" style="gap:22px">
+      <div class="card col g16" style="padding:26px 30px">
+        <div class="row ac jb"><h3>Roadmap: боевые MCP вместо имитаций</h3><span class="pill g">контракты уже в specs/</span></div>
+        <div class="row" style="gap:0;position:relative;margin-top:6px">
+          <div style="position:absolute;left:24px;right:24px;top:22px;height:4px;border-radius:2px;background:linear-gradient(90deg,#00C257,#00AAFF,#A855F7,#FF5252)"></div>
+          <div class="col g10 f1" style="padding-right:14px"><span class="n g" style="position:relative">1</span><b style="font-size:20px">Неделя 1</b><p style="font-size:17px">Stash и Jira: доступы, активность задач</p></div>
+          <div class="col g10 f1" style="padding-right:14px"><span class="n" style="position:relative">2</span><b style="font-size:20px">Неделя 2</b><p style="font-size:17px">Confluence: боевой Playbook вместо синтетики</p></div>
+          <div class="col g10 f1" style="padding-right:14px"><span class="n" style="position:relative;background:linear-gradient(135deg,var(--violet),#6040D0)">3</span><b style="font-size:20px">Неделя 3</b><p style="font-size:17px">Отсутствия, Командировки, Бенефиты</p></div>
+          <div class="col g10 f1"><span class="n r" style="position:relative">4</span><b style="font-size:20px">Неделя 4</b><p style="font-size:17px">Пилотная когорта + старт A/B</p></div>
+        </div>
+      </div>
+      <div class="card hi col g16 f1" style="padding:26px 30px">
+        <h3>Запуск в 1 команду</h3>
+        <div class="code" style="font-size:34px;padding:22px 28px;line-height:1.3"><span class="c">$</span> docker compose up <span class="k">--build</span></div>
+        <div class="row ac g16 wrap"><span class="pill xl g">👤 hack-and-change-2026</span><p style="font-size:20px" class="f1">Доступ открыт для аккаунта жюри — 3 роли, 2 профиля и все сценарии.</p></div>
+        <div class="row g12">
+          <div class="uicard row ac g10 f1" style="padding:14px 16px"><span class="n" style="width:34px;height:34px;font-size:16px">1</span><span style="font-size:17px">Сценарии 1А · 1Б · 2 · 3</span></div>
+          <div class="uicard row ac g10 f1" style="padding:14px 16px"><span class="n" style="width:34px;height:34px;font-size:16px">2</span><span style="font-size:17px">Переключить 3 роли</span></div>
+          <div class="uicard row ac g10 f1" style="padding:14px 16px"><span class="n" style="width:34px;height:34px;font-size:16px">3</span><span style="font-size:17px">Открыть Инспектор жюри</span></div>
+        </div>
+        <div class="col g8" style="margin-top:auto">
+          <div class="row ac g12"><span class="pill b sm" style="width:88px;justify-content:center">GitHub</span><a class="mono" data-link="repo" style="font-size:21px"></a></div>
+          <div class="row ac g12"><span class="pill v sm" style="width:88px;justify-content:center">Видео</span><a class="mono" data-link="video" style="font-size:21px"></a></div>
+        </div>
+      </div>
+    </div>
+    <div class="col ac jc" style="width:560px;flex:none;position:relative;gap:20px">
+      <div class="card hi col ac" style="padding:30px;border-color:var(--border2)">
+        <div class="qr" style="width:440px"><div data-qr="repo"></div></div>
+        <div class="kicker" style="margin:22px 0 4px;font-size:22px">📱 Сканируй и тестируй</div>
+        <p style="font-size:20px;text-align:center">Репозиторий · видеодемо · инструкции</p>
+      </div>
+      <div class="mascot photo sm" style="width:150px;height:150px;position:absolute;right:-56px;top:-40px;z-index:3"><img data-asset="frontend/public/goffy.png" src="../../frontend/public/goffy.png" alt="Гоффи"></div>
+    </div>
+  </div>
+  <div class="foot"><span>Спасибо! Гоффи — Avito Start AI-Buddy</span><span class="pg"><span class="bd s"><i></i><i></i><i></i><i></i></span>12 / 12</span></div>
+</section></div>
+
+</main>
+
+<script>
+/* ---------- Компактный генератор QR (byte mode, ECC M, версии 1–10) → SVG ---------- */
+function makeQR(text){
+  const bytes=Array.from(new TextEncoder().encode(text));
+  const ECC=[10,16,26,18,24,16,18,22,22,26], BLK=[1,1,2,2,4,4,4,5,5,5];
+  const raw=v=>{let r=(16*v+128)*v+64;if(v>=2){const n=Math.floor(v/7)+2;r-=(25*n-10)*n-55;if(v>=7)r-=36;}return r;};
+  let ver=1;
+  for(;;ver++){
+    if(ver>10)throw new Error('URL слишком длинный для QR');
+    const cap=Math.floor(raw(ver)/8)-ECC[ver-1]*BLK[ver-1];
+    if(4+(ver<10?8:16)+bytes.length*8<=cap*8)break;
+  }
+  const dataCap=Math.floor(raw(ver)/8)-ECC[ver-1]*BLK[ver-1];
+  const bits=[];const put=(v,n)=>{for(let i=n-1;i>=0;i--)bits.push((v>>>i)&1);};
+  put(4,4);put(bytes.length,ver<10?8:16);bytes.forEach(b=>put(b,8));
+  put(0,Math.min(4,dataCap*8-bits.length));while(bits.length%8)bits.push(0);
+  for(let p=0xEC;bits.length<dataCap*8;p^=0xEC^0x11)put(p,8);
+  const cw=[];for(let i=0;i<bits.length;i+=8)cw.push(parseInt(bits.slice(i,i+8).join(''),2));
+  const mul=(x,y)=>{let z=0;for(let i=7;i>=0;i--){z=(z<<1)^((z>>>7)*0x11D);z^=((y>>>i)&1)*x;}return z;};
+  const gen=d=>{const r=new Array(d).fill(0);r[d-1]=1;let root=1;for(let i=0;i<d;i++){for(let j=0;j<d;j++){r[j]=mul(r[j],root);if(j+1<d)r[j]^=r[j+1];}root=mul(root,2);}return r;};
+  const rem=(data,g)=>{const res=new Array(g.length).fill(0);for(const b of data){const f=b^res.shift();res.push(0);g.forEach((c,i)=>res[i]^=mul(c,f));}return res;};
+  const nb=BLK[ver-1],el=ECC[ver-1],rc=Math.floor(raw(ver)/8),ns=nb-rc%nb,sl=Math.floor(rc/nb),g=gen(el),blocks=[];
+  for(let i=0,k=0;i<nb;i++){const len=sl-el+(i<ns?0:1);const d=cw.slice(k,k+len);k+=len;const e=rem(d,g);if(i<ns)d.push(0);blocks.push(d.concat(e));}
+  const all=[];for(let i=0;i<blocks[0].length;i++)blocks.forEach((b,j)=>{if(i!==sl-el||j>=ns)all.push(b[i]);});
+  const size=ver*4+17;
+  const mk=()=>Array.from({length:size},()=>new Array(size).fill(false));
+  const m=mk(),fn=mk();
+  const set=(x,y,v)=>{m[y][x]=!!v;fn[y][x]=true;};
+  for(let i=0;i<size;i++){set(6,i,i%2===0);set(i,6,i%2===0);}
+  [[3,3],[size-4,3],[3,size-4]].forEach(([x,y])=>{for(let dy=-4;dy<=4;dy++)for(let dx=-4;dx<=4;dx++){const d=Math.max(Math.abs(dx),Math.abs(dy)),xx=x+dx,yy=y+dy;if(xx>=0&&xx<size&&yy>=0&&yy<size)set(xx,yy,d!==2&&d!==4);}});
+  if(ver>1){const n=Math.floor(ver/7)+2,step=Math.ceil((ver*4+4)/(n*2-2))*2,pos=[6];
+    for(let p=size-7;pos.length<n;p-=step)pos.splice(1,0,p);
+    for(let i=0;i<n;i++)for(let j=0;j<n;j++){if((i===0&&j===0)||(i===0&&j===n-1)||(i===n-1&&j===0))continue;
+      for(let dy=-2;dy<=2;dy++)for(let dx=-2;dx<=2;dx++)set(pos[i]+dx,pos[j]+dy,Math.max(Math.abs(dx),Math.abs(dy))!==1);}}
+  const fmt=(mm,mask)=>{const data=(0<<3)|mask;let r=data;for(let i=0;i<10;i++)r=(r<<1)^((r>>>9)*0x537);
+    const b=((data<<10)|r)^0x5412,bit=i=>((b>>>i)&1)!==0;
+    const s=(x,y,v)=>{mm[y][x]=v;};
+    for(let i=0;i<=5;i++)s(8,i,bit(i));s(8,7,bit(6));s(8,8,bit(7));s(7,8,bit(8));for(let i=9;i<15;i++)s(14-i,8,bit(i));
+    for(let i=0;i<8;i++)s(size-1-i,8,bit(i));for(let i=8;i<15;i++)s(8,size-15+i,bit(i));s(8,size-8,true);};
+  fmt(m,0);for(let i=0;i<=8;i++){fn[8][i]=true;fn[i][8]=true;}for(let i=0;i<8;i++){fn[8][size-1-i]=true;fn[size-1-i][8]=true;}fn[size-8][8]=true;
+  if(ver>=7){let r=ver;for(let i=0;i<12;i++)r=(r<<1)^((r>>>11)*0x1F25);const b=(ver<<12)|r;
+    for(let i=0;i<18;i++){const c=((b>>>i)&1)!==0,a=size-11+i%3,bb=Math.floor(i/3);set(a,bb,c);set(bb,a,c);}}
+  let idx=0;
+  for(let right=size-1;right>=1;right-=2){if(right===6)right=5;
+    for(let vert=0;vert<size;vert++)for(let j=0;j<2;j++){const x=right-j,up=((right+1)&2)===0,y=up?size-1-vert:vert;
+      if(!fn[y][x]&&idx<all.length*8){m[y][x]=((all[idx>>>3]>>>(7-(idx&7)))&1)!==0;idx++;}}}
+  const MASK=[(x,y)=>(x+y)%2===0,(x,y)=>y%2===0,(x,y)=>x%3===0,(x,y)=>(x+y)%3===0,(x,y)=>(Math.floor(x/3)+Math.floor(y/2))%2===0,
+    (x,y)=>x*y%2+x*y%3===0,(x,y)=>(x*y%2+x*y%3)%2===0,(x,y)=>((x+y)%2+x*y%3)%2===0];
+  const penalty=mm=>{let p=0;
+    for(let a=0;a<2;a++)for(let i=0;i<size;i++){let run=1;for(let j=1;j<size;j++){const c=a?mm[j][i]:mm[i][j],d=a?mm[j-1][i]:mm[i][j-1];if(c===d){run++;if(run===5)p+=3;else if(run>5)p++;}else run=1;}}
+    for(let y=0;y<size-1;y++)for(let x=0;x<size-1;x++){const c=mm[y][x];if(c===mm[y][x+1]&&c===mm[y+1][x]&&c===mm[y+1][x+1])p+=3;}
+    let dark=0;mm.forEach(r=>r.forEach(c=>{if(c)dark++;}));p+=Math.floor(Math.abs(dark*20-size*size*10)/(size*size))*10;return p;};
+  let best=null,bp=1e9;
+  for(let k=0;k<8;k++){const mm=m.map(r=>r.slice());
+    for(let y=0;y<size;y++)for(let x=0;x<size;x++)if(!fn[y][x]&&MASK[k](x,y))mm[y][x]=!mm[y][x];
+    fmt(mm,k);const p=penalty(mm);if(p<bp){bp=p;best=mm;}}
+  const q=4,t=size+q*2;let d='';
+  for(let y=0;y<size;y++)for(let x=0;x<size;x++)if(best[y][x])d+=`M${x+q},${y+q}h1v1h-1z`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${t} ${t}" shape-rendering="crispEdges"><rect width="${t}" height="${t}" fill="#fff"/><path d="${d}" fill="#000"/></svg>`;
+}
+
+/* ---------- Состояние: ссылки, тема, масштаб, навигация ---------- */
+const DEF_REPO='https://github.com/Bossuslugi/hack_and_change'; // @auto-repo — сборка подставляет git remote origin
+const DEF_VIDEO=DEF_REPO+'/blob/main/docs/demo_video.webm';
+const store={get(k){try{return localStorage.getItem(k);}catch(e){return null;}},set(k,v){try{v?localStorage.setItem(k,v):localStorage.removeItem(k);}catch(e){}}};
+const $=s=>document.querySelector(s);
+const params=new URLSearchParams(location.search);
+let repo=params.get('repo')||store.get('pd_repo')||DEF_REPO;
+let video=params.get('video')||store.get('pd_video')||DEF_VIDEO;
+const short=u=>u.replace(/^https?:\/\//,'').replace(/\/$/,'');
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function paintQR(){let svg;try{svg=makeQR(repo);$('#inRepo').classList.remove('err');}catch(e){$('#inRepo').classList.add('err');return;}
+  document.querySelectorAll('[data-qr="repo"]').forEach(n=>n.innerHTML=svg);}
+function paintLinks(){document.querySelectorAll('[data-link]').forEach(a=>{const u=a.dataset.link==='repo'?repo:video;
+  a.innerHTML=esc(short(u)).replace(/\//g,'/<wbr>');a.href=u;a.target='_blank';a.rel='noopener';});}
+function render(){paintQR();paintLinks();$('#inRepo').value=repo;$('#inVideo').value=video;}
+function setTheme(t){document.documentElement.dataset.theme=t;store.set('pd_theme',t);$('#thDark').classList.toggle('on',t==='dark');$('#thLight').classList.toggle('on',t==='light');}
+
+/* Градиентный текст по буквам: background-clip:text даёт контур-артефакт в PDF */
+document.querySelectorAll('.grad').forEach(el=>{
+  const chars=Array.from(el.textContent),n=Math.max(1,chars.length-1);
+  el.innerHTML=chars.map((ch,i)=>{const t=i/n;
+    const c=t<=.55?`color-mix(in oklab,var(--violet) ${Math.round(t/.55*100)}%,var(--blue))`:`color-mix(in oklab,var(--green) ${Math.round((t-.55)/.45*100)}%,var(--violet))`;
+    return ch.trim()?`<span style="color:${c}">${esc(ch)}</span>`:ch;}).join('');
+  el.classList.add('gradc');
+});
+
+const slides=[...document.querySelectorAll('.sw')];
+let cur=0;
+const solo=+params.get('slide')||0;
+if(solo){slides.forEach((s,i)=>{if(i+1!==solo)s.style.display='none';});$('#ctl').style.display='none';$('#deck').style.padding='0';}
+function fit(){
+  let z;
+  if(solo)z=1;
+  else if(document.body.classList.contains('present'))z=Math.min(innerWidth/1920,innerHeight/1080);
+  else z=Math.min(1,(innerWidth-40)/1920);
+  document.documentElement.style.setProperty('--z',Math.max(.2,z));
+}
+function go(i){
+  cur=Math.max(0,Math.min(slides.length-1,i));
+  slides.forEach((s,k)=>s.classList.toggle('cur',k===cur));
+  if(!document.body.classList.contains('present'))slides[cur].scrollIntoView({behavior:'smooth',block:'center'});
+}
+function present(on){document.body.classList.toggle('present',on);$('#ctl').style.display=on?'none':'';fit();go(cur);}
+addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT')return;
+  if(['ArrowRight','ArrowDown','PageDown',' '].includes(e.key)){e.preventDefault();go(cur+1);}
+  else if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){e.preventDefault();go(cur-1);}
+  else if(e.key==='Home'){e.preventDefault();go(0);}
+  else if(e.key==='End'){e.preventDefault();go(slides.length-1);}
+  else if(e.key==='f'||e.key==='F'||e.key==='а'||e.key==='А'){present(!document.body.classList.contains('present'));}
+  else if(e.key==='Escape'&&document.body.classList.contains('present')){present(false);}
+});
+addEventListener('scroll',()=>{if(document.body.classList.contains('present'))return;
+  const mid=innerHeight/2;let best=0,bd=1e9;slides.forEach((s,i)=>{const r=s.getBoundingClientRect(),d=Math.abs(r.top+r.height/2-mid);if(d<bd){bd=d;best=i;}});cur=best;},{passive:true});
+
+$('#thDark').onclick=()=>setTheme('dark');
+$('#thLight').onclick=()=>setTheme('light');
+$('#inRepo').oninput=e=>{repo=e.target.value.trim()||DEF_REPO;store.set('pd_repo',repo===DEF_REPO?'':repo);paintQR();paintLinks();};
+$('#inVideo').oninput=e=>{video=e.target.value.trim()||DEF_VIDEO;store.set('pd_video',video===DEF_VIDEO?'':video);paintLinks();};
+$('#btnReset').onclick=()=>{repo=DEF_REPO;video=DEF_VIDEO;store.set('pd_repo','');store.set('pd_video','');render();};
+$('#btnPrint').onclick=()=>window.print();
+$('#btnPresent').onclick=()=>present(true);
+$('#ctlHead').onclick=()=>{const c=$('#ctl');c.classList.toggle('min');$('#ctlArrow').textContent=c.classList.contains('min')?'▸':'▾';};
+addEventListener('resize',fit);
+setTheme(params.get('theme')||store.get('pd_theme')||'dark');fit();render();go(0);
+</script>
+</body>
+</html>
